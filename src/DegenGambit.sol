@@ -179,6 +179,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     error WaitForTick();
     /// Signifies that the player has not provided enough value to perform the action.
     error InsufficientValue();
+    /// Signifies that a reel outcome is out of bounds.
+    error OutcomeOutOfBounds();
 
     function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
         return
@@ -216,5 +218,432 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         if (block.number > LastSpinBlock[degenerate] + BlocksToAct) {
             revert DeadlineExceeded();
         }
+    }
+
+    function _entropy(
+        address degenerate
+    ) internal view virtual returns (uint256) {
+        return
+            uint256(
+                keccak256(
+                    abi.encode(blockhash(LastSpinBlock[degenerate]), degenerate)
+                )
+            );
+    }
+
+    /// sampleUnmodifiedLeftReel samples the outcome from UnmodifiedLeftReel specified by the given entropy
+    function sampleUnmodifiedLeftReel(
+        uint256 entropy
+    ) public view returns (uint256) {
+        uint256 sample = (entropy << 166) >> 196;
+        if (sample < UnmodifiedLeftReel[0]) {
+            return 0;
+        } else if (sample < UnmodifiedLeftReel[1]) {
+            return 1;
+        } else if (sample < UnmodifiedLeftReel[2]) {
+            return 2;
+        } else if (sample < UnmodifiedLeftReel[3]) {
+            return 3;
+        } else if (sample < UnmodifiedLeftReel[4]) {
+            return 4;
+        } else if (sample < UnmodifiedLeftReel[5]) {
+            return 5;
+        } else if (sample < UnmodifiedLeftReel[6]) {
+            return 6;
+        } else if (sample < UnmodifiedLeftReel[7]) {
+            return 7;
+        } else if (sample < UnmodifiedLeftReel[8]) {
+            return 8;
+        } else if (sample < UnmodifiedLeftReel[9]) {
+            return 9;
+        } else if (sample < UnmodifiedLeftReel[10]) {
+            return 10;
+        } else if (sample < UnmodifiedLeftReel[11]) {
+            return 11;
+        } else if (sample < UnmodifiedLeftReel[12]) {
+            return 12;
+        } else if (sample < UnmodifiedLeftReel[13]) {
+            return 13;
+        } else if (sample < UnmodifiedLeftReel[14]) {
+            return 14;
+        } else if (sample < UnmodifiedLeftReel[15]) {
+            return 15;
+        } else if (sample < UnmodifiedLeftReel[16]) {
+            return 16;
+        } else if (sample < UnmodifiedLeftReel[17]) {
+            return 17;
+        }
+        return 18;
+    }
+
+    /// sampleUnmodifiedCenterReel samples the outcome from UnmodifiedCenterReel specified by the given entropy
+    function sampleUnmodifiedCenterReel(
+        uint256 entropy
+    ) public view returns (uint256) {
+        uint256 sample = (entropy << 196) >> 226;
+        if (sample < UnmodifiedCenterReel[0]) {
+            return 0;
+        } else if (sample < UnmodifiedCenterReel[1]) {
+            return 1;
+        } else if (sample < UnmodifiedCenterReel[2]) {
+            return 2;
+        } else if (sample < UnmodifiedCenterReel[3]) {
+            return 3;
+        } else if (sample < UnmodifiedCenterReel[4]) {
+            return 4;
+        } else if (sample < UnmodifiedCenterReel[5]) {
+            return 5;
+        } else if (sample < UnmodifiedCenterReel[6]) {
+            return 6;
+        } else if (sample < UnmodifiedCenterReel[7]) {
+            return 7;
+        } else if (sample < UnmodifiedCenterReel[8]) {
+            return 8;
+        } else if (sample < UnmodifiedCenterReel[9]) {
+            return 9;
+        } else if (sample < UnmodifiedCenterReel[10]) {
+            return 10;
+        } else if (sample < UnmodifiedCenterReel[11]) {
+            return 11;
+        } else if (sample < UnmodifiedCenterReel[12]) {
+            return 12;
+        } else if (sample < UnmodifiedCenterReel[13]) {
+            return 13;
+        } else if (sample < UnmodifiedCenterReel[14]) {
+            return 14;
+        } else if (sample < UnmodifiedCenterReel[15]) {
+            return 15;
+        } else if (sample < UnmodifiedCenterReel[16]) {
+            return 16;
+        } else if (sample < UnmodifiedCenterReel[17]) {
+            return 17;
+        }
+        return 18;
+    }
+
+    /// sampleUnmodifiedRightReel samples the outcome from UnmodifiedRightReel specified by the given entropy
+    function sampleUnmodifiedRightReel(
+        uint256 entropy
+    ) public view returns (uint256) {
+        uint256 sample = (entropy << 226) >> 226;
+        if (sample < UnmodifiedRightReel[0]) {
+            return 0;
+        } else if (sample < UnmodifiedRightReel[1]) {
+            return 1;
+        } else if (sample < UnmodifiedRightReel[2]) {
+            return 2;
+        } else if (sample < UnmodifiedRightReel[3]) {
+            return 3;
+        } else if (sample < UnmodifiedRightReel[4]) {
+            return 4;
+        } else if (sample < UnmodifiedRightReel[5]) {
+            return 5;
+        } else if (sample < UnmodifiedRightReel[6]) {
+            return 6;
+        } else if (sample < UnmodifiedRightReel[7]) {
+            return 7;
+        } else if (sample < UnmodifiedRightReel[8]) {
+            return 8;
+        } else if (sample < UnmodifiedRightReel[9]) {
+            return 9;
+        } else if (sample < UnmodifiedRightReel[10]) {
+            return 10;
+        } else if (sample < UnmodifiedRightReel[11]) {
+            return 11;
+        } else if (sample < UnmodifiedRightReel[12]) {
+            return 12;
+        } else if (sample < UnmodifiedRightReel[13]) {
+            return 13;
+        } else if (sample < UnmodifiedRightReel[14]) {
+            return 14;
+        } else if (sample < UnmodifiedRightReel[15]) {
+            return 15;
+        } else if (sample < UnmodifiedRightReel[16]) {
+            return 16;
+        } else if (sample < UnmodifiedRightReel[17]) {
+            return 17;
+        }
+        return 18;
+    }
+
+    /// sampleImprovedLeftReel samples the outcome from ImprovedLeftReel specified by the given entropy
+    function sampleImprovedLeftReel(
+        uint256 entropy
+    ) public view returns (uint256) {
+        uint256 sample = (entropy << 166) >> 196;
+        if (sample < ImprovedLeftReel[0]) {
+            return 0;
+        } else if (sample < ImprovedLeftReel[1]) {
+            return 1;
+        } else if (sample < ImprovedLeftReel[2]) {
+            return 2;
+        } else if (sample < ImprovedLeftReel[3]) {
+            return 3;
+        } else if (sample < ImprovedLeftReel[4]) {
+            return 4;
+        } else if (sample < ImprovedLeftReel[5]) {
+            return 5;
+        } else if (sample < ImprovedLeftReel[6]) {
+            return 6;
+        } else if (sample < ImprovedLeftReel[7]) {
+            return 7;
+        } else if (sample < ImprovedLeftReel[8]) {
+            return 8;
+        } else if (sample < ImprovedLeftReel[9]) {
+            return 9;
+        } else if (sample < ImprovedLeftReel[10]) {
+            return 10;
+        } else if (sample < ImprovedLeftReel[11]) {
+            return 11;
+        } else if (sample < ImprovedLeftReel[12]) {
+            return 12;
+        } else if (sample < ImprovedLeftReel[13]) {
+            return 13;
+        } else if (sample < ImprovedLeftReel[14]) {
+            return 14;
+        } else if (sample < ImprovedLeftReel[15]) {
+            return 15;
+        } else if (sample < ImprovedLeftReel[16]) {
+            return 16;
+        } else if (sample < ImprovedLeftReel[17]) {
+            return 17;
+        }
+        return 18;
+    }
+
+    /// sampleImprovedCenterReel samples the outcome from ImprovedCenterReel specified by the given entropy
+    function sampleImprovedCenterReel(
+        uint256 entropy
+    ) public view returns (uint256) {
+        uint256 sample = (entropy << 196) >> 226;
+        if (sample < ImprovedCenterReel[0]) {
+            return 0;
+        } else if (sample < ImprovedCenterReel[1]) {
+            return 1;
+        } else if (sample < ImprovedCenterReel[2]) {
+            return 2;
+        } else if (sample < ImprovedCenterReel[3]) {
+            return 3;
+        } else if (sample < ImprovedCenterReel[4]) {
+            return 4;
+        } else if (sample < ImprovedCenterReel[5]) {
+            return 5;
+        } else if (sample < ImprovedCenterReel[6]) {
+            return 6;
+        } else if (sample < ImprovedCenterReel[7]) {
+            return 7;
+        } else if (sample < ImprovedCenterReel[8]) {
+            return 8;
+        } else if (sample < ImprovedCenterReel[9]) {
+            return 9;
+        } else if (sample < ImprovedCenterReel[10]) {
+            return 10;
+        } else if (sample < ImprovedCenterReel[11]) {
+            return 11;
+        } else if (sample < ImprovedCenterReel[12]) {
+            return 12;
+        } else if (sample < ImprovedCenterReel[13]) {
+            return 13;
+        } else if (sample < ImprovedCenterReel[14]) {
+            return 14;
+        } else if (sample < ImprovedCenterReel[15]) {
+            return 15;
+        } else if (sample < ImprovedCenterReel[16]) {
+            return 16;
+        } else if (sample < ImprovedCenterReel[17]) {
+            return 17;
+        }
+        return 18;
+    }
+
+    /// sampleImprovedRightReel samples the outcome from ImprovedRightReel specified by the given entropy
+    function sampleImprovedRightReel(
+        uint256 entropy
+    ) public view returns (uint256) {
+        uint256 sample = (entropy << 226) >> 226;
+        if (sample < ImprovedRightReel[0]) {
+            return 0;
+        } else if (sample < ImprovedRightReel[1]) {
+            return 1;
+        } else if (sample < ImprovedRightReel[2]) {
+            return 2;
+        } else if (sample < ImprovedRightReel[3]) {
+            return 3;
+        } else if (sample < ImprovedRightReel[4]) {
+            return 4;
+        } else if (sample < ImprovedRightReel[5]) {
+            return 5;
+        } else if (sample < ImprovedRightReel[6]) {
+            return 6;
+        } else if (sample < ImprovedRightReel[7]) {
+            return 7;
+        } else if (sample < ImprovedRightReel[8]) {
+            return 8;
+        } else if (sample < ImprovedRightReel[9]) {
+            return 9;
+        } else if (sample < ImprovedRightReel[10]) {
+            return 10;
+        } else if (sample < ImprovedRightReel[11]) {
+            return 11;
+        } else if (sample < ImprovedRightReel[12]) {
+            return 12;
+        } else if (sample < ImprovedRightReel[13]) {
+            return 13;
+        } else if (sample < ImprovedRightReel[14]) {
+            return 14;
+        } else if (sample < ImprovedRightReel[15]) {
+            return 15;
+        } else if (sample < ImprovedRightReel[16]) {
+            return 16;
+        } else if (sample < ImprovedRightReel[17]) {
+            return 17;
+        }
+        return 18;
+    }
+
+    /// Returns the final symbols on the left, center, and right reels respectively for a spin with
+    /// the given entropy. The unused entropy is also returned for use by game clients.
+    /// @param entropy The entropy created by the spin.
+    /// @param boosted Whether or not the spin was boosted.
+    function outcome(
+        uint256 entropy,
+        bool boosted
+    )
+        public
+        view
+        returns (
+            uint256 left,
+            uint256 center,
+            uint256 right,
+            uint256 remainingEntropy
+        )
+    {
+        if (boosted) {
+            left = sampleImprovedLeftReel(entropy);
+            center = sampleImprovedCenterReel(entropy);
+            right = sampleImprovedRightReel(entropy);
+        } else {
+            left = sampleUnmodifiedLeftReel(entropy);
+            center = sampleUnmodifiedCenterReel(entropy);
+            right = sampleUnmodifiedRightReel(entropy);
+        }
+
+        remainingEntropy = entropy >> 90;
+    }
+
+    /// Payout function for symbol combinations.
+    function payout(
+        uint256 left,
+        uint256 center,
+        uint256 right
+    ) public view returns (uint256 result) {
+        if (left >= 19 || center >= 19 || right >= 19) {
+            revert OutcomeOutOfBounds();
+        }
+
+        result = 0;
+
+        if (left == center && center == right) {
+            // 3 of a kind combos.
+            // Note: (null, null, null) does not pay out.
+            if (left >= 1 && left <= 15) {
+                // 3 of a kind with a minor symbol.
+                result = 50 * CostToSpin;
+                if (result > address(this).balance >> 6) {
+                    result = address(this).balance >> 6;
+                }
+            } else if (left >= 16) {
+                // 3 of a kind with a major symbol. Jackpot!
+                result = address(this).balance >> 1;
+            }
+        } else if (left == right) {
+            // Outer pair combos.
+            if (left >= 1 && left <= 15 && center >= 16) {
+                // Minor symbol pair on outside reels with major symbol in the center.
+                result = 100 * CostToSpin;
+                if (result > address(this).balance >> 4) {
+                    result = address(this).balance >> 4;
+                }
+            }
+            // We handle the case of a minor symbol pair on the outside with a major symbol in the center
+            // in the next top-level branch instead together with the case of three distinct major symbols.
+        } else if (
+            left >= 16 &&
+            right >= 16 &&
+            center >= 16 &&
+            left != center &&
+            right != center
+        ) {
+            // Three distinct major symbols.
+            // OR
+            // Major symbol pair on the outside with a different major symbol in the center.
+            result = address(this).balance >> 3;
+        }
+    }
+
+    /// This is the function a player calls to accept the outcome of a spin.
+    /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
+    function accept()
+        external
+        nonReentrant
+        returns (
+            uint256 left,
+            uint256 center,
+            uint256 right,
+            uint256 remainingEntropy
+        )
+    {
+        _enforceTick(msg.sender);
+        _enforceDeadline(msg.sender);
+
+        (left, center, right, remainingEntropy) = outcome(
+            _entropy(msg.sender),
+            LastSpinBoosted[msg.sender]
+        );
+        uint256 award = payout(left, center, right);
+        payable(msg.sender).transfer(award);
+        emit Award(msg.sender, award);
+
+        delete LastSpinBoosted[msg.sender];
+        delete LastSpinBlock[msg.sender];
+    }
+
+    /// Spin the slot machines without a boost.
+    /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
+    /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
+    function spin() external payable {
+        uint256 requiredFee = CostToSpin;
+        if (block.number <= LastSpinBlock[msg.sender]) {
+            requiredFee = CostToRespin;
+        }
+        if (msg.value < requiredFee) {
+            revert InsufficientValue();
+        }
+
+        LastSpinBlock[msg.sender] = block.number;
+        delete LastSpinBoosted[msg.sender];
+
+        emit Spin(msg.sender, false);
+    }
+
+    /// Spin the slot machines with a boost.
+    /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
+    /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
+    function spinWithBoost() external payable {
+        uint256 requiredFee = CostToSpin;
+        if (block.number <= LastSpinBlock[msg.sender]) {
+            requiredFee = CostToRespin;
+        }
+        if (msg.value < requiredFee) {
+            revert InsufficientValue();
+        }
+
+        // Burn an ERC20 token off of this contract from the player's account.
+        _burn(msg.sender, 1);
+
+        LastSpinBlock[msg.sender] = block.number;
+        LastSpinBoosted[msg.sender] = true;
+
+        emit Spin(msg.sender, true);
     }
 }
