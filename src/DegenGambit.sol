@@ -608,7 +608,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         delete LastSpinBlock[msg.sender];
     }
 
-    /// Spin the slot machines without a boost.
+    /// Spin the slot machine without a boost.
     /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
     /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
     function spin() external payable {
@@ -626,7 +626,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         emit Spin(msg.sender, false);
     }
 
-    /// Spin the slot machines with a boost.
+    /// Spin the slot machine with a boost.
     /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
     /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
     function spinWithBoost() external payable {
