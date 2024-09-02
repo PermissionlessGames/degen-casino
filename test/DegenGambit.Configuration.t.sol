@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
 
-contract DegenGambitTest is Test {
+contract DegenGambitConfigurationTest is Test {
     DegenGambit public degenGambit;
 
     uint256 blocksToAct = 20;
