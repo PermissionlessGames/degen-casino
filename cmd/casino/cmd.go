@@ -12,8 +12,8 @@ import (
 func CreateRootCommand() *cobra.Command {
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
-		Use:   "jj",
-		Short: "jj: The Jackpot Junction CLI",
+		Use:   "casino",
+		Short: "casino: The Degen Casino CLI",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
@@ -38,23 +38,23 @@ func CreateRootCommand() *cobra.Command {
 func CreateCompletionCommand(rootCmd *cobra.Command) *cobra.Command {
 	completionCmd := &cobra.Command{
 		Use:   "completion",
-		Short: "Generate shell completion scripts for jj",
-		Long: `Generate shell completion scripts for jj.
+		Short: "Generate shell completion scripts for casino",
+		Long: `Generate shell completion scripts for casino.
 
 The command for each shell will print a completion script to stdout. You can source this script to get
 completions in your current shell session. You can add this script to the completion directory for your
 shell to get completions for all future sessions.
 
 For example, to activate bash completions in your current shell:
-		$ . <(jj completion bash)
+		$ . <(casino completion bash)
 
-To add jj completions for all bash sessions:
-		$ jj completion bash > /etc/bash_completion.d/jj_completions`,
+To add casino completions for all bash sessions:
+		$ casino completion bash > /etc/bash_completion.d/casino_completions`,
 	}
 
 	bashCompletionCmd := &cobra.Command{
 		Use:   "bash",
-		Short: "bash completions for jj",
+		Short: "bash completions for casino",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenBashCompletion(cmd.OutOrStdout())
 		},
@@ -62,7 +62,7 @@ To add jj completions for all bash sessions:
 
 	zshCompletionCmd := &cobra.Command{
 		Use:   "zsh",
-		Short: "zsh completions for jj",
+		Short: "zsh completions for casino",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenZshCompletion(cmd.OutOrStdout())
 		},
@@ -70,7 +70,7 @@ To add jj completions for all bash sessions:
 
 	fishCompletionCmd := &cobra.Command{
 		Use:   "fish",
-		Short: "fish completions for jj",
+		Short: "fish completions for casino",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenFishCompletion(cmd.OutOrStdout(), true)
 		},
@@ -78,7 +78,7 @@ To add jj completions for all bash sessions:
 
 	powershellCompletionCmd := &cobra.Command{
 		Use:   "powershell",
-		Short: "powershell completions for jj",
+		Short: "powershell completions for casino",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenPowerShellCompletion(cmd.OutOrStdout())
 		},
@@ -92,7 +92,7 @@ To add jj completions for all bash sessions:
 func CreateVersionCommand() *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
-		Short: "Print the version of jj that you are currently using",
+		Short: "Print the version of casino that you are currently using",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Println(version.DegenCasinoVersion)
 		},
