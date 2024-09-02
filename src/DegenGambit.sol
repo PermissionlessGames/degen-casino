@@ -610,15 +610,21 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         delete LastSpinBlock[msg.sender];
     }
 
+    function spinCost(address degenerate) public view returns (uint256) {
+        if (block.number <= LastSpinBlock[degenerate] + BlocksToAct) {
+            // This means that all degenerates playing in the first BlocksToAct blocks produced on the blockchain
+            // get a discount on their early spins.
+            return CostToRespin;
+        }
+        return CostToSpin;
+    }
+
     /// Spin the slot machine.
     /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
     /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
     /// @param boost Whether or not the player is using a boost.
     function spin(bool boost) external payable {
-        uint256 requiredFee = CostToSpin;
-        if (block.number <= LastSpinBlock[msg.sender]) {
-            requiredFee = CostToRespin;
-        }
+        uint256 requiredFee = spinCost(msg.sender);
         if (msg.value < requiredFee) {
             revert InsufficientValue();
         }

@@ -47,11 +47,155 @@ contract DegenGambitTest is Test {
             costToRespin
         );
 
+        vm.deal(address(degenGambit), costToSpin << 30);
         vm.deal(player1, 10 * costToSpin);
+    }
+
+    function test_spinCost_discount_in_and_only_in_first_blocksToAct_blocks_on_chain()
+        public
+    {
+        uint256 i;
+        for (i = 1; i <= blocksToAct; i++) {
+            assertEq(block.number, i);
+            assertEq(degenGambit.spinCost(player1), degenGambit.CostToRespin());
+            vm.roll(block.number + 1);
+        }
+
+        assertEq(block.number, degenGambit.BlocksToAct() + 1);
+        assertEq(degenGambit.spinCost(player1), degenGambit.CostToSpin());
+    }
+
+    function test_spin_fails_with_insufficient_value() public {
+        uint256 gameBalanceInitial = address(degenGambit).balance;
+        uint256 playerBalanceInitial = player1.balance;
+
+        uint256 cost = degenGambit.spinCost(player1);
+
+        vm.startPrank(player1);
+
+        vm.expectRevert(DegenGambit.InsufficientValue.selector);
+        degenGambit.spin{value: cost - 1}(false);
+
+        vm.stopPrank();
+
+        uint256 gameBalanceFinal = address(degenGambit).balance;
+        uint256 playerBalanceFinal = player1.balance;
+
+        assertEq(gameBalanceFinal, gameBalanceInitial);
+        assertEq(playerBalanceFinal, playerBalanceInitial);
+    }
+
+    function test_spin_takes_all_sent_value() public {
+        uint256 gameBalanceInitial = address(degenGambit).balance;
+        uint256 playerBalanceInitial = player1.balance;
+
+        uint256 cost = degenGambit.spinCost(player1);
+
+        vm.startPrank(player1);
+
+        degenGambit.spin{value: 2 * cost}(false);
+
+        vm.stopPrank();
+
+        uint256 gameBalanceFinal = address(degenGambit).balance;
+        uint256 playerBalanceFinal = player1.balance;
+
+        assertEq(gameBalanceFinal, gameBalanceInitial + 2 * cost);
+        assertEq(playerBalanceFinal, playerBalanceInitial - 2 * cost);
+    }
+
+    function test_respin_succeeds_immediately() public {
+        vm.roll(block.number + blocksToAct + 1);
+
+        uint256 gameBalanceInitial = address(degenGambit).balance;
+        uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToRespin}(false);
+
+        vm.stopPrank();
+
+        uint256 gameBalanceFinal = address(degenGambit).balance;
+        uint256 playerBalanceFinal = player1.balance;
+
+        assertEq(
+            gameBalanceFinal,
+            gameBalanceInitial + costToSpin + costToRespin
+        );
+        assertEq(
+            playerBalanceFinal,
+            playerBalanceInitial - costToSpin - costToRespin
+        );
+    }
+
+    function test_respin_succeeds_at_deadline() public {
+        vm.roll(block.number + blocksToAct + 1);
+
+        uint256 gameBalanceInitial = address(degenGambit).balance;
+        uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        vm.roll(block.number + blocksToAct);
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToRespin}(false);
+
+        vm.stopPrank();
+
+        uint256 gameBalanceFinal = address(degenGambit).balance;
+        uint256 playerBalanceFinal = player1.balance;
+
+        assertEq(
+            gameBalanceFinal,
+            gameBalanceInitial + costToSpin + costToRespin
+        );
+        assertEq(
+            playerBalanceFinal,
+            playerBalanceInitial - costToSpin - costToRespin
+        );
+    }
+
+    function test_respin_fails_after_deadline() public {
+        vm.roll(block.number + blocksToAct + 1);
+
+        uint256 gameBalanceInitial = address(degenGambit).balance;
+        uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        vm.roll(block.number + blocksToAct + 1);
+        vm.expectRevert(DegenGambit.InsufficientValue.selector);
+        degenGambit.spin{value: costToRespin}(false);
+
+        vm.stopPrank();
+
+        uint256 gameBalanceFinal = address(degenGambit).balance;
+        uint256 playerBalanceFinal = player1.balance;
+
+        assertEq(gameBalanceFinal, gameBalanceInitial + costToSpin);
+        assertEq(playerBalanceFinal, playerBalanceInitial - costToSpin);
     }
 
     // Entropy was constructed using the generate_outcome_tests() method in the Degen Gambit game design notebook.
     function test_spin_2_2_2_0_false_large_pot() public {
+        vm.roll(block.number + blocksToAct + 1);
+
         // Guarantees that the payout does not fall under balance-based clamping flow.
         vm.deal(address(degenGambit), costToSpin << 30);
 
@@ -105,6 +249,8 @@ contract DegenGambitTest is Test {
 
     // Entropy was constructed using the generate_outcome_tests() method in the Degen Gambit game design notebook.
     function test_spin_2_2_2_0_false_small_pot() public {
+        vm.roll(block.number + blocksToAct + 1);
+
         // Guarantees that the payout falls under balance-based clamping flow.
         vm.deal(address(degenGambit), costToSpin);
 
