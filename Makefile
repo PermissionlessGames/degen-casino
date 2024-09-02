@@ -6,7 +6,7 @@ rebuild: clean build
 
 generate: bindings/DegenGambit/DegenGambit.go
 
-bindings/DegenGambit/DegenGambit.go: forge
+bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
 	seer evm generate --package DegenGambit --output bindings/DegenGambit/DegenGambit.go --foundry out/DegenGambit.sol/DegenGambit.json --cli --struct DegenGambit
 
