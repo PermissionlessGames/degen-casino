@@ -4,7 +4,7 @@ build: forge generate docs bin/casino
 
 rebuild: clean build
 
-generate: bindings/DegenGambit/DegenGambit.go
+generate: forge bindings/DegenGambit/DegenGambit.go
 
 bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
