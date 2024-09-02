@@ -1936,7 +1936,7 @@ func CreateDegenGambitDeploymentCommand() *cobra.Command {
 	return cmd
 }
 
-func CreateSampleImprovedRightReelCommand() *cobra.Command {
+func CreateSampleImprovedLeftReelCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -1950,8 +1950,8 @@ func CreateSampleImprovedRightReelCommand() *cobra.Command {
 	var capture0 *big.Int
 
 	cmd := &cobra.Command{
-		Use:   "sample-improved-right-reel",
-		Short: "Call the SampleImprovedRightReel view method on a DegenGambit contract",
+		Use:   "sample-improved-left-reel",
+		Short: "Call the SampleImprovedLeftReel view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -1988,7 +1988,7 @@ func CreateSampleImprovedRightReelCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.SampleImprovedRightReel(
+			capture0, callErr = session.SampleImprovedLeftReel(
 				entropy,
 			)
 			if callErr != nil {
@@ -2012,7 +2012,7 @@ func CreateSampleImprovedRightReelCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateSampleUnmodifiedLeftReelCommand() *cobra.Command {
+func CreateSpinCostCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -2020,14 +2020,14 @@ func CreateSampleUnmodifiedLeftReelCommand() *cobra.Command {
 	var blockNumberRaw, fromAddressRaw string
 	var pending bool
 
-	var entropy *big.Int
-	var entropyRaw string
+	var degenerate common.Address
+	var degenerateRaw string
 
 	var capture0 *big.Int
 
 	cmd := &cobra.Command{
-		Use:   "sample-unmodified-left-reel",
-		Short: "Call the SampleUnmodifiedLeftReel view method on a DegenGambit contract",
+		Use:   "spin-cost",
+		Short: "Call the SpinCost view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -2036,11 +2036,12 @@ func CreateSampleUnmodifiedLeftReelCommand() *cobra.Command {
 			}
 			contractAddress = common.HexToAddress(contractAddressRaw)
 
-			if entropyRaw == "" {
-				return fmt.Errorf("--entropy argument not specified")
+			if degenerateRaw == "" {
+				return fmt.Errorf("--degenerate argument not specified")
+			} else if !common.IsHexAddress(degenerateRaw) {
+				return fmt.Errorf("--degenerate argument is not a valid Ethereum address")
 			}
-			entropy = new(big.Int)
-			entropy.SetString(entropyRaw, 0)
+			degenerate = common.HexToAddress(degenerateRaw)
 
 			return nil
 		},
@@ -2064,8 +2065,8 @@ func CreateSampleUnmodifiedLeftReelCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.SampleUnmodifiedLeftReel(
-				entropy,
+			capture0, callErr = session.SpinCost(
+				degenerate,
 			)
 			if callErr != nil {
 				return callErr
@@ -2084,7 +2085,166 @@ func CreateSampleUnmodifiedLeftReelCommand() *cobra.Command {
 	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
 	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
 
-	cmd.Flags().StringVar(&entropyRaw, "entropy", "", "entropy argument")
+	cmd.Flags().StringVar(&degenerateRaw, "degenerate", "", "degenerate argument (common.Address)")
+
+	return cmd
+}
+func CreatePayoutCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var left *big.Int
+	var leftRaw string
+	var center *big.Int
+	var centerRaw string
+	var right *big.Int
+	var rightRaw string
+
+	var capture0 *big.Int
+
+	cmd := &cobra.Command{
+		Use:   "payout",
+		Short: "Call the Payout view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			if leftRaw == "" {
+				return fmt.Errorf("--left argument not specified")
+			}
+			left = new(big.Int)
+			left.SetString(leftRaw, 0)
+
+			if centerRaw == "" {
+				return fmt.Errorf("--center argument not specified")
+			}
+			center = new(big.Int)
+			center.SetString(centerRaw, 0)
+
+			if rightRaw == "" {
+				return fmt.Errorf("--right argument not specified")
+			}
+			right = new(big.Int)
+			right.SetString(rightRaw, 0)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.Payout(
+				left,
+				center,
+				right,
+			)
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0.String())
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	cmd.Flags().StringVar(&leftRaw, "left", "", "left argument")
+	cmd.Flags().StringVar(&centerRaw, "center", "", "center argument")
+	cmd.Flags().StringVar(&rightRaw, "right", "", "right argument")
+
+	return cmd
+}
+func CreateNameCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var capture0 string
+
+	cmd := &cobra.Command{
+		Use:   "name",
+		Short: "Call the Name view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.Name()
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
 
 	return cmd
 }
@@ -2164,7 +2324,7 @@ func CreateSampleUnmodifiedRightReelCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateSampleImprovedLeftReelCommand() *cobra.Command {
+func CreateBlocksToActCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -2172,14 +2332,11 @@ func CreateSampleImprovedLeftReelCommand() *cobra.Command {
 	var blockNumberRaw, fromAddressRaw string
 	var pending bool
 
-	var entropy *big.Int
-	var entropyRaw string
-
 	var capture0 *big.Int
 
 	cmd := &cobra.Command{
-		Use:   "sample-improved-left-reel",
-		Short: "Call the SampleImprovedLeftReel view method on a DegenGambit contract",
+		Use:   "blocks-to-act",
+		Short: "Call the BlocksToAct view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -2187,12 +2344,6 @@ func CreateSampleImprovedLeftReelCommand() *cobra.Command {
 				return fmt.Errorf("--contract is not a valid Ethereum address")
 			}
 			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			if entropyRaw == "" {
-				return fmt.Errorf("--entropy argument not specified")
-			}
-			entropy = new(big.Int)
-			entropy.SetString(entropyRaw, 0)
 
 			return nil
 		},
@@ -2216,9 +2367,7 @@ func CreateSampleImprovedLeftReelCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.SampleImprovedLeftReel(
-				entropy,
-			)
+			capture0, callErr = session.BlocksToAct()
 			if callErr != nil {
 				return callErr
 			}
@@ -2235,8 +2384,6 @@ func CreateSampleImprovedLeftReelCommand() *cobra.Command {
 	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
 	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
 	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	cmd.Flags().StringVar(&entropyRaw, "entropy", "", "entropy argument")
 
 	return cmd
 }
@@ -2303,7 +2450,70 @@ func CreateCostToRespinCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateImprovedLeftReelCommand() *cobra.Command {
+func CreateCostToSpinCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var capture0 *big.Int
+
+	cmd := &cobra.Command{
+		Use:   "cost-to-spin",
+		Short: "Call the CostToSpin view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.CostToSpin()
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0.String())
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	return cmd
+}
+func CreateImprovedCenterReelCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -2317,8 +2527,8 @@ func CreateImprovedLeftReelCommand() *cobra.Command {
 	var capture0 *big.Int
 
 	cmd := &cobra.Command{
-		Use:   "improved-left-reel",
-		Short: "Call the ImprovedLeftReel view method on a DegenGambit contract",
+		Use:   "improved-center-reel",
+		Short: "Call the ImprovedCenterReel view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -2355,7 +2565,7 @@ func CreateImprovedLeftReelCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.ImprovedLeftReel(
+			capture0, callErr = session.ImprovedCenterReel(
 				arg0,
 			)
 			if callErr != nil {
@@ -2376,6 +2586,159 @@ func CreateImprovedLeftReelCommand() *cobra.Command {
 	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
 
 	cmd.Flags().StringVar(&arg0Raw, "arg-0", "", "arg-0 argument")
+
+	return cmd
+}
+func CreateBalanceOfCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var account common.Address
+	var accountRaw string
+
+	var capture0 *big.Int
+
+	cmd := &cobra.Command{
+		Use:   "balance-of",
+		Short: "Call the BalanceOf view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			if accountRaw == "" {
+				return fmt.Errorf("--account argument not specified")
+			} else if !common.IsHexAddress(accountRaw) {
+				return fmt.Errorf("--account argument is not a valid Ethereum address")
+			}
+			account = common.HexToAddress(accountRaw)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.BalanceOf(
+				account,
+			)
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0.String())
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	cmd.Flags().StringVar(&accountRaw, "account", "", "account argument (common.Address)")
+
+	return cmd
+}
+func CreateSampleImprovedRightReelCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var entropy *big.Int
+	var entropyRaw string
+
+	var capture0 *big.Int
+
+	cmd := &cobra.Command{
+		Use:   "sample-improved-right-reel",
+		Short: "Call the SampleImprovedRightReel view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			if entropyRaw == "" {
+				return fmt.Errorf("--entropy argument not specified")
+			}
+			entropy = new(big.Int)
+			entropy.SetString(entropyRaw, 0)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.SampleImprovedRightReel(
+				entropy,
+			)
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0.String())
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	cmd.Flags().StringVar(&entropyRaw, "entropy", "", "entropy argument")
 
 	return cmd
 }
@@ -2455,150 +2818,7 @@ func CreateImprovedRightReelCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateDecimalsCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var capture0 uint8
-
-	cmd := &cobra.Command{
-		Use:   "decimals",
-		Short: "Call the Decimals view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.Decimals()
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %d\n", capture0)
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	return cmd
-}
-func CreateSupportsInterfaceCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var interfaceID [4]byte
-	var interfaceIDRaw string
-
-	var capture0 bool
-
-	cmd := &cobra.Command{
-		Use:   "supports-interface",
-		Short: "Call the SupportsInterface view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			var interfaceIDIntermediate []byte
-
-			var interfaceIDIntermediateHexDecodeErr error
-			interfaceIDIntermediate, interfaceIDIntermediateHexDecodeErr = hex.DecodeString(interfaceIDRaw)
-			if interfaceIDIntermediateHexDecodeErr != nil {
-				return interfaceIDIntermediateHexDecodeErr
-			}
-
-			copy(interfaceID[:], interfaceIDIntermediate)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.SupportsInterface(
-				interfaceID,
-			)
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %t\n", capture0)
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	cmd.Flags().StringVar(&interfaceIDRaw, "interface-id", "", "interface-id argument ([4]byte)")
-
-	return cmd
-}
-func CreateLastSpinBoostedCommand() *cobra.Command {
+func CreateLastSpinBlockCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -2609,11 +2829,11 @@ func CreateLastSpinBoostedCommand() *cobra.Command {
 	var arg0 common.Address
 	var arg0Raw string
 
-	var capture0 bool
+	var capture0 *big.Int
 
 	cmd := &cobra.Command{
-		Use:   "last-spin-boosted",
-		Short: "Call the LastSpinBoosted view method on a DegenGambit contract",
+		Use:   "last-spin-block",
+		Short: "Call the LastSpinBlock view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -2651,14 +2871,14 @@ func CreateLastSpinBoostedCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.LastSpinBoosted(
+			capture0, callErr = session.LastSpinBlock(
 				arg0,
 			)
 			if callErr != nil {
 				return callErr
 			}
 
-			cmd.Printf("0: %t\n", capture0)
+			cmd.Printf("0: %s\n", capture0.String())
 
 			return nil
 		},
@@ -2763,7 +2983,7 @@ func CreateAllowanceCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateSampleImprovedCenterReelCommand() *cobra.Command {
+func CreateSampleUnmodifiedCenterReelCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -2777,8 +2997,8 @@ func CreateSampleImprovedCenterReelCommand() *cobra.Command {
 	var capture0 *big.Int
 
 	cmd := &cobra.Command{
-		Use:   "sample-improved-center-reel",
-		Short: "Call the SampleImprovedCenterReel view method on a DegenGambit contract",
+		Use:   "sample-unmodified-center-reel",
+		Short: "Call the SampleUnmodifiedCenterReel view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -2815,7 +3035,7 @@ func CreateSampleImprovedCenterReelCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.SampleImprovedCenterReel(
+			capture0, callErr = session.SampleUnmodifiedCenterReel(
 				entropy,
 			)
 			if callErr != nil {
@@ -2839,7 +3059,7 @@ func CreateSampleImprovedCenterReelCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateBlocksToActCommand() *cobra.Command {
+func CreateSymbolCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -2847,11 +3067,11 @@ func CreateBlocksToActCommand() *cobra.Command {
 	var blockNumberRaw, fromAddressRaw string
 	var pending bool
 
-	var capture0 *big.Int
+	var capture0 string
 
 	cmd := &cobra.Command{
-		Use:   "blocks-to-act",
-		Short: "Call the BlocksToAct view method on a DegenGambit contract",
+		Use:   "symbol",
+		Short: "Call the Symbol view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -2882,7 +3102,144 @@ func CreateBlocksToActCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.BlocksToAct()
+			capture0, callErr = session.Symbol()
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	return cmd
+}
+func CreateDecimalsCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var capture0 uint8
+
+	cmd := &cobra.Command{
+		Use:   "decimals",
+		Short: "Call the Decimals view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.Decimals()
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %d\n", capture0)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	return cmd
+}
+func CreateSampleUnmodifiedLeftReelCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var entropy *big.Int
+	var entropyRaw string
+
+	var capture0 *big.Int
+
+	cmd := &cobra.Command{
+		Use:   "sample-unmodified-left-reel",
+		Short: "Call the SampleUnmodifiedLeftReel view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			if entropyRaw == "" {
+				return fmt.Errorf("--entropy argument not specified")
+			}
+			entropy = new(big.Int)
+			entropy.SetString(entropyRaw, 0)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.SampleUnmodifiedLeftReel(
+				entropy,
+			)
 			if callErr != nil {
 				return callErr
 			}
@@ -2899,6 +3256,85 @@ func CreateBlocksToActCommand() *cobra.Command {
 	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
 	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
 	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	cmd.Flags().StringVar(&entropyRaw, "entropy", "", "entropy argument")
+
+	return cmd
+}
+func CreateLastSpinBoostedCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var arg0 common.Address
+	var arg0Raw string
+
+	var capture0 bool
+
+	cmd := &cobra.Command{
+		Use:   "last-spin-boosted",
+		Short: "Call the LastSpinBoosted view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			if arg0Raw == "" {
+				return fmt.Errorf("--arg-0 argument not specified")
+			} else if !common.IsHexAddress(arg0Raw) {
+				return fmt.Errorf("--arg-0 argument is not a valid Ethereum address")
+			}
+			arg0 = common.HexToAddress(arg0Raw)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.LastSpinBoosted(
+				arg0,
+			)
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %t\n", capture0)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	cmd.Flags().StringVar(&arg0Raw, "arg-0", "", "arg-0 argument (common.Address)")
 
 	return cmd
 }
@@ -3117,298 +3553,6 @@ func CreateTotalSupplyCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateNameCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var capture0 string
-
-	cmd := &cobra.Command{
-		Use:   "name",
-		Short: "Call the Name view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.Name()
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0)
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	return cmd
-}
-func CreateSampleUnmodifiedCenterReelCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var entropy *big.Int
-	var entropyRaw string
-
-	var capture0 *big.Int
-
-	cmd := &cobra.Command{
-		Use:   "sample-unmodified-center-reel",
-		Short: "Call the SampleUnmodifiedCenterReel view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			if entropyRaw == "" {
-				return fmt.Errorf("--entropy argument not specified")
-			}
-			entropy = new(big.Int)
-			entropy.SetString(entropyRaw, 0)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.SampleUnmodifiedCenterReel(
-				entropy,
-			)
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0.String())
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	cmd.Flags().StringVar(&entropyRaw, "entropy", "", "entropy argument")
-
-	return cmd
-}
-func CreateImprovedCenterReelCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var arg0 *big.Int
-	var arg0Raw string
-
-	var capture0 *big.Int
-
-	cmd := &cobra.Command{
-		Use:   "improved-center-reel",
-		Short: "Call the ImprovedCenterReel view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			if arg0Raw == "" {
-				return fmt.Errorf("--arg-0 argument not specified")
-			}
-			arg0 = new(big.Int)
-			arg0.SetString(arg0Raw, 0)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.ImprovedCenterReel(
-				arg0,
-			)
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0.String())
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	cmd.Flags().StringVar(&arg0Raw, "arg-0", "", "arg-0 argument")
-
-	return cmd
-}
-func CreateLastSpinBlockCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var arg0 common.Address
-	var arg0Raw string
-
-	var capture0 *big.Int
-
-	cmd := &cobra.Command{
-		Use:   "last-spin-block",
-		Short: "Call the LastSpinBlock view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			if arg0Raw == "" {
-				return fmt.Errorf("--arg-0 argument not specified")
-			} else if !common.IsHexAddress(arg0Raw) {
-				return fmt.Errorf("--arg-0 argument is not a valid Ethereum address")
-			}
-			arg0 = common.HexToAddress(arg0Raw)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.LastSpinBlock(
-				arg0,
-			)
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0.String())
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	cmd.Flags().StringVar(&arg0Raw, "arg-0", "", "arg-0 argument (common.Address)")
-
-	return cmd
-}
 func CreateUnmodifiedLeftReelCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
@@ -3485,7 +3629,7 @@ func CreateUnmodifiedLeftReelCommand() *cobra.Command {
 
 	return cmd
 }
-func CreateBalanceOfCommand() *cobra.Command {
+func CreateSupportsInterfaceCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -3493,14 +3637,14 @@ func CreateBalanceOfCommand() *cobra.Command {
 	var blockNumberRaw, fromAddressRaw string
 	var pending bool
 
-	var account common.Address
-	var accountRaw string
+	var interfaceID [4]byte
+	var interfaceIDRaw string
 
-	var capture0 *big.Int
+	var capture0 bool
 
 	cmd := &cobra.Command{
-		Use:   "balance-of",
-		Short: "Call the BalanceOf view method on a DegenGambit contract",
+		Use:   "supports-interface",
+		Short: "Call the SupportsInterface view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -3509,12 +3653,15 @@ func CreateBalanceOfCommand() *cobra.Command {
 			}
 			contractAddress = common.HexToAddress(contractAddressRaw)
 
-			if accountRaw == "" {
-				return fmt.Errorf("--account argument not specified")
-			} else if !common.IsHexAddress(accountRaw) {
-				return fmt.Errorf("--account argument is not a valid Ethereum address")
+			var interfaceIDIntermediate []byte
+
+			var interfaceIDIntermediateHexDecodeErr error
+			interfaceIDIntermediate, interfaceIDIntermediateHexDecodeErr = hex.DecodeString(interfaceIDRaw)
+			if interfaceIDIntermediateHexDecodeErr != nil {
+				return interfaceIDIntermediateHexDecodeErr
 			}
-			account = common.HexToAddress(accountRaw)
+
+			copy(interfaceID[:], interfaceIDIntermediate)
 
 			return nil
 		},
@@ -3538,14 +3685,14 @@ func CreateBalanceOfCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.BalanceOf(
-				account,
+			capture0, callErr = session.SupportsInterface(
+				interfaceID,
 			)
 			if callErr != nil {
 				return callErr
 			}
 
-			cmd.Printf("0: %s\n", capture0.String())
+			cmd.Printf("0: %t\n", capture0)
 
 			return nil
 		},
@@ -3558,210 +3705,7 @@ func CreateBalanceOfCommand() *cobra.Command {
 	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
 	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
 
-	cmd.Flags().StringVar(&accountRaw, "account", "", "account argument (common.Address)")
-
-	return cmd
-}
-func CreateSpinCostCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var degenerate common.Address
-	var degenerateRaw string
-
-	var capture0 *big.Int
-
-	cmd := &cobra.Command{
-		Use:   "spin-cost",
-		Short: "Call the SpinCost view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			if degenerateRaw == "" {
-				return fmt.Errorf("--degenerate argument not specified")
-			} else if !common.IsHexAddress(degenerateRaw) {
-				return fmt.Errorf("--degenerate argument is not a valid Ethereum address")
-			}
-			degenerate = common.HexToAddress(degenerateRaw)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.SpinCost(
-				degenerate,
-			)
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0.String())
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	cmd.Flags().StringVar(&degenerateRaw, "degenerate", "", "degenerate argument (common.Address)")
-
-	return cmd
-}
-func CreateSymbolCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var capture0 string
-
-	cmd := &cobra.Command{
-		Use:   "symbol",
-		Short: "Call the Symbol view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.Symbol()
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0)
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
-
-	return cmd
-}
-func CreateCostToSpinCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var capture0 *big.Int
-
-	cmd := &cobra.Command{
-		Use:   "cost-to-spin",
-		Short: "Call the CostToSpin view method on a DegenGambit contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewDegenGambit(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := DegenGambitCallerSession{
-				Contract: &contract.DegenGambitCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, callErr = session.CostToSpin()
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0.String())
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+	cmd.Flags().StringVar(&interfaceIDRaw, "interface-id", "", "interface-id argument ([4]byte)")
 
 	return cmd
 }
@@ -3860,7 +3804,7 @@ func CreateOutcomeCommand() *cobra.Command {
 
 	return cmd
 }
-func CreatePayoutCommand() *cobra.Command {
+func CreateSampleImprovedCenterReelCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
 	var timeout uint
@@ -3868,18 +3812,14 @@ func CreatePayoutCommand() *cobra.Command {
 	var blockNumberRaw, fromAddressRaw string
 	var pending bool
 
-	var left *big.Int
-	var leftRaw string
-	var center *big.Int
-	var centerRaw string
-	var right *big.Int
-	var rightRaw string
+	var entropy *big.Int
+	var entropyRaw string
 
 	var capture0 *big.Int
 
 	cmd := &cobra.Command{
-		Use:   "payout",
-		Short: "Call the Payout view method on a DegenGambit contract",
+		Use:   "sample-improved-center-reel",
+		Short: "Call the SampleImprovedCenterReel view method on a DegenGambit contract",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if contractAddressRaw == "" {
 				return fmt.Errorf("--contract not specified")
@@ -3888,23 +3828,11 @@ func CreatePayoutCommand() *cobra.Command {
 			}
 			contractAddress = common.HexToAddress(contractAddressRaw)
 
-			if leftRaw == "" {
-				return fmt.Errorf("--left argument not specified")
+			if entropyRaw == "" {
+				return fmt.Errorf("--entropy argument not specified")
 			}
-			left = new(big.Int)
-			left.SetString(leftRaw, 0)
-
-			if centerRaw == "" {
-				return fmt.Errorf("--center argument not specified")
-			}
-			center = new(big.Int)
-			center.SetString(centerRaw, 0)
-
-			if rightRaw == "" {
-				return fmt.Errorf("--right argument not specified")
-			}
-			right = new(big.Int)
-			right.SetString(rightRaw, 0)
+			entropy = new(big.Int)
+			entropy.SetString(entropyRaw, 0)
 
 			return nil
 		},
@@ -3928,10 +3856,8 @@ func CreatePayoutCommand() *cobra.Command {
 			}
 
 			var callErr error
-			capture0, callErr = session.Payout(
-				left,
-				center,
-				right,
+			capture0, callErr = session.SampleImprovedCenterReel(
+				entropy,
 			)
 			if callErr != nil {
 				return callErr
@@ -3950,9 +3876,83 @@ func CreatePayoutCommand() *cobra.Command {
 	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
 	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
 
-	cmd.Flags().StringVar(&leftRaw, "left", "", "left argument")
-	cmd.Flags().StringVar(&centerRaw, "center", "", "center argument")
-	cmd.Flags().StringVar(&rightRaw, "right", "", "right argument")
+	cmd.Flags().StringVar(&entropyRaw, "entropy", "", "entropy argument")
+
+	return cmd
+}
+func CreateImprovedLeftReelCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var arg0 *big.Int
+	var arg0Raw string
+
+	var capture0 *big.Int
+
+	cmd := &cobra.Command{
+		Use:   "improved-left-reel",
+		Short: "Call the ImprovedLeftReel view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			if arg0Raw == "" {
+				return fmt.Errorf("--arg-0 argument not specified")
+			}
+			arg0 = new(big.Int)
+			arg0.SetString(arg0Raw, 0)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.ImprovedLeftReel(
+				arg0,
+			)
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0.String())
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	cmd.Flags().StringVar(&arg0Raw, "arg-0", "", "arg-0 argument")
 
 	return cmd
 }
@@ -4852,45 +4852,63 @@ func CreateDegenGambitCommand() *cobra.Command {
 	cmdDeployDegenGambit.GroupID = DeployGroup.ID
 	cmd.AddCommand(cmdDeployDegenGambit)
 
-	cmdViewSampleImprovedRightReel := CreateSampleImprovedRightReelCommand()
-	cmdViewSampleImprovedRightReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSampleImprovedRightReel)
-	cmdViewSampleUnmodifiedLeftReel := CreateSampleUnmodifiedLeftReelCommand()
-	cmdViewSampleUnmodifiedLeftReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSampleUnmodifiedLeftReel)
-	cmdViewSampleUnmodifiedRightReel := CreateSampleUnmodifiedRightReelCommand()
-	cmdViewSampleUnmodifiedRightReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSampleUnmodifiedRightReel)
 	cmdViewSampleImprovedLeftReel := CreateSampleImprovedLeftReelCommand()
 	cmdViewSampleImprovedLeftReel.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewSampleImprovedLeftReel)
-	cmdViewCostToRespin := CreateCostToRespinCommand()
-	cmdViewCostToRespin.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewCostToRespin)
-	cmdViewImprovedLeftReel := CreateImprovedLeftReelCommand()
-	cmdViewImprovedLeftReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewImprovedLeftReel)
-	cmdViewImprovedRightReel := CreateImprovedRightReelCommand()
-	cmdViewImprovedRightReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewImprovedRightReel)
-	cmdViewDecimals := CreateDecimalsCommand()
-	cmdViewDecimals.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewDecimals)
-	cmdViewSupportsInterface := CreateSupportsInterfaceCommand()
-	cmdViewSupportsInterface.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSupportsInterface)
-	cmdViewLastSpinBoosted := CreateLastSpinBoostedCommand()
-	cmdViewLastSpinBoosted.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewLastSpinBoosted)
-	cmdViewAllowance := CreateAllowanceCommand()
-	cmdViewAllowance.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewAllowance)
-	cmdViewSampleImprovedCenterReel := CreateSampleImprovedCenterReelCommand()
-	cmdViewSampleImprovedCenterReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSampleImprovedCenterReel)
+	cmdViewSpinCost := CreateSpinCostCommand()
+	cmdViewSpinCost.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSpinCost)
+	cmdViewPayout := CreatePayoutCommand()
+	cmdViewPayout.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewPayout)
+	cmdViewName := CreateNameCommand()
+	cmdViewName.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewName)
+	cmdViewSampleUnmodifiedRightReel := CreateSampleUnmodifiedRightReelCommand()
+	cmdViewSampleUnmodifiedRightReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSampleUnmodifiedRightReel)
 	cmdViewBlocksToAct := CreateBlocksToActCommand()
 	cmdViewBlocksToAct.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewBlocksToAct)
+	cmdViewCostToRespin := CreateCostToRespinCommand()
+	cmdViewCostToRespin.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewCostToRespin)
+	cmdViewCostToSpin := CreateCostToSpinCommand()
+	cmdViewCostToSpin.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewCostToSpin)
+	cmdViewImprovedCenterReel := CreateImprovedCenterReelCommand()
+	cmdViewImprovedCenterReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewImprovedCenterReel)
+	cmdViewBalanceOf := CreateBalanceOfCommand()
+	cmdViewBalanceOf.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewBalanceOf)
+	cmdViewSampleImprovedRightReel := CreateSampleImprovedRightReelCommand()
+	cmdViewSampleImprovedRightReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSampleImprovedRightReel)
+	cmdViewImprovedRightReel := CreateImprovedRightReelCommand()
+	cmdViewImprovedRightReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewImprovedRightReel)
+	cmdViewLastSpinBlock := CreateLastSpinBlockCommand()
+	cmdViewLastSpinBlock.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewLastSpinBlock)
+	cmdViewAllowance := CreateAllowanceCommand()
+	cmdViewAllowance.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewAllowance)
+	cmdViewSampleUnmodifiedCenterReel := CreateSampleUnmodifiedCenterReelCommand()
+	cmdViewSampleUnmodifiedCenterReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSampleUnmodifiedCenterReel)
+	cmdViewSymbol := CreateSymbolCommand()
+	cmdViewSymbol.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSymbol)
+	cmdViewDecimals := CreateDecimalsCommand()
+	cmdViewDecimals.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewDecimals)
+	cmdViewSampleUnmodifiedLeftReel := CreateSampleUnmodifiedLeftReelCommand()
+	cmdViewSampleUnmodifiedLeftReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSampleUnmodifiedLeftReel)
+	cmdViewLastSpinBoosted := CreateLastSpinBoostedCommand()
+	cmdViewLastSpinBoosted.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewLastSpinBoosted)
 	cmdViewUnmodifiedCenterReel := CreateUnmodifiedCenterReelCommand()
 	cmdViewUnmodifiedCenterReel.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewUnmodifiedCenterReel)
@@ -4900,39 +4918,21 @@ func CreateDegenGambitCommand() *cobra.Command {
 	cmdViewTotalSupply := CreateTotalSupplyCommand()
 	cmdViewTotalSupply.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewTotalSupply)
-	cmdViewName := CreateNameCommand()
-	cmdViewName.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewName)
-	cmdViewSampleUnmodifiedCenterReel := CreateSampleUnmodifiedCenterReelCommand()
-	cmdViewSampleUnmodifiedCenterReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSampleUnmodifiedCenterReel)
-	cmdViewImprovedCenterReel := CreateImprovedCenterReelCommand()
-	cmdViewImprovedCenterReel.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewImprovedCenterReel)
-	cmdViewLastSpinBlock := CreateLastSpinBlockCommand()
-	cmdViewLastSpinBlock.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewLastSpinBlock)
 	cmdViewUnmodifiedLeftReel := CreateUnmodifiedLeftReelCommand()
 	cmdViewUnmodifiedLeftReel.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewUnmodifiedLeftReel)
-	cmdViewBalanceOf := CreateBalanceOfCommand()
-	cmdViewBalanceOf.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewBalanceOf)
-	cmdViewSpinCost := CreateSpinCostCommand()
-	cmdViewSpinCost.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSpinCost)
-	cmdViewSymbol := CreateSymbolCommand()
-	cmdViewSymbol.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewSymbol)
-	cmdViewCostToSpin := CreateCostToSpinCommand()
-	cmdViewCostToSpin.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewCostToSpin)
+	cmdViewSupportsInterface := CreateSupportsInterfaceCommand()
+	cmdViewSupportsInterface.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSupportsInterface)
 	cmdViewOutcome := CreateOutcomeCommand()
 	cmdViewOutcome.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewOutcome)
-	cmdViewPayout := CreatePayoutCommand()
-	cmdViewPayout.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewPayout)
+	cmdViewSampleImprovedCenterReel := CreateSampleImprovedCenterReelCommand()
+	cmdViewSampleImprovedCenterReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewSampleImprovedCenterReel)
+	cmdViewImprovedLeftReel := CreateImprovedLeftReelCommand()
+	cmdViewImprovedLeftReel.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewImprovedLeftReel)
 
 	cmdTransactAccept := CreateAcceptCommand()
 	cmdTransactAccept.GroupID = TransactGroup.ID
