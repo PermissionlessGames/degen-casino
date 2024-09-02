@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/moonstream-to/degen-casino/blob/993b290e57b970ed2558c50450606c42bfdeef6d/src/DegenGambit.sol)
+[Git Source](https://github.com/moonstream-to/degen-casino/blob/1525825112c5bc82145d13783ee429ec53f3c2a3/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -11,6 +11,13 @@ they extend their streak. They can spend a GAMBIT token to spin with improved od
 
 
 ## State Variables
+### BITS_30
+
+```solidity
+uint256 private constant BITS_30 = 0x3FFFFFFF;
+```
+
+
 ### UnmodifiedLeftReel
 Cumulative mass function for the UnmodifiedLeftReel
 
@@ -384,9 +391,16 @@ function accept()
     returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
 ```
 
+### spinCost
+
+
+```solidity
+function spinCost(address degenerate) public view returns (uint256);
+```
+
 ### spin
 
-Spin the slot machine without a boost.
+Spin the slot machine.
 
 If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
 
@@ -394,21 +408,14 @@ If the player sends more value than they absolutely need to, the contract simply
 
 
 ```solidity
-function spin() external payable;
+function spin(bool boost) external payable;
 ```
+**Parameters**
 
-### spinWithBoost
+|Name|Type|Description|
+|----|----|-----------|
+|`boost`|`bool`|Whether or not the player is using a boost.|
 
-Spin the slot machine with a boost.
-
-If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
-
-*msg.sender is assumed to be the player. This call cannot be delegated to a different account.*
-
-
-```solidity
-function spinWithBoost() external payable;
-```
 
 ## Events
 ### Spin
