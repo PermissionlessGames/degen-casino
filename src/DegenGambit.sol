@@ -610,42 +610,27 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         delete LastSpinBlock[msg.sender];
     }
 
-    /// Spin the slot machine without a boost.
+    /// Spin the slot machine.
     /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
     /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
-    function spin() external payable {
+    /// @param boost Whether or not the player is using a boost.
+    function spin(bool boost) external payable {
         uint256 requiredFee = CostToSpin;
         if (block.number <= LastSpinBlock[msg.sender]) {
             requiredFee = CostToRespin;
         }
         if (msg.value < requiredFee) {
             revert InsufficientValue();
+        }
+
+        if (boost) {
+            // Burn an ERC20 token off of this contract from the player's account.
+            _burn(msg.sender, 1);
         }
 
         LastSpinBlock[msg.sender] = block.number;
         delete LastSpinBoosted[msg.sender];
 
-        emit Spin(msg.sender, false);
-    }
-
-    /// Spin the slot machine with a boost.
-    /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
-    /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
-    function spinWithBoost() external payable {
-        uint256 requiredFee = CostToSpin;
-        if (block.number <= LastSpinBlock[msg.sender]) {
-            requiredFee = CostToRespin;
-        }
-        if (msg.value < requiredFee) {
-            revert InsufficientValue();
-        }
-
-        // Burn an ERC20 token off of this contract from the player's account.
-        _burn(msg.sender, 1);
-
-        LastSpinBlock[msg.sender] = block.number;
-        LastSpinBoosted[msg.sender] = true;
-
-        emit Spin(msg.sender, true);
+        emit Spin(msg.sender, boost);
     }
 }
