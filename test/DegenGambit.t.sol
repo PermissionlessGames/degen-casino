@@ -34,6 +34,8 @@ contract TestableDegenGambit is DegenGambit {
 }
 
 contract DegenGambitTest is Test {
+    uint256 private constant SECONDS_PER_DAY = 60*60*24;
+
     TestableDegenGambit public degenGambit;
 
     uint256 blocksToAct = 20;
@@ -46,6 +48,9 @@ contract DegenGambitTest is Test {
     // Events for testing
     event Spin(address indexed player, bool indexed bonus);
     event Award(address indexed player, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event DailyStreak(address indexed player, uint256 day);
+    event WeeklyStreak(address indexed player, uint256 week);
 
     function setUp() public {
         degenGambit = new TestableDegenGambit(
@@ -310,5 +315,160 @@ contract DegenGambitTest is Test {
             playerBalanceFinal,
             playerBalanceIntermediate + expectedPayout
         );
+    }
+
+    function test_gambit_minted_on_streak_regular() public {
+        uint256 gambitSupplyInitial = degenGambit.totalSupply();
+        uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
+
+        uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(intermediateStreakDay, block.timestamp/SECONDS_PER_DAY);
+
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
+
+        vm.roll(block.number + 1);
+        vm.warp((block.timestamp/SECONDS_PER_DAY)*SECONDS_PER_DAY + SECONDS_PER_DAY);
+
+        vm.expectEmit();
+        emit Transfer(address(0), player1, 1);
+        vm.expectEmit();
+        emit DailyStreak(player1, intermediateStreakDay + 1);
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        uint256 finalStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(finalStreakDay, intermediateStreakDay + 1);
+
+        uint256 gambitSupplyFinal = degenGambit.totalSupply();
+        uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
+
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + 1);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate + 1);
+    }
+
+    function test_gambit_minted_on_streak_boosted() public {
+        // Make sure the player has GAMBIT to boost with.
+        degenGambit.mint(player1, 2);
+
+        uint256 gambitSupplyInitial = degenGambit.totalSupply();
+        uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, true);
+        degenGambit.spin{value: costToSpin}(true);
+
+        uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
+
+        uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(intermediateStreakDay, block.timestamp/SECONDS_PER_DAY);
+
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial - 1);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial - 1);
+
+        vm.roll(block.number + 1);
+        vm.warp((block.timestamp/SECONDS_PER_DAY)*SECONDS_PER_DAY + SECONDS_PER_DAY);
+
+        vm.expectEmit();
+        emit Transfer(address(0), player1, 1);
+        vm.expectEmit();
+        emit DailyStreak(player1, intermediateStreakDay + 1);
+        vm.expectEmit();
+        emit Spin(player1, true);
+        degenGambit.spin{value: costToSpin}(true);
+
+        uint256 finalStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(finalStreakDay, intermediateStreakDay + 1);
+
+        uint256 gambitSupplyFinal = degenGambit.totalSupply();
+        uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
+
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate);
+    }
+
+    function test_gambit_not_minted_before_streak_day_ticks() public {
+        uint256 gambitSupplyInitial = degenGambit.totalSupply();
+        uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
+
+        uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(intermediateStreakDay, block.timestamp/SECONDS_PER_DAY);
+
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
+
+        vm.roll(block.number + 1);
+        vm.warp((block.timestamp/SECONDS_PER_DAY)*SECONDS_PER_DAY + SECONDS_PER_DAY - 1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        uint256 finalStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(finalStreakDay, intermediateStreakDay);
+
+        uint256 gambitSupplyFinal = degenGambit.totalSupply();
+        uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
+
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate);
+    }
+
+    function test_gambit_not_minted_after_more_than_one_day() public {
+        uint256 gambitSupplyInitial = degenGambit.totalSupply();
+        uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
+
+        uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(intermediateStreakDay, block.timestamp/SECONDS_PER_DAY);
+
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
+
+        vm.roll(block.number + 1);
+        vm.warp((block.timestamp/SECONDS_PER_DAY)*SECONDS_PER_DAY + 2*SECONDS_PER_DAY);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        uint256 finalStreakDay = degenGambit.LastStreakDay(player1);
+        assertEq(finalStreakDay, intermediateStreakDay + 2);
+
+        uint256 gambitSupplyFinal = degenGambit.totalSupply();
+        uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
+
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate);
     }
 }
