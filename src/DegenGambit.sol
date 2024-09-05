@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {ArbSys} from "./ArbSys.sol";
 import {ERC20} from "../lib/openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ReentrancyGuard} from "../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -210,14 +211,18 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         return 0;
     }
 
+    function _blockNumber() internal view returns (uint256) {
+        return ArbSys(address(100)).arbBlockNumber();
+    }
+
     function _enforceTick(address degenerate) internal view {
-        if (block.number <= LastSpinBlock[degenerate]) {
+        if (_blockNumber() <= LastSpinBlock[degenerate]) {
             revert WaitForTick();
         }
     }
 
     function _enforceDeadline(address degenerate) internal view {
-        if (block.number > LastSpinBlock[degenerate] + BlocksToAct) {
+        if (_blockNumber() > LastSpinBlock[degenerate] + BlocksToAct) {
             revert DeadlineExceeded();
         }
     }
@@ -611,7 +616,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     function spinCost(address degenerate) public view returns (uint256) {
-        if (block.number <= LastSpinBlock[degenerate] + BlocksToAct) {
+        if (_blockNumber() <= LastSpinBlock[degenerate] + BlocksToAct) {
             // This means that all degenerates playing in the first BlocksToAct blocks produced on the blockchain
             // get a discount on their early spins.
             return CostToRespin;
@@ -634,7 +639,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             _burn(msg.sender, 1);
         }
 
-        LastSpinBlock[msg.sender] = block.number;
+        LastSpinBlock[msg.sender] = _blockNumber();
         delete LastSpinBoosted[msg.sender];
 
         emit Spin(msg.sender, boost);

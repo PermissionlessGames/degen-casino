@@ -3,6 +3,13 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
+import {ArbSys} from "../src/ArbSys.sol";
+
+contract ArbSysMock is ArbSys {
+    function arbBlockNumber() external view returns (uint) {
+        return block.number;
+    }
+}
 
 contract TestableDegenGambit is DegenGambit {
     mapping(address => uint256) public EntropyForPlayer;
@@ -49,6 +56,9 @@ contract DegenGambitTest is Test {
 
         vm.deal(address(degenGambit), costToSpin << 30);
         vm.deal(player1, 10 * costToSpin);
+
+        ArbSysMock arbSys = new ArbSysMock();
+        vm.etch(address(100), address(arbSys).code);
     }
 
     function test_spinCost_discount_in_and_only_in_first_blocksToAct_blocks_on_chain()
