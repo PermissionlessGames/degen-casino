@@ -9,6 +9,8 @@ import {ReentrancyGuard} from "../lib/openzeppelin/contracts/utils/ReentrancyGua
 /// @notice This is the game contract for Degen's Gambit, a permissionless slot machine game.
 /// @notice Degen's Gambit comes with a streak mechanic. Players get an ERC20 GAMBIT token every time
 /// they extend their streak. They can spend a GAMBIT token to spin with improved odds of winning.
+/// @dev This ocntract depends on the ArbSys precompile that comes on Arbitrum Nitro chains to provide the current block number.
+/// For more details: https://docs.arbitrum.io/build-decentralized-apps/arbitrum-vs-ethereum/block-numbers-and-time
 contract DegenGambit is ERC20, ReentrancyGuard {
     uint256 private constant BITS_30 = 0x3FFFFFFF;
 
