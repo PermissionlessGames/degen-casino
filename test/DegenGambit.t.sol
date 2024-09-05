@@ -476,4 +476,6 @@ contract DegenGambitTest is Test {
         assertEq(gambitSupplyFinal, gambitSupplyIntermediate);
         assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate);
     }
+
+    // TODO(zomglings): Weekly streak tests.
 }
