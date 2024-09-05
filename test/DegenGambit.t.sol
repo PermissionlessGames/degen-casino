@@ -35,6 +35,7 @@ contract TestableDegenGambit is DegenGambit {
 
 contract DegenGambitTest is Test {
     uint256 private constant SECONDS_PER_DAY = 60*60*24;
+    uint256 private constant SECONDS_PER_WEEK = 60*60*24*7;
 
     TestableDegenGambit public degenGambit;
 
@@ -321,6 +322,8 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
 
+        uint256 dailyStreakReward = degenGambit.DailyStreakReward();
+
         vm.startPrank(player1);
 
         vm.expectEmit();
@@ -353,8 +356,8 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
-        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + 1);
-        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate + 1);
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + dailyStreakReward);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate + dailyStreakReward);
     }
 
     function test_gambit_minted_on_streak_boosted() public {
@@ -363,6 +366,8 @@ contract DegenGambitTest is Test {
 
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+
+        uint256 dailyStreakReward = degenGambit.DailyStreakReward();
 
         vm.startPrank(player1);
 
@@ -396,8 +401,8 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
-        assertEq(gambitSupplyFinal, gambitSupplyIntermediate);
-        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate);
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + dailyStreakReward - 1);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate + dailyStreakReward - 1);
     }
 
     function test_gambit_not_minted_before_streak_day_ticks() public {
