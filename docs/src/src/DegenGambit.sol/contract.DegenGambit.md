@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/moonstream-to/degen-casino/blob/d070449e9a39b84d8978338837334e9d59a952b5/src/DegenGambit.sol)
+[Git Source](https://github.com/moonstream-to/degen-casino/blob/545eac40292f9a77d03282c386871ddc3379d39a/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -8,6 +8,9 @@ This is the game contract for Degen's Gambit, a permissionless slot machine game
 
 Degen's Gambit comes with a streak mechanic. Players get an ERC20 GAMBIT token every time
 they extend their streak. They can spend a GAMBIT token to spin with improved odds of winning.
+
+*This ocntract depends on the ArbSys precompile that comes on Arbitrum Nitro chains to provide the current block number.
+For more details: https://docs.arbitrum.io/build-decentralized-apps/arbitrum-vs-ethereum/block-numbers-and-time*
 
 
 ## State Variables
@@ -271,6 +274,13 @@ The GAMBIT token (representing bonus rolls on the Degen's Gambit slot machine) h
 
 ```solidity
 function decimals() public pure override returns (uint8);
+```
+
+### _blockNumber
+
+
+```solidity
+function _blockNumber() internal view returns (uint256);
 ```
 
 ### _enforceTick
