@@ -14,7 +14,6 @@ import {ReentrancyGuard} from "../lib/openzeppelin/contracts/utils/ReentrancyGua
 contract DegenGambit is ERC20, ReentrancyGuard {
     uint256 private constant BITS_30 = 0x3FFFFFFF;
     uint256 private constant SECONDS_PER_DAY = 60*60*24;
-    uint256 private constant DAYS_PER_WEEK = 7;
 
     /// The GAMBIT reward for daily streaks.
     uint256 public constant DailyStreakReward = 1;
@@ -659,7 +658,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         }
         LastStreakDay[msg.sender] = currentDay;
 
-        uint256 currentWeek = currentDay/DAYS_PER_WEEK;
+        uint256 currentWeek = currentDay/7;
         if (LastStreakWeek[msg.sender] + 1 == currentWeek) {
             _mint(msg.sender, WeeklyStreakReward);
             emit WeeklyStreak(msg.sender, currentWeek);
