@@ -340,6 +340,7 @@ contract DegenGambitTest is Test {
         assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
 
         vm.roll(block.number + 1);
+        // Tests the left end of the window for which the streak is active.
         vm.warp((block.timestamp/SECONDS_PER_DAY)*SECONDS_PER_DAY + SECONDS_PER_DAY);
 
         vm.expectEmit();
@@ -385,7 +386,8 @@ contract DegenGambitTest is Test {
         assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial - 1);
 
         vm.roll(block.number + 1);
-        vm.warp((block.timestamp/SECONDS_PER_DAY)*SECONDS_PER_DAY + SECONDS_PER_DAY);
+        // Tests the right end of the window for which the streak is active.
+        vm.warp((block.timestamp/SECONDS_PER_DAY)*SECONDS_PER_DAY + 2*SECONDS_PER_DAY - 1);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, 1);
@@ -476,6 +478,4 @@ contract DegenGambitTest is Test {
         assertEq(gambitSupplyFinal, gambitSupplyIntermediate);
         assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate);
     }
-
-    // TODO(zomglings): Weekly streak tests.
 }
