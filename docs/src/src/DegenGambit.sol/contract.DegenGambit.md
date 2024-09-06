@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/moonstream-to/degen-casino/blob/545eac40292f9a77d03282c386871ddc3379d39a/src/DegenGambit.sol)
+[Git Source](https://github.com/moonstream-to/degen-casino/blob/ae91e3a80ecb50c757eb044a9020687050dc3807/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -18,6 +18,31 @@ For more details: https://docs.arbitrum.io/build-decentralized-apps/arbitrum-vs-
 
 ```solidity
 uint256 private constant BITS_30 = 0x3FFFFFFF;
+```
+
+
+### SECONDS_PER_DAY
+
+```solidity
+uint256 private constant SECONDS_PER_DAY = 60 * 60 * 24;
+```
+
+
+### DailyStreakReward
+The GAMBIT reward for daily streaks.
+
+
+```solidity
+uint256 public constant DailyStreakReward = 1;
+```
+
+
+### WeeklyStreakReward
+The GAMBIT reward for weekly streaks.
+
+
+```solidity
+uint256 public constant WeeklyStreakReward = 5;
 ```
 
 
@@ -240,6 +265,24 @@ uint256 public CostToRespin;
 ```
 
 
+### LastStreakDay
+Day on which the last in-streak spin was made by a given player. This is for daily streaks.
+
+
+```solidity
+mapping(address => uint256) public LastStreakDay;
+```
+
+
+### LastStreakWeek
+Week on which the last in-streak spin was made by a given player. This is for weekly streaks.
+
+
+```solidity
+mapping(address => uint256) public LastStreakWeek;
+```
+
+
 ## Functions
 ### supportsInterface
 
@@ -442,6 +485,22 @@ Fired when a player accepts the outcome of a roll.
 
 ```solidity
 event Award(address indexed player, uint256 value);
+```
+
+### DailyStreak
+Fired when a player continues a daily streak.
+
+
+```solidity
+event DailyStreak(address indexed player, uint256 day);
+```
+
+### WeeklyStreak
+Fired when a player continues a weekly streak.
+
+
+```solidity
+event WeeklyStreak(address indexed player, uint256 week);
 ```
 
 ## Errors
