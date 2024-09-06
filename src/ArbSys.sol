@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: UNLICENSED
+
 /**
  * This code was adapted from the arb-os repository: https://github.com/OffchainLabs/arb-os.
  * Specifically, the ArbSys contract at commit 234cf670016d675095110cd944cb82fde9c460b8:
