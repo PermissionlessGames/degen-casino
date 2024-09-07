@@ -70,30 +70,23 @@ on the game contract.
 This mapping can be accessed as a view method using either the [`IDegenGambit` interface](./interfaces/IDegenGambit.sol) on-chain or the [ABI](./abis/DegenGambit.abi.json) off-chain.
 
 Once at least one block has passed, subject to a block deadline (described below), you can view the outcome available to the player by calling the
-[`accept`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#accept) method (as a *view* method):
+[`inspectOutcome`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#inspectoutcome) method on the contract:
 
 ```solidity
-	// Selector: 2852b71c
-	function accept() external  returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
+	// Selector: eca8b788
+	function inspectOutcome(address degenerate) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
 ```
 
-Alternatively, you can call the [`outcome`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#outcome) method:
+The return values specify, in order:
+1. The final symbol on the left reel.
+1. The final symbol on the center reel.
+1. The final symbol on the right reel.
+1. A 166-bit integer representing the entropy unused by the game. This entropy is statistically independent from the entropy used to determine the
+symbols that the reels come to rest on. Clients are free to use this entropy in any manner they wish to. Using this entropy allows game clients to
+produce effects that are invariant under distinct sessions.
 
-```solidity
-	// Selector: 090ec510
-	function outcome(uint256 entropy, bool boosted) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
-```
-
-If you elect to use `outcome`, you will need to construct the `entropy` argument yourself. That can be done by recording the block hash of the block in which the `spin` transaction was included (e.g. from its transaction receipt), and then calculating:
-
-```solidity
-keccak256(abi.encode(blockhash(LastSpinBlock[degenerate]), degenerate))
-```
-
-Cast this value to an integer to read the entropy used to determine the `spin` outcome.
-
-When a *Degen's Gambit* smart contract is deployed, it is configured with a
-[`BlocksToAct`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#blockstoact) parameter:
+The `inspectOutcome` call will fail if either a block has not ticked since the player's last spin or if the block deadline has passed after the player's last
+spin. When a *Degen's Gambit* smart contract is deployed, it is configured with a [`BlocksToAct`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#blockstoact) parameter:
 
 ```solidity
 uint256 public BlocksToAct;
@@ -107,22 +100,21 @@ Being a public variable, you can access this parameter by calling `BlocksToAct` 
 	function BlocksToAct() external view returns (uint256);
 ```
 
-It is represented by the following [ABI](./abis/DegenGambit.abi.json) item:
+After a player spins, they have `BlocksToAct` blocks to either:
+1. Accept the outcome of their spin by submitting an [`accept` transaction](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#accept).
+1. *Not* accept the outcome of their spin and respin at a discounted cost by submitting a
+[`spin` transaction](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spin).
+1. Do nothing.
 
-```json
-{
-  "type": "function",
-  "name": "BlocksToAct",
-  "inputs": [],
-  "outputs": [
-    {
-      "name": "",
-      "type": "uint256",
-      "internalType": "uint256"
-    }
-  ],
-  "stateMutability": "view"
-}
+A client can inspect the status of this deadline for a given `player` by checking if:
+
+```solidity
+block.number <= IDegenGambit(game).LastSpinBlock(player) + IDegenGambit(game).BlocksToAct();
 ```
+
+This check can be made from off the blockchain by polling the current block number from a JSONRPC API to that chain and using that in place of
+`block.number` above. Off-chain clients will need to poll for the current block number if they want to stay up-to-date regarding the block deadline
+and they are using the JSONRPC API. Clients that can establish websocket connections with an RPC node can also send an
+[`eth_subscribe` message for `newHeads`](https://www.quicknode.com/docs/ethereum/eth_subscribe) to receive websocket messages every time a block is produced.
 
 ## Boosting spins with GAMBIT

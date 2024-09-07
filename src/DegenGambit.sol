@@ -13,7 +13,7 @@ import {ReentrancyGuard} from "../lib/openzeppelin/contracts/utils/ReentrancyGua
 /// For more details: https://docs.arbitrum.io/build-decentralized-apps/arbitrum-vs-ethereum/block-numbers-and-time
 contract DegenGambit is ERC20, ReentrancyGuard {
     uint256 private constant BITS_30 = 0x3FFFFFFF;
-    uint256 private constant SECONDS_PER_DAY = 60*60*24;
+    uint256 private constant SECONDS_PER_DAY = 60 * 60 * 24;
 
     /// The GAMBIT reward for daily streaks.
     uint256 public constant DailyStreakReward = 1;
@@ -620,7 +620,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             uint256 left,
             uint256 center,
             uint256 right,
-            uint256 remainingEntropy
+            uint256 remainingEntropy,
+            uint256 prize
         )
     {
         _enforceTick(msg.sender);
@@ -630,9 +631,9 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             _entropy(msg.sender),
             LastSpinBoosted[msg.sender]
         );
-        uint256 award = payout(left, center, right);
-        payable(msg.sender).transfer(award);
-        emit Award(msg.sender, award);
+        prize = payout(left, center, right);
+        payable(msg.sender).transfer(prize);
+        emit Award(msg.sender, prize);
 
         delete LastSpinBoosted[msg.sender];
         delete LastSpinBlock[msg.sender];
@@ -664,7 +665,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         }
         LastStreakDay[msg.sender] = currentDay;
 
-        uint256 currentWeek = currentDay/7;
+        uint256 currentWeek = currentDay / 7;
         if (LastStreakWeek[msg.sender] + 1 == currentWeek) {
             _mint(msg.sender, WeeklyStreakReward);
             emit WeeklyStreak(msg.sender, currentWeek);
@@ -685,7 +686,9 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// inspectEntropy is a view method which allows clients to check the current entropy for a player given only their address.
     /// @dev This is a convenience method so that clients don't have to calculate the entropy given the spin blockhash themselves. It
     /// also enforces that blocks have ticked since the spin as well as the `BlocksToAct` deadline.
-    function inspectEntropy(address degenerate) external view returns (uint256) {
+    function inspectEntropy(
+        address degenerate
+    ) external view returns (uint256) {
         _enforceTick(degenerate);
         _enforceDeadline(degenerate);
         return _entropy(degenerate);
@@ -695,12 +698,26 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// @notice This method allows clients to simulate the outcome of a spin in a single RPC call.
     /// @dev The alternative to using this method would be to call `accept` (rather than submitting it as a transaction). This is simply a more
     /// convenient and natural way to simulate the outcome of a spin, which also works on-chain.
-    function inspectOutcome(address degenerate) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy) {
+    function inspectOutcome(
+        address degenerate
+    )
+        external
+        view
+        returns (
+            uint256 left,
+            uint256 center,
+            uint256 right,
+            uint256 remainingEntropy,
+            uint256 prize
+        )
+    {
         _enforceTick(degenerate);
         _enforceDeadline(degenerate);
         (left, center, right, remainingEntropy) = outcome(
             _entropy(degenerate),
             LastSpinBoosted[degenerate]
         );
+
+        prize = payout(left, center, right);
     }
 }

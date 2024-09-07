@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/moonstream-to/degen-casino/blob/4e4ace5a65079b457128f87f0fb44ef3241ee705/src/DegenGambit.sol)
+[Git Source](https://github.com/moonstream-to/degen-casino/blob/82218958682417aedca28b10e41024c687e88847/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -347,6 +347,13 @@ function _enforceDeadline(address degenerate) internal view;
 function _entropy(address degenerate) internal view virtual returns (uint256);
 ```
 
+### latestEntropy
+
+
+```solidity
+function latestEntropy(address degenerate) external view returns (uint256);
+```
+
 ### sampleUnmodifiedLeftReel
 
 sampleUnmodifiedLeftReel samples the outcome from UnmodifiedLeftReel specified by the given entropy
@@ -469,6 +476,35 @@ function spin(bool boost) external payable;
 |----|----|-----------|
 |`boost`|`bool`|Whether or not the player is using a boost.|
 
+
+### inspectEntropy
+
+inspectEntropy is a view method which allows clients to check the current entropy for a player given only their address.
+
+*This is a convenience method so that clients don't have to calculate the entropy given the spin blockhash themselves. It
+also enforces that blocks have ticked since the spin as well as the `BlocksToAct` deadline.*
+
+
+```solidity
+function inspectEntropy(address degenerate) external view returns (uint256);
+```
+
+### inspectOutcome
+
+inspectOutcome is a view method which allows clients to check the outcome of a spin for a player given only their address.
+
+This method allows clients to simulate the outcome of a spin in a single RPC call.
+
+*The alternative to using this method would be to call `accept` (rather than submitting it as a transaction). This is simply a more
+convenient and natural way to simulate the outcome of a spin, which also works on-chain.*
+
+
+```solidity
+function inspectOutcome(address degenerate)
+    external
+    view
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
+```
 
 ## Events
 ### Spin

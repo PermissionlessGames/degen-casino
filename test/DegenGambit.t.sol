@@ -244,7 +244,8 @@ contract DegenGambitTest is Test {
             uint256 left,
             uint256 center,
             uint256 right,
-            uint256 remainingEntropy
+            uint256 remainingEntropy,
+            uint256 prize
         ) = degenGambit.accept();
 
         vm.stopPrank();
@@ -256,6 +257,7 @@ contract DegenGambitTest is Test {
         assertEq(center, 2);
         assertEq(right, 2);
         assertEq(remainingEntropy, 0);
+        assertEq(prize, expectedPayout);
         assertEq(gameBalanceFinal, gameBalanceIntermediate - expectedPayout);
         assertEq(
             playerBalanceFinal,
@@ -299,7 +301,8 @@ contract DegenGambitTest is Test {
             uint256 left,
             uint256 center,
             uint256 right,
-            uint256 remainingEntropy
+            uint256 remainingEntropy,
+            uint256 prize
         ) = degenGambit.accept();
 
         vm.stopPrank();
@@ -311,6 +314,7 @@ contract DegenGambitTest is Test {
         assertEq(center, 2);
         assertEq(right, 2);
         assertEq(remainingEntropy, 0);
+        assertEq(prize, expectedPayout);
         assertEq(gameBalanceFinal, gameBalanceIntermediate - expectedPayout);
         assertEq(
             playerBalanceFinal,
@@ -324,6 +328,7 @@ contract DegenGambitTest is Test {
         uint256 center;
         uint256 right;
         uint256 remainingEntropy;
+        uint256 prize;
         vm.roll(block.number + blocksToAct + 1);
 
         // Guarantees that the payout does not fall under balance-based clamping flow.
@@ -334,10 +339,10 @@ contract DegenGambitTest is Test {
 
         uint256 entropy = 1208809274197797772061421487;
 
-        uint256 gameBalanceInitial = address(degenGambit).balance;
-        uint256 playerBalanceInitial = player1.balance;
-        uint256 gambitSupplyInitial = degenGambit.totalSupply();
-        uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+        uint256 gameBalanceBefore = address(degenGambit).balance;
+        uint256 playerBalanceBefore = player1.balance;
+        uint256 gambitSupplyBefore = degenGambit.totalSupply();
+        uint256 playerGambitBalanceBefore = degenGambit.balanceOf(player1);
 
         vm.startPrank(player1);
 
@@ -348,14 +353,14 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(true);
         degenGambit.setEntropy(player1, entropy);
 
-        uint256 gameBalanceIntermediate = address(degenGambit).balance;
-        uint256 playerBalanceIntermediate = player1.balance;
+        assertEq(address(degenGambit).balance, gameBalanceBefore + costToSpin);
+        assertEq(player1.balance, playerBalanceBefore - costToSpin);
 
-        assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
-        assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
+        gameBalanceBefore = address(degenGambit).balance;
+        playerBalanceBefore = player1.balance;
 
         uint256 expectedPayout = degenGambit.payout(17, 17, 17);
-        assertEq(expectedPayout, gameBalanceIntermediate >> 1);
+        assertEq(expectedPayout, gameBalanceBefore >> 1);
 
         assertEq(degenGambit.LastSpinBoosted(player1), true);
 
@@ -369,7 +374,7 @@ contract DegenGambitTest is Test {
 
         vm.expectEmit();
         emit Award(player1, expectedPayout);
-        (left, center, right, remainingEntropy) = degenGambit.accept();
+        (left, center, right, remainingEntropy, prize) = degenGambit.accept();
 
         vm.stopPrank();
 
@@ -380,13 +385,14 @@ contract DegenGambitTest is Test {
         assertEq(center, 17);
         assertEq(right, 17);
         assertEq(remainingEntropy, 0);
+        assertEq(prize, expectedPayout);
         assertEq(
             address(degenGambit).balance,
-            gameBalanceIntermediate - expectedPayout
+            gameBalanceBefore - expectedPayout
         );
-        assertEq(player1.balance, playerBalanceIntermediate + expectedPayout);
-        assertEq(gambitSupplyFinal, gambitSupplyInitial - 1);
-        assertEq(playerGambitBalanceFinal, playerGambitBalanceInitial - 1);
+        assertEq(player1.balance, playerBalanceBefore + expectedPayout);
+        assertEq(gambitSupplyFinal, gambitSupplyBefore - 1);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceBefore - 1);
 
         assertEq(degenGambit.LastSpinBoosted(player1), false);
     }
