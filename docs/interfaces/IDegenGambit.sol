@@ -48,7 +48,7 @@ interface IDegenGambit {
 	// Selector: 97c87050
 	function WeeklyStreakReward() external view returns (uint256);
 	// Selector: 2852b71c
-	function accept() external  returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
+	function accept() external  returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 	// Selector: dd62ed3e
 	function allowance(address owner, address spender) external view returns (uint256);
 	// Selector: 095ea7b3
@@ -60,7 +60,7 @@ interface IDegenGambit {
 	// Selector: 17df75a8
 	function inspectEntropy(address degenerate) external view returns (uint256);
 	// Selector: eca8b788
-	function inspectOutcome(address degenerate) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
+	function inspectOutcome(address degenerate) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 	// Selector: fc02f16c
 	function latestEntropy(address degenerate) external view returns (uint256);
 	// Selector: 06fdde03

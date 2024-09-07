@@ -303,6 +303,11 @@
         "name": "remainingEntropy",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "prize",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "nonpayable"
@@ -434,6 +439,11 @@
       },
       {
         "name": "remainingEntropy",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "prize",
         "type": "uint256",
         "internalType": "uint256"
       }

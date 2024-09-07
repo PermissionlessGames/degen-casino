@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/moonstream-to/degen-casino/blob/82218958682417aedca28b10e41024c687e88847/src/DegenGambit.sol)
+[Git Source](https://github.com/moonstream-to/degen-casino/blob/09702310f23606d02a4c84d9858cf5bea1409ee3/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -448,7 +448,7 @@ This is the function a player calls to accept the outcome of a spin.
 function accept()
     external
     nonReentrant
-    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 ```
 
 ### spinCost
@@ -503,7 +503,7 @@ convenient and natural way to simulate the outcome of a spin, which also works o
 function inspectOutcome(address degenerate)
     external
     view
-    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 ```
 
 ## Events
