@@ -387,6 +387,8 @@ contract DegenGambitTest is Test {
         assertEq(player1.balance, playerBalanceIntermediate + expectedPayout);
         assertEq(gambitSupplyFinal, gambitSupplyInitial - 1);
         assertEq(playerGambitBalanceFinal, playerGambitBalanceInitial - 1);
+
+        assertEq(degenGambit.LastSpinBoosted(player1), false);
     }
 
     function test_gambit_minted_on_streak_regular() public {
