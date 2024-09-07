@@ -74,7 +74,7 @@ Once at least one block has passed, subject to a block deadline (described below
 
 ```solidity
 	// Selector: eca8b788
-	function inspectOutcome(address degenerate) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy);
+	function inspectOutcome(address degenerate) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 ```
 
 The return values specify, in order:
@@ -84,9 +84,11 @@ The return values specify, in order:
 1. A 166-bit integer representing the entropy unused by the game. This entropy is statistically independent from the entropy used to determine the
 symbols that the reels come to rest on. Clients are free to use this entropy in any manner they wish to. Using this entropy allows game clients to
 produce effects that are invariant under distinct sessions.
+1. The amount of native tokens that the player would win by accepting the outcome.
 
-The `inspectOutcome` call will fail if either a block has not ticked since the player's last spin or if the block deadline has passed after the player's last
-spin. When a *Degen's Gambit* smart contract is deployed, it is configured with a [`BlocksToAct`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#blockstoact) parameter:
+The `inspectOutcome` call will fail if either a block has not ticked since the player's last spin or if the block deadline has passed after the player's last spin.
+
+When a *Degen's Gambit* smart contract is deployed, it is configured with a [`BlocksToAct`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#blockstoact) parameter:
 
 ```solidity
 uint256 public BlocksToAct;
@@ -116,5 +118,49 @@ This check can be made from off the blockchain by polling the current block numb
 `block.number` above. Off-chain clients will need to poll for the current block number if they want to stay up-to-date regarding the block deadline
 and they are using the JSONRPC API. Clients that can establish websocket connections with an RPC node can also send an
 [`eth_subscribe` message for `newHeads`](https://www.quicknode.com/docs/ethereum/eth_subscribe) to receive websocket messages every time a block is produced.
+
+When a *Degen's Gambit* game contract is deployed, it is also configured with the full spin cost and the discounted spin cost for respins made before the
+`BlocksToAct` deadline expires after a spin. These are defined as follows on the [`DegenGambit`](../src/DegenGambit.sol):
+
+```solidity
+    /// Cost (finest denomination of native token on the chain) to roll.
+    uint256 public CostToSpin;
+
+    /// Cost (finest denomination of native token on the chain) to reroll.
+    uint256 public CostToRespin;
+```
+
+And can be called as view methods:
+
+```solidity
+	// Selector: e4a2e5b3
+	function CostToRespin() external view returns (uint256);
+	// Selector: ab6282c8
+	function CostToSpin() external view returns (uint256);
+```
+
+To understand a player's cost for the next spin, one would first have to calculate when the player made their last spin, and whether they accepted the outcome of
+that spin or not. If the player made their last spin the past `BlocksToAct` blocks but did not `accept` the outcome of that spin, they would be eligible to respin at
+the `CostToRespin` cost. Otherwise, their next `spin` would cost `CostToSpin`.
+
+The `DegenGambit` contract offers the [`spinCost` convenience method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spincost),
+which automatically does these calculations and tells clients how much the players next spin is expected to cost:
+
+```solidity
+	// Selector: 6f785558
+	function spinCost(address degenerate) external view returns (uint256);
+```
+
+### Suggested spin implementation using JSONRPC API
+
+This is one way that game clients could implement the spin flow for players:
+
+1. Call [`spinCost`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spincost) and communicate to the player how much their next spin would cost.
+2. If the player has a positive GAMBIT balance, give them the option of making a boosted spin. This is covered in detail in the
+[*Bossting spins with GAMBIT*](#boosting-spins-with-gambit) section below.
+3. Once the player makes the spin, start polling the chain's block number.
+4. Once the spin transaction has been included in the blockchain, call [`inspectOutcome`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#inspectoutcome) to show the player the symbols on the reels, and what they would receive in prizes if they accepted that outcome.
+5. Allow the players to either respin (go back to the beginning of this flow) or `accept` the outcome until `BlocksToAct` blocks have passed since they made their spin.
+6. If `BlocksToAct` blocks pass after the player's last spin, go back to the beginning of this workflow.
 
 ## Boosting spins with GAMBIT
