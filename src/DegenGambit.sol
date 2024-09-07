@@ -255,6 +255,12 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             );
     }
 
+    function latestEntropy(address degenerate) external view returns (uint256) {
+        _enforceTick(degenerate);
+        _enforceDeadline(degenerate);
+        return _entropy(degenerate);
+    }
+
     /// sampleUnmodifiedLeftReel samples the outcome from UnmodifiedLeftReel specified by the given entropy
     function sampleUnmodifiedLeftReel(
         uint256 entropy
@@ -671,8 +677,30 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         }
 
         LastSpinBlock[msg.sender] = _blockNumber();
-        delete LastSpinBoosted[msg.sender];
+        LastSpinBoosted[msg.sender] = boost;
 
         emit Spin(msg.sender, boost);
+    }
+
+    /// inspectEntropy is a view method which allows clients to check the current entropy for a player given only their address.
+    /// @dev This is a convenience method so that clients don't have to calculate the entropy given the spin blockhash themselves. It
+    /// also enforces that blocks have ticked since the spin as well as the `BlocksToAct` deadline.
+    function inspectEntropy(address degenerate) external view returns (uint256) {
+        _enforceTick(degenerate);
+        _enforceDeadline(degenerate);
+        return _entropy(degenerate);
+    }
+
+    /// inspectOutcome is a view method which allows clients to check the outcome of a spin for a player given only their address.
+    /// @notice This method allows clients to simulate the outcome of a spin in a single RPC call.
+    /// @dev The alternative to using this method would be to call `accept` (rather than submitting it as a transaction). This is simply a more
+    /// convenient and natural way to simulate the outcome of a spin, which also works on-chain.
+    function inspectOutcome(address degenerate) external view returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy) {
+        _enforceTick(degenerate);
+        _enforceDeadline(degenerate);
+        (left, center, right, remainingEntropy) = outcome(
+            _entropy(degenerate),
+            LastSpinBoosted[degenerate]
+        );
     }
 }

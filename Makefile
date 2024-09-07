@@ -24,5 +24,9 @@ forge:
 
 docs:
 	forge doc
+	mkdir -p docs/abis
+	mkdir -p docs/interfaces
+	jq .abi out/DegenGambit.sol/DegenGambit.json >docs/abis/DegenGambit.abi.json
+	jq . docs/abis/DegenGambit.abi.json | solface -annotations -license MIT -name IDegenGambit -pragma "^0.8.13" >docs/interfaces/IDegenGambit.sol
 
 redocs: clean docs
