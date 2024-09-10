@@ -11,9 +11,8 @@ Interactin with a `DegenGambit` smart contract:
 Flows:
 1. [The Pot](#the-pot)
 1. [Spinning the slot machine](#spinning-the-slot-machine)
-1. Boosting spins with GAMBIT
-1. Earning GAMBIT through daily and weekly streaks
-1. Simulating outcomes
+1. [Boosting spins with GAMBIT](#boosting-spins-with-gambit)
+1. [Daily and weekly streaks](#daily-and-weekly-streaks)
 
 ## The Pot
 
@@ -164,3 +163,91 @@ This is one way that game clients could implement the spin flow for players:
 6. If `BlocksToAct` blocks pass after the player's last spin, go back to the beginning of this workflow.
 
 ## Boosting spins with GAMBIT
+
+The `DegenGambit` token, in addition to being a slot machine, is also an ERC20 contract. Its tokens are called `GAMBIT` tokens, and they can be used by players
+to improve their odds of getting a winning outcome on a spin.
+
+Each boost costs a single `GAMBIT` token and a player can indicate that they would like to use a `GAMBIT` token to boost their spin by setting the `boost` argument to `true` on the [`spin` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spin):
+
+```solidity
+	// Selector: 6499572f
+	function spin(bool boost) external ;
+```
+
+If a player makes a boosted spin, a single `GAMBIT` token is burned from their account.
+
+(Note: The `DegenGambit` contract does not need `ERC20` approval from the player for this as it is itself the ERC20 contract on which the token is being burned.)
+
+There are two ways for players to acquire GAMBIT tokens:
+1. Earn `GAMBIT` from the game by continuing a daily or weekly streak. The [Daily and weekly streaks](#daily-and-weekly-streaks) below discusses this mechanic.
+2. Acquire `GAMBIT` on the open market. We do not cover this flow in this integration guide - there is a lot of diversity in how players could purcahse or acquire
+`GAMBIT` from others (DEX purchases, loans, prize sharing agreements, etc.).
+
+The only want that `GAMBIT` is actually produced in the economy is by players coming in and spinning the slot machine on consecutive days and consecutive weeks.
+
+## Daily and weekly streaks
+
+Daily and weekly streaks are extended automatically when a player spins. A player needs do nothing *but* spin in order to start or extend a streak.
+
+This makes it really easy for players to continue streaks, but it does make it more difficult for game clients to understand that a streak has been extended. In
+this section, we will describe two ways for game clients to communicate the state of their streaks back to the player.
+
+First, some background on streaks. *Degen's Gambit* has two kinds of streaks:
+1. Daily streaks: If a player spins the slot machine on day `N` and then again on day `N+1`, their first spin on day `N+1` earns them some `GAMBIT` tokens.
+2. Weekly streaks: If a player spins the slot machine on week `M` and then again on week `M+1`, their first spin on week `M+1` earns them some `GAMBIT` tokens.
+
+The `GAMBIT` rewards for extending daily and weekly streaks are defined by:
+
+```solidity
+	// Selector: df43230f
+	function DailyStreakReward() external view returns (uint256);
+```
+
+and
+
+```solidity
+	// Selector: 97c87050
+	function WeeklyStreakReward() external view returns (uint256);
+```
+
+respectively. Each method specifies the number of `GAMBIT` tokens a player will earn by extending a daily or weekly streak.
+
+The contract defines a day as all the Unix timestamps with the same quotient when divided by `60*60*24 = 86400`. It defines a week as all the Unix timestamps with
+the same quotient when divided by `60*60*24*7 = 604800`.
+
+If a spin starts or extends a daily streak, it emits the following event:
+
+```solidity
+	event DailyStreak(address player, uint256 day);
+```
+
+If a spin starts or extends a weekly streak, it emits the following event:
+
+```solidity
+	event WeeklyStreak(address player, uint256 week);
+```
+
+Therefore, one way for clients to detect if a streak has been started or extended is to inspect spin transactions for either of these events, or to listen for
+these events directly on a node. This kind of indexing does come with some overhead, although the World Builder team does plan to expose a public API that exposes these
+event emissions to game clients for the slot machines deployed to the Game7 testnet and mainnet.
+
+A more simple way for game clients to detect when a player begins a streak or extends it is to monitor changes to the following state on the `DegenGambit` contract:
+
+```solidity
+	// Selector: fcb13e26
+	function LastStreakDay(address ) external view returns (uint256);
+	// Selector: 21c58fba
+	function LastStreakWeek(address ) external view returns (uint256);
+```
+
+In reality, these are public mappings on [`DegenGambit`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#laststreakday). Every time a player begins or continues a streak, a client can use the change in `LastStreakDay` or `LastStreakWeek` to determine what happened.
+
+For daily streaks:
+1. If `LastStreakDay` did not change on a `spin`, then there has been no change to the player's streaks.
+2. If `LastStreakDay` increased by 1, the player has extended a streak and received `DailyStreakReward()` `GAMBIT` tokens.
+3. If `LastStreakDay` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `DailyStreakReward()` `GAMBIT` tokens if they `spin` again tomorrow.
+
+For weekly streaks:
+1. If `LastStreakWeek` did not change on a `spin`, then there has been no change to the player's streaks.
+2. If `LastStreakWeek` increased by 1, the player has extended a streak and received `WeeklyStreakReward()` `GAMBIT` tokens.
+3. If `LastStreakWeek` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `WeeklyStreakReward()` `GAMBIT` tokens if they `spin` again next week.
