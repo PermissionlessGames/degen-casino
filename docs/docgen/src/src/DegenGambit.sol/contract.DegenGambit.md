@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/moonstream-to/degen-casino/blob/afbd141dae017b71ec07511e9a5173990c4f4619/src/DegenGambit.sol)
+[Git Source](https://github.com/moonstream-to/degen-casino/blob/b8bec657258efec3b0b814c636a056e079d6af65/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -345,13 +345,6 @@ function _enforceDeadline(address degenerate) internal view;
 
 ```solidity
 function _entropy(address degenerate) internal view virtual returns (uint256);
-```
-
-### latestEntropy
-
-
-```solidity
-function latestEntropy(address degenerate) external view returns (uint256);
 ```
 
 ### sampleUnmodifiedLeftReel

@@ -255,12 +255,6 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             );
     }
 
-    function latestEntropy(address degenerate) external view returns (uint256) {
-        _enforceTick(degenerate);
-        _enforceDeadline(degenerate);
-        return _entropy(degenerate);
-    }
-
     /// sampleUnmodifiedLeftReel samples the outcome from UnmodifiedLeftReel specified by the given entropy
     function sampleUnmodifiedLeftReel(
         uint256 entropy
@@ -689,7 +683,6 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     function inspectEntropy(
         address degenerate
     ) external view returns (uint256) {
-        _enforceTick(degenerate);
         _enforceDeadline(degenerate);
         return _entropy(degenerate);
     }
@@ -711,7 +704,6 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             uint256 prize
         )
     {
-        _enforceTick(degenerate);
         _enforceDeadline(degenerate);
         (left, center, right, remainingEntropy) = outcome(
             _entropy(degenerate),
