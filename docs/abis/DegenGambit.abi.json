@@ -533,6 +533,25 @@
   },
   {
     "type": "function",
+    "name": "payoutEstimate",
+    "inputs": [
+      {
+        "name": "cost",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "payouts",
+        "type": "uint256[6]",
+        "internalType": "uint256[6]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "sampleImprovedCenterReel",
     "inputs": [
       {
