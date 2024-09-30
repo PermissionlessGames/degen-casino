@@ -534,13 +534,7 @@
   {
     "type": "function",
     "name": "payoutEstimate",
-    "inputs": [
-      {
-        "name": "cost",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
+    "inputs": [],
     "outputs": [
       {
         "name": "payouts",
