@@ -580,14 +580,17 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 // 3 of a kind with a major symbol. Jackpot!
                 result = address(this).balance >> 1;
             }
-        } else if (left == right) {
+        } else if (left == right && center >= 16) {
             // Outer pair combos.
-            if (left >= 1 && left <= 15 && center >= 16) {
+            if (left >= 1 && left <= 15) {
                 // Minor symbol pair on outside reels with major symbol in the center.
                 result = 100 * CostToSpin;
                 if (result > address(this).balance >> 4) {
                     result = address(this).balance >> 4;
                 }
+            } else if (left >= 16) {
+                // Major symbol pair on the outside with a different major symbol in the center.
+                result = address(this).balance >> 3;
             }
             // We handle the case of a minor symbol pair on the outside with a major symbol in the center
             // in the next top-level branch instead together with the case of three distinct major symbols.
@@ -599,8 +602,6 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             right != center
         ) {
             // Three distinct major symbols.
-            // OR
-            // Major symbol pair on the outside with a different major symbol in the center.
             result = address(this).balance >> 3;
         }
     }
