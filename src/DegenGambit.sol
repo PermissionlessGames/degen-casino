@@ -566,7 +566,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         }
         //Default 0 for everything else
         result = 0;
-        if (left != 0 || right != 0 || center != 0) {
+        if (left != 0 && right != 0 && center != 0) {
             if (left == right && left == center && left <= 15) {
                 // 3 of a kind with a minor symbol. Case 1
                 result = 50 * CostToSpin;
