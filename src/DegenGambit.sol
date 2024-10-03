@@ -564,44 +564,40 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         if (left >= 19 || center >= 19 || right >= 19) {
             revert OutcomeOutOfBounds();
         }
-
+        //Default 0 for everything else
         result = 0;
-
-        if (left == center && center == right) {
-            // 3 of a kind combos.
-            // Note: (null, null, null) does not pay out.
-            if (left >= 1 && left <= 15) {
-                // 3 of a kind with a minor symbol.
+        if (left != 0 && right != 0 && center != 0) {
+            if (left == right && left == center && left <= 15) {
+                // 3 of a kind with a minor symbol. Case 1
                 result = 50 * CostToSpin;
                 if (result > address(this).balance >> 6) {
                     result = address(this).balance >> 6;
                 }
-            } else if (left >= 16) {
-                // 3 of a kind with a major symbol. Jackpot!
-                result = address(this).balance >> 1;
-            }
-        } else if (left == right) {
-            // Outer pair combos.
-            if (left >= 1 && left <= 15 && center >= 16) {
-                // Minor symbol pair on outside reels with major symbol in the center.
+            } else if (left == right && center >= 16 && left <= 15) {
+                // Minor symbol pair on outside reels with major symbol in the center. Case 2
                 result = 100 * CostToSpin;
                 if (result > address(this).balance >> 4) {
                     result = address(this).balance >> 4;
                 }
+            } else if (
+                left != right &&
+                center != left &&
+                center != right &&
+                left >= 16 &&
+                center >= 16 &&
+                right >= 16
+            ) {
+                // Three distinct major symbols. Case 3
+                result = address(this).balance >> 3;
+            } else if (
+                left == right && left != center && left >= 16 && center >= 16
+            ) {
+                // Major symbol pair on the outside with a different major symbol in the center. Case 4
+                result = address(this).balance >> 3;
+            } else if (left == center && center == right && left >= 16) {
+                // 3 of a kind with a major symbol. Jackpot! Case 5
+                result = address(this).balance >> 1;
             }
-            // We handle the case of a minor symbol pair on the outside with a major symbol in the center
-            // in the next top-level branch instead together with the case of three distinct major symbols.
-        } else if (
-            left >= 16 &&
-            right >= 16 &&
-            center >= 16 &&
-            left != center &&
-            right != center
-        ) {
-            // Three distinct major symbols.
-            // OR
-            // Major symbol pair on the outside with a different major symbol in the center.
-            result = address(this).balance >> 3;
         }
     }
 
