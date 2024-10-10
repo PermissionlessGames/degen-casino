@@ -1,5 +1,5 @@
 # ArbSys
-[Git Source](https://github.com//mrk-hub/degen-casino/blob/10d37ddb493f0eefa6d2dac509ca2b9bfcbb697e/src/ArbSys.sol)
+[Git Source](https://github.com//mrk-hub/degen-casino/blob/386cd0ea47a25253b55a2ea9b96de074c1a07d2b/src/ArbSys.sol)
 
 This code was adapted from the arb-os repository: https://github.com/OffchainLabs/arb-os.
 Specifically, the ArbSys contract at commit 234cf670016d675095110cd944cb82fde9c460b8:

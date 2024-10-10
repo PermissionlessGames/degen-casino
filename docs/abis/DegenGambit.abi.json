@@ -533,7 +533,7 @@
   },
   {
     "type": "function",
-    "name": "payoutEstimate",
+    "name": "prizes",
     "inputs": [],
     "outputs": [
       {

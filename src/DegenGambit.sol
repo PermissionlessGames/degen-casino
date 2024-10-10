@@ -602,11 +602,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     // Payout Estimate function to easily display current payouts estimate at time of function call
-    function payoutEstimate()
-        external
-        view
-        returns (uint256[5] memory payouts)
-    {
+    function prizes() external view returns (uint256[5] memory payouts) {
         payouts[0] = 50 * CostToSpin < address(this).balance >> 6
             ? 50 * CostToSpin
             : address(this).balance >> 6;
