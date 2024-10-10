@@ -27,18 +27,17 @@ For example, if you are interested in the size of the pot for the *Degen's Gambi
 [`0x3f2F2A8C37f200802f3468507dE8AFa25777b4b9`](https://explorer-game7-testnet-0ilneybprf.t.conduit.xyz/address/0x3f2F2A8C37f200802f3468507dE8AFa25777b4b9?tab=contract)
 on the Game7 testnet, you could make an RPC call as follows:
 
-```bash
-curl "https://rpc-game7-testnet-0ilneybprf.t.conduit.xyz" \
-    -H "Content-Type: application/json"  \
-    -X POST  \
-    -d '{"id": 1, "jsonrpc": "2.0", "method": "eth_getBalance", "params": ["0x3f2F2A8C37f200802f3468507dE8AFa25777b4b9", "latest"]}'
+```solidity
+function prizes() external view returns(uint256[5] memory prizesAmount)
 ```
 
-This will return a response of the following form:
+The return values, in order:
+	1. Index 0 prize for spinning all matching minor symbols
+	2. Index 1 prize for spinning matching minor symbol left and right, with a major symbol center
+	3. Index 2 prize for spinning matching major symbol left and right, with a different major symbol center
+	4. Index 3 prize for spinning 3 different major symbols
+	5. index 4 prize for spinning all matching major symbol
 
-```json
-{"jsonrpc":"2.0","result":"0x3a99e","id":1}
-```
 
 The `"result"` key is the hexadecimal representation of the balance. In this case, the pot size is `0x3a99e = 240030`.
 
