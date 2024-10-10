@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//mrk-hub/degen-casino/blob/c312c99d9c5cbf0a0d0c6929d1a035484b62cc4b/src/DegenGambit.sol)
+[Git Source](https://github.com//mrk-hub/degen-casino/blob/10d37ddb493f0eefa6d2dac509ca2b9bfcbb697e/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -434,7 +434,7 @@ function payout(uint256 left, uint256 center, uint256 right) public view returns
 
 
 ```solidity
-function payoutEstimate() external view returns (uint256[6] memory payouts);
+function payoutEstimate() external view returns (uint256[5] memory payouts);
 ```
 
 ### accept

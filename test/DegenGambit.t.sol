@@ -931,54 +931,54 @@ contract DegenGambitTest is Test {
         vm.expectRevert(DegenGambit.OutcomeOutOfBounds.selector);
         degenGambit.payout(19, 19, 19);
 
-        uint256[6] memory payoutEstimate = degenGambit.payoutEstimate();
+        uint256[5] memory payoutEstimate = degenGambit.payoutEstimate();
 
         uint256 payout = degenGambit.payout(0, 0, 0);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(0, 1, 2);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(1, 2, 3);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(1, 6, 1);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(0, 16, 0);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(1, 16, 2);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(16, 2, 16);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(16, 16, 17);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(16, 16, 6);
-        assertEq(payoutEstimate[0], payout);
+        assertEq(0, payout);
 
         payout = degenGambit.payout(1, 1, 1);
-        assertEq(payoutEstimate[1], payout);
+        assertEq(payoutEstimate[0], payout);
 
         payout = degenGambit.payout(15, 15, 15);
-        assertEq(payoutEstimate[1], payout);
+        assertEq(payoutEstimate[0], payout);
 
         payout = degenGambit.payout(1, 16, 1);
-        assertEq(payoutEstimate[2], payout);
+        assertEq(payoutEstimate[1], payout);
 
         payout = degenGambit.payout(15, 16, 15);
-        assertEq(payoutEstimate[2], payout);
+        assertEq(payoutEstimate[1], payout);
 
         payout = degenGambit.payout(17, 16, 18);
-        assertEq(payoutEstimate[3], payout);
+        assertEq(payoutEstimate[2], payout);
 
         payout = degenGambit.payout(16, 17, 16);
-        assertEq(payoutEstimate[4], payout);
+        assertEq(payoutEstimate[3], payout);
 
         payout = degenGambit.payout(16, 16, 16);
-        assertEq(payoutEstimate[5], payout);
+        assertEq(payoutEstimate[4], payout);
     }
 }

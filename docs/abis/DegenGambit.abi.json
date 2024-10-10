@@ -538,8 +538,8 @@
     "outputs": [
       {
         "name": "payouts",
-        "type": "uint256[6]",
-        "internalType": "uint256[6]"
+        "type": "uint256[5]",
+        "internalType": "uint256[5]"
       }
     ],
     "stateMutability": "view"
