@@ -32,11 +32,11 @@ function prizes() external view returns(uint256[5] memory prizesAmount)
 ```
 
 The return values, in order:
-	1. Index 0 prize for spinning all matching minor symbols
-	2. Index 1 prize for spinning matching minor symbol left and right, with a major symbol center
-	3. Index 2 prize for spinning matching major symbol left and right, with a different major symbol center
-	4. Index 3 prize for spinning 3 different major symbols
-	5. index 4 prize for spinning all matching major symbol
+1. Index 0 prize for spinning all matching minor symbols
+2. Index 1 prize for spinning matching minor symbol left and right, with a major symbol center
+3. Index 2 prize for spinning matching major symbol left and right, with a different major symbol center
+4. Index 3 prize for spinning 3 different major symbols
+5. index 4 prize for spinning all matching major symbol
 
 
 The `"result"` key is the hexadecimal representation of the balance. In this case, the pot size is `0x3a99e = 240030`.
