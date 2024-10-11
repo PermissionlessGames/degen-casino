@@ -11,6 +11,7 @@ bindings/DegenGambit/DegenGambit.go:
 	seer evm generate --package DegenGambit --output bindings/DegenGambit/DegenGambit.go --foundry out/DegenGambit.sol/DegenGambit.json --cli --struct DegenGambit
 
 bin/casino: bindings/DegenGambit/DegenGambit.go
+	go mod tidy
 	go build -o bin/casino ./cmd/casino/
 
 test:

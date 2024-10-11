@@ -926,4 +926,59 @@ contract DegenGambitTest is Test {
         assertEq(gambitSupplyFinal, gambitSupplyIntermediate);
         assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate);
     }
+
+    function test_prizes_and_payout_match() public {
+        vm.expectRevert(DegenGambit.OutcomeOutOfBounds.selector);
+        degenGambit.payout(19, 19, 19);
+
+        uint256[5] memory prizes = degenGambit.prizes();
+
+        uint256 payout = degenGambit.payout(0, 0, 0);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(0, 1, 2);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(1, 2, 3);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(1, 6, 1);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(0, 16, 0);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(1, 16, 2);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(16, 2, 16);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(16, 16, 17);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(16, 16, 6);
+        assertEq(0, payout);
+
+        payout = degenGambit.payout(1, 1, 1);
+        assertEq(prizes[0], payout);
+
+        payout = degenGambit.payout(15, 15, 15);
+        assertEq(prizes[0], payout);
+
+        payout = degenGambit.payout(1, 16, 1);
+        assertEq(prizes[1], payout);
+
+        payout = degenGambit.payout(15, 16, 15);
+        assertEq(prizes[1], payout);
+
+        payout = degenGambit.payout(17, 16, 18);
+        assertEq(prizes[2], payout);
+
+        payout = degenGambit.payout(16, 17, 16);
+        assertEq(prizes[3], payout);
+
+        payout = degenGambit.payout(16, 16, 16);
+        assertEq(prizes[4], payout);
+    }
 }

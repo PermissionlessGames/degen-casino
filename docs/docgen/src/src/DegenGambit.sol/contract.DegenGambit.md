@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/moonstream-to/degen-casino/blob/b8bec657258efec3b0b814c636a056e079d6af65/src/DegenGambit.sol)
+[Git Source](https://github.com//mrk-hub/degen-casino/blob/386cd0ea47a25253b55a2ea9b96de074c1a07d2b/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -428,6 +428,13 @@ Payout function for symbol combinations.
 
 ```solidity
 function payout(uint256 left, uint256 center, uint256 right) public view returns (uint256 result);
+```
+
+### prizes
+
+
+```solidity
+function prizes() external view returns (uint256[5] memory payouts);
 ```
 
 ### accept

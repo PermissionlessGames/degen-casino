@@ -533,6 +533,19 @@
   },
   {
     "type": "function",
+    "name": "prizes",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "payouts",
+        "type": "uint256[5]",
+        "internalType": "uint256[5]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "sampleImprovedCenterReel",
     "inputs": [
       {
