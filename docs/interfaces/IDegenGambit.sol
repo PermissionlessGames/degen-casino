@@ -68,7 +68,7 @@ interface IDegenGambit {
 	// Selector: b3dfa13d
 	function payout(uint256 left, uint256 center, uint256 right) external view returns (uint256 result);
 	// Selector: 11cceaf6
-	function prizes() external view returns (uint256[5] memory payouts);
+	function prizes() external view returns (uint256[5] memory prizesAmount);
 	// Selector: 82e82634
 	function sampleImprovedCenterReel(uint256 entropy) external view returns (uint256);
 	// Selector: bac1d231

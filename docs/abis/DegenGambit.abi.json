@@ -537,7 +537,7 @@
     "inputs": [],
     "outputs": [
       {
-        "name": "payouts",
+        "name": "prizesAmount",
         "type": "uint256[5]",
         "internalType": "uint256[5]"
       }
