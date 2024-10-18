@@ -701,7 +701,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         bool boost,
         uint256 value
     ) internal {
-        uint256 requiredFee = spinCost(msg.sender);
+        uint256 requiredFee = spinCost(spinPlayer);
         if (value < requiredFee) {
             revert InsufficientValue();
         }
