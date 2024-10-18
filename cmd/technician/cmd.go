@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/moonstream-to/degen-casino/bindings/BlockInspector"
-	"github.com/moonstream-to/degen-casino/version"
+	"github.com/PermissionlessGames/degen-casino/bindings/BlockInspector"
+	"github.com/PermissionlessGames/degen-casino/version"
 )
 
 func CreateRootCommand() *cobra.Command {
