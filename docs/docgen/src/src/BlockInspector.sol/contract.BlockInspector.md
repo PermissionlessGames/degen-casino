@@ -1,15 +1,15 @@
 # BlockInspector
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/d03c8f1fa5e56b8c8ef10644a3f7961827cbcfc4/src/BlockInspector.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9240c2f8376533fc14998415c873e071e106ba21/src/BlockInspector.sol)
 
 *This contract is for debugging purposes related to blockhashes and block nunbers on Arbitrum chains.*
 
 
 ## Functions
-### inspect
+### blockNumbers
 
 
 ```solidity
-function inspect() external view returns (uint256, uint256, bytes32, bytes32);
+function blockNumbers() external view returns (uint256, uint256);
 ```
 
 ### hash
@@ -17,5 +17,12 @@ function inspect() external view returns (uint256, uint256, bytes32, bytes32);
 
 ```solidity
 function hash(uint256 number) external view returns (bytes32);
+```
+
+### arbBlockHash
+
+
+```solidity
+function arbBlockHash(uint256 number) external view returns (bytes32);
 ```
 

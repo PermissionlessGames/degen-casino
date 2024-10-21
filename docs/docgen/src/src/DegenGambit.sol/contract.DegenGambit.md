@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/d03c8f1fa5e56b8c8ef10644a3f7961827cbcfc4/src/DegenGambit.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9240c2f8376533fc14998415c873e071e106ba21/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -324,6 +324,13 @@ function decimals() public pure override returns (uint8);
 
 ```solidity
 function _blockNumber() internal view returns (uint256);
+```
+
+### _blockhash
+
+
+```solidity
+function _blockhash(uint256 number) internal view returns (bytes32);
 ```
 
 ### _enforceTick

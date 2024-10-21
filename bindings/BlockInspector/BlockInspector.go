@@ -56,8 +56,8 @@ var (
 )
 
 var BlockInspectorMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"hash\",\"inputs\":[{\"name\":\"number\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"inspect\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"}]",
-	Bin: "0x608060405234801561001057600080fd5b5061016d806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c8063a44c91801461003b578063b189fd4c14610068575b600080fd5b610043610088565b6040805194855260208501939093529183015260608201526080015b60405180910390f35b61007a610076366004610105565b4090565b60405190815260200161005f565b600080600080600060646001600160a01b031663a3b1b31d6040518163ffffffff1660e01b8152600401602060405180830381865afa1580156100cf573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906100f3919061011e565b43969095508640945085409350915050565b60006020828403121561011757600080fd5b5035919050565b60006020828403121561013057600080fd5b505191905056fea264697066735822122040f6b3bb7250ecab10e766fc1a103876e46b5201f481643132471ecb53cd7e6e64736f6c63430008170033",
+	ABI: "[{\"type\":\"function\",\"name\":\"arbBlockHash\",\"inputs\":[{\"name\":\"number\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"blockNumbers\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hash\",\"inputs\":[{\"name\":\"number\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"}]",
+	Bin: "0x608060405234801561001057600080fd5b506101df806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80632b407a821461004657806349d4a8eb1461006c578063b189fd4c14610089575b600080fd5b610059610054366004610177565b61009b565b6040519081526020015b60405180910390f35b610074610105565b60408051928352602083019190915201610063565b610059610097366004610177565b4090565b6040516315a03d4160e11b815260048101829052600090606490632b407a8290602401602060405180830381865afa1580156100db573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906100ff9190610190565b92915050565b600080600060646001600160a01b031663a3b1b31d6040518163ffffffff1660e01b8152600401602060405180830381865afa158015610149573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061016d9190610190565b4394909350915050565b60006020828403121561018957600080fd5b5035919050565b6000602082840312156101a257600080fd5b505191905056fea26469706673582212208b4827132918af9220245d822005280d37c673bffccacd0262b838ba8b52600964736f6c63430008170033",
 }
 
 // BlockInspectorABI is the input ABI used to generate the binding from.
@@ -227,6 +227,69 @@ func (_BlockInspector *BlockInspectorTransactorRaw) Transact(opts *bind.Transact
 	return _BlockInspector.Contract.contract.Transact(opts, method, params...)
 }
 
+// ArbBlockHash is a free data retrieval call binding the contract method 0x2b407a82.
+//
+// Solidity: function arbBlockHash(uint256 number) view returns(bytes32)
+func (_BlockInspector *BlockInspectorCaller) ArbBlockHash(opts *bind.CallOpts, number *big.Int) ([32]byte, error) {
+	var out []interface{}
+	err := _BlockInspector.contract.Call(opts, &out, "arbBlockHash", number)
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// ArbBlockHash is a free data retrieval call binding the contract method 0x2b407a82.
+//
+// Solidity: function arbBlockHash(uint256 number) view returns(bytes32)
+func (_BlockInspector *BlockInspectorSession) ArbBlockHash(number *big.Int) ([32]byte, error) {
+	return _BlockInspector.Contract.ArbBlockHash(&_BlockInspector.CallOpts, number)
+}
+
+// ArbBlockHash is a free data retrieval call binding the contract method 0x2b407a82.
+//
+// Solidity: function arbBlockHash(uint256 number) view returns(bytes32)
+func (_BlockInspector *BlockInspectorCallerSession) ArbBlockHash(number *big.Int) ([32]byte, error) {
+	return _BlockInspector.Contract.ArbBlockHash(&_BlockInspector.CallOpts, number)
+}
+
+// BlockNumbers is a free data retrieval call binding the contract method 0x49d4a8eb.
+//
+// Solidity: function blockNumbers() view returns(uint256, uint256)
+func (_BlockInspector *BlockInspectorCaller) BlockNumbers(opts *bind.CallOpts) (*big.Int, *big.Int, error) {
+	var out []interface{}
+	err := _BlockInspector.contract.Call(opts, &out, "blockNumbers")
+
+	if err != nil {
+		return *new(*big.Int), *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	out1 := *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+
+	return out0, out1, err
+
+}
+
+// BlockNumbers is a free data retrieval call binding the contract method 0x49d4a8eb.
+//
+// Solidity: function blockNumbers() view returns(uint256, uint256)
+func (_BlockInspector *BlockInspectorSession) BlockNumbers() (*big.Int, *big.Int, error) {
+	return _BlockInspector.Contract.BlockNumbers(&_BlockInspector.CallOpts)
+}
+
+// BlockNumbers is a free data retrieval call binding the contract method 0x49d4a8eb.
+//
+// Solidity: function blockNumbers() view returns(uint256, uint256)
+func (_BlockInspector *BlockInspectorCallerSession) BlockNumbers() (*big.Int, *big.Int, error) {
+	return _BlockInspector.Contract.BlockNumbers(&_BlockInspector.CallOpts)
+}
+
 // Hash is a free data retrieval call binding the contract method 0xb189fd4c.
 //
 // Solidity: function hash(uint256 number) view returns(bytes32)
@@ -256,40 +319,6 @@ func (_BlockInspector *BlockInspectorSession) Hash(number *big.Int) ([32]byte, e
 // Solidity: function hash(uint256 number) view returns(bytes32)
 func (_BlockInspector *BlockInspectorCallerSession) Hash(number *big.Int) ([32]byte, error) {
 	return _BlockInspector.Contract.Hash(&_BlockInspector.CallOpts, number)
-}
-
-// Inspect is a free data retrieval call binding the contract method 0xa44c9180.
-//
-// Solidity: function inspect() view returns(uint256, uint256, bytes32, bytes32)
-func (_BlockInspector *BlockInspectorCaller) Inspect(opts *bind.CallOpts) (*big.Int, *big.Int, [32]byte, [32]byte, error) {
-	var out []interface{}
-	err := _BlockInspector.contract.Call(opts, &out, "inspect")
-
-	if err != nil {
-		return *new(*big.Int), *new(*big.Int), *new([32]byte), *new([32]byte), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	out1 := *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	out2 := *abi.ConvertType(out[2], new([32]byte)).(*[32]byte)
-	out3 := *abi.ConvertType(out[3], new([32]byte)).(*[32]byte)
-
-	return out0, out1, out2, out3, err
-
-}
-
-// Inspect is a free data retrieval call binding the contract method 0xa44c9180.
-//
-// Solidity: function inspect() view returns(uint256, uint256, bytes32, bytes32)
-func (_BlockInspector *BlockInspectorSession) Inspect() (*big.Int, *big.Int, [32]byte, [32]byte, error) {
-	return _BlockInspector.Contract.Inspect(&_BlockInspector.CallOpts)
-}
-
-// Inspect is a free data retrieval call binding the contract method 0xa44c9180.
-//
-// Solidity: function inspect() view returns(uint256, uint256, bytes32, bytes32)
-func (_BlockInspector *BlockInspectorCallerSession) Inspect() (*big.Int, *big.Int, [32]byte, [32]byte, error) {
-	return _BlockInspector.Contract.Inspect(&_BlockInspector.CallOpts)
 }
 
 func CreateBlockInspectorDeploymentCommand() *cobra.Command {
@@ -513,6 +542,147 @@ func generateBlockInspectorDeployBytecode() ([]byte, error) {
 	return deployBytecode, nil
 }
 
+func CreateArbBlockHashCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var number *big.Int
+	var numberRaw string
+
+	var capture0 [32]byte
+
+	cmd := &cobra.Command{
+		Use:   "arb-block-hash",
+		Short: "Call the ArbBlockHash view method on a BlockInspector contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			if numberRaw == "" {
+				return fmt.Errorf("--number argument not specified")
+			}
+			number = new(big.Int)
+			number.SetString(numberRaw, 0)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewBlockInspector(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := BlockInspectorCallerSession{
+				Contract: &contract.BlockInspectorCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.ArbBlockHash(
+				number,
+			)
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %v\n", capture0)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	cmd.Flags().StringVar(&numberRaw, "number", "", "number argument")
+
+	return cmd
+}
+func CreateBlockNumbersCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var capture0 *big.Int
+	var capture1 *big.Int
+
+	cmd := &cobra.Command{
+		Use:   "block-numbers",
+		Short: "Call the BlockNumbers view method on a BlockInspector contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewBlockInspector(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := BlockInspectorCallerSession{
+				Contract: &contract.BlockInspectorCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, capture1, callErr = session.BlockNumbers()
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0.String())
+			cmd.Printf("1: %s\n", capture1.String())
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	return cmd
+}
 func CreateHashCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
@@ -586,75 +756,6 @@ func CreateHashCommand() *cobra.Command {
 	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
 
 	cmd.Flags().StringVar(&numberRaw, "number", "", "number argument")
-
-	return cmd
-}
-func CreateInspectCommand() *cobra.Command {
-	var contractAddressRaw, rpc string
-	var contractAddress common.Address
-	var timeout uint
-
-	var blockNumberRaw, fromAddressRaw string
-	var pending bool
-
-	var capture0 *big.Int
-	var capture1 *big.Int
-	var capture2 [32]byte
-	var capture3 [32]byte
-
-	cmd := &cobra.Command{
-		Use:   "inspect",
-		Short: "Call the Inspect view method on a BlockInspector contract",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if contractAddressRaw == "" {
-				return fmt.Errorf("--contract not specified")
-			} else if !common.IsHexAddress(contractAddressRaw) {
-				return fmt.Errorf("--contract is not a valid Ethereum address")
-			}
-			contractAddress = common.HexToAddress(contractAddressRaw)
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client, clientErr := NewClient(rpc)
-			if clientErr != nil {
-				return clientErr
-			}
-
-			contract, contractErr := NewBlockInspector(contractAddress, client)
-			if contractErr != nil {
-				return contractErr
-			}
-
-			callOpts := bind.CallOpts{}
-			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
-
-			session := BlockInspectorCallerSession{
-				Contract: &contract.BlockInspectorCaller,
-				CallOpts: callOpts,
-			}
-
-			var callErr error
-			capture0, capture1, capture2, capture3, callErr = session.Inspect()
-			if callErr != nil {
-				return callErr
-			}
-
-			cmd.Printf("0: %s\n", capture0.String())
-			cmd.Printf("1: %s\n", capture1.String())
-			cmd.Printf("2: %v\n", capture2)
-			cmd.Printf("3: %v\n", capture3)
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
-	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
-	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
-	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
-	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
-	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
 
 	return cmd
 }
@@ -793,12 +894,15 @@ func CreateBlockInspectorCommand() *cobra.Command {
 	cmdDeployBlockInspector.GroupID = DeployGroup.ID
 	cmd.AddCommand(cmdDeployBlockInspector)
 
+	cmdViewArbBlockHash := CreateArbBlockHashCommand()
+	cmdViewArbBlockHash.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewArbBlockHash)
+	cmdViewBlockNumbers := CreateBlockNumbersCommand()
+	cmdViewBlockNumbers.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewBlockNumbers)
 	cmdViewHash := CreateHashCommand()
 	cmdViewHash.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewHash)
-	cmdViewInspect := CreateInspectCommand()
-	cmdViewInspect.GroupID = ViewGroup.ID
-	cmd.AddCommand(cmdViewInspect)
 
 	return cmd
 }

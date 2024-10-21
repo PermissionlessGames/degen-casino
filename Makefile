@@ -4,7 +4,7 @@ build: forge generate docs bin/casino bin/technician
 
 rebuild: clean build
 
-generate: forge bindings/DegenGambit/DegenGambit.go
+generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go
 
 bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
