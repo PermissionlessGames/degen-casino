@@ -109,6 +109,8 @@ After a player spins, they have `BlocksToAct` blocks to either:
 [`spin` transaction](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spin).
 1. Do nothing.
 
+The accept methods have the following signature:
+
 ```solidity
 function accept() external;
 function acceptFor(address player) external;
