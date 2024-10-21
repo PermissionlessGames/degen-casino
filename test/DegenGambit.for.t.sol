@@ -9,6 +9,10 @@ contract ArbSysMock is ArbSys {
     function arbBlockNumber() external view returns (uint) {
         return block.number;
     }
+
+    function arbBlockHash(uint256 arbBlockNum) external view returns (bytes32) {
+        return blockhash(arbBlockNum);
+    }
 }
 
 contract TestableDegenGambit is DegenGambit {

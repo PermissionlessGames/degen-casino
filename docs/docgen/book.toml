@@ -6,7 +6,7 @@ title = ""
 no-section-label = true
 additional-js = ["solidity.min.js"]
 additional-css = ["book.css"]
-git-repository-url = "https://github.com/PermissionlessGames/degen-casino"
+git-repository-url = "https://github.com//mrk-hub/degen-casino"
 
 [output.html.fold]
 enable = true
