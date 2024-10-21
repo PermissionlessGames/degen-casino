@@ -1,4 +1,4 @@
-module github.com/moonstream-to/degen-casino
+module github.com/PermissionlessGames/degen-casino
 
 go 1.22.5
 

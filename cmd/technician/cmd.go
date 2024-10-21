@@ -5,15 +5,15 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/PermissionlessGames/degen-casino/bindings/DegenGambit"
+	"github.com/PermissionlessGames/degen-casino/bindings/BlockInspector"
 	"github.com/PermissionlessGames/degen-casino/version"
 )
 
 func CreateRootCommand() *cobra.Command {
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
-		Use:   "casino",
-		Short: "casino: The Degen Casino CLI",
+		Use:   "technician",
+		Short: "Tools used to debug Degen Casino games",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
@@ -23,10 +23,10 @@ func CreateRootCommand() *cobra.Command {
 	versionCmd := CreateVersionCommand()
 	rootCmd.AddCommand(completionCmd, versionCmd)
 
-	gambitCmd := DegenGambit.CreateDegenGambitCommand()
-	gambitCmd.Use = "gambit"
+	blockInspectorCmd := BlockInspector.CreateBlockInspectorCommand()
+	blockInspectorCmd.Use = "block-inspector"
 
-	rootCmd.AddCommand(gambitCmd)
+	rootCmd.AddCommand(blockInspectorCmd)
 
 	// By default, cobra Command objects write to stderr. We have to forcibly set them to output to
 	// stdout.
@@ -38,23 +38,23 @@ func CreateRootCommand() *cobra.Command {
 func CreateCompletionCommand(rootCmd *cobra.Command) *cobra.Command {
 	completionCmd := &cobra.Command{
 		Use:   "completion",
-		Short: "Generate shell completion scripts for casino",
-		Long: `Generate shell completion scripts for casino.
+		Short: "Generate shell completion scripts for technician",
+		Long: `Generate shell completion scripts for technician.
 
 The command for each shell will print a completion script to stdout. You can source this script to get
 completions in your current shell session. You can add this script to the completion directory for your
 shell to get completions for all future sessions.
 
 For example, to activate bash completions in your current shell:
-		$ . <(casino completion bash)
+		$ . <(technician completion bash)
 
-To add casino completions for all bash sessions:
-		$ casino completion bash > /etc/bash_completion.d/casino_completions`,
+To add technician completions for all bash sessions:
+		$ technician completion bash > /etc/bash_completion.d/technician_completions`,
 	}
 
 	bashCompletionCmd := &cobra.Command{
 		Use:   "bash",
-		Short: "bash completions for casino",
+		Short: "bash completions for technician",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenBashCompletion(cmd.OutOrStdout())
 		},
@@ -62,7 +62,7 @@ To add casino completions for all bash sessions:
 
 	zshCompletionCmd := &cobra.Command{
 		Use:   "zsh",
-		Short: "zsh completions for casino",
+		Short: "zsh completions for technician",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenZshCompletion(cmd.OutOrStdout())
 		},
@@ -70,7 +70,7 @@ To add casino completions for all bash sessions:
 
 	fishCompletionCmd := &cobra.Command{
 		Use:   "fish",
-		Short: "fish completions for casino",
+		Short: "fish completions for technician",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenFishCompletion(cmd.OutOrStdout(), true)
 		},
@@ -78,7 +78,7 @@ To add casino completions for all bash sessions:
 
 	powershellCompletionCmd := &cobra.Command{
 		Use:   "powershell",
-		Short: "powershell completions for casino",
+		Short: "powershell completions for technician",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenPowerShellCompletion(cmd.OutOrStdout())
 		},
@@ -92,7 +92,7 @@ To add casino completions for all bash sessions:
 func CreateVersionCommand() *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
-		Short: "Print the version of casino that you are currently using",
+		Short: "Print the version of technician that you are currently using",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Println(version.DegenCasinoVersion)
 		},

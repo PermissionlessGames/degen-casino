@@ -232,6 +232,10 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         return ArbSys(address(100)).arbBlockNumber();
     }
 
+    function _blockhash(uint256 number) internal view returns (bytes32) {
+        return ArbSys(address(100)).arbBlockHash(number);
+    }
+
     function _enforceTick(address degenerate) internal view {
         if (_blockNumber() <= LastSpinBlock[degenerate]) {
             revert WaitForTick();
@@ -250,7 +254,10 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         return
             uint256(
                 keccak256(
-                    abi.encode(blockhash(LastSpinBlock[degenerate]), degenerate)
+                    abi.encode(
+                        _blockhash(LastSpinBlock[degenerate]),
+                        degenerate
+                    )
                 )
             );
     }
