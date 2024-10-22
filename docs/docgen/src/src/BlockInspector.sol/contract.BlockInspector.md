@@ -1,5 +1,5 @@
 # BlockInspector
-[Git Source](https://github.com//mrk-hub/degen-casino/blob/8fbdf72acce7ad3eb1994a06fc088c355f7a0b9b/src/BlockInspector.sol)
+[Git Source](https://github.com//mrk-hub/degen-casino/blob/4d6d89c5d4d29372b53f3dbd9ffb5027b7dddb18/src/BlockInspector.sol)
 
 *This contract is for debugging purposes related to blockhashes and block nunbers on Arbitrum chains.*
 
