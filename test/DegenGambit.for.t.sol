@@ -435,4 +435,116 @@ contract DegenGambitTest is Test {
             playerGambitBalanceIntermediate + dailyStreakReward - 1
         );
     }
+
+    function test_gambit_minted_on_weekly_streak_regular_spinfor() public {
+        uint256 gambitSupplyInitial = degenGambit.totalSupply();
+        uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+
+        uint256 weeklyStreakReward = degenGambit.WeeklyStreakReward();
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player2, false);
+        degenGambit.spinFor{value: costToSpin}(player2, player1, false);
+
+        uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
+            player1
+        );
+
+        uint256 intermediateStreakweek = degenGambit.LastStreakWeek(player1);
+        assertEq(intermediateStreakweek, block.timestamp / SECONDS_PER_WEEK);
+
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
+
+        vm.roll(block.number + 1);
+        // Tests the left end of the window for which the streak is active.
+        vm.warp(
+            (block.timestamp / SECONDS_PER_WEEK) *
+                SECONDS_PER_WEEK +
+                SECONDS_PER_WEEK
+        );
+
+        vm.expectEmit();
+        emit Transfer(address(0), player1, weeklyStreakReward);
+        vm.expectEmit();
+        emit WeeklyStreak(player1, intermediateStreakweek + 1);
+        vm.expectEmit();
+        emit Spin(player2, false);
+        degenGambit.spinFor{value: costToSpin}(player2, player1, false);
+
+        uint256 finalStreakweek = degenGambit.LastStreakWeek(player1);
+        assertEq(finalStreakweek, intermediateStreakweek + 1);
+
+        uint256 gambitSupplyFinal = degenGambit.totalSupply();
+        uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
+
+        assertEq(
+            gambitSupplyFinal,
+            gambitSupplyIntermediate + weeklyStreakReward
+        );
+        assertEq(
+            playerGambitBalanceFinal,
+            playerGambitBalanceIntermediate + weeklyStreakReward
+        );
+    }
+
+    function test_gambit_minted_on_weekly_streak_regular_spin_then_spinfor()
+        public
+    {
+        uint256 gambitSupplyInitial = degenGambit.totalSupply();
+        uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
+
+        uint256 weeklyStreakReward = degenGambit.WeeklyStreakReward();
+
+        vm.startPrank(player1);
+
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+
+        uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
+            player1
+        );
+
+        uint256 intermediateStreakweek = degenGambit.LastStreakWeek(player1);
+        assertEq(intermediateStreakweek, block.timestamp / SECONDS_PER_WEEK);
+
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
+
+        vm.roll(block.number + 1);
+        // Tests the left end of the window for which the streak is active.
+        vm.warp(
+            (block.timestamp / SECONDS_PER_WEEK) *
+                SECONDS_PER_WEEK +
+                SECONDS_PER_WEEK
+        );
+
+        vm.expectEmit();
+        emit Transfer(address(0), player1, weeklyStreakReward);
+        vm.expectEmit();
+        emit WeeklyStreak(player1, intermediateStreakweek + 1);
+        vm.expectEmit();
+        emit Spin(player2, false);
+        degenGambit.spinFor{value: costToSpin}(player2, player1, false);
+
+        uint256 finalStreakweek = degenGambit.LastStreakWeek(player1);
+        assertEq(finalStreakweek, intermediateStreakweek + 1);
+
+        uint256 gambitSupplyFinal = degenGambit.totalSupply();
+        uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
+
+        assertEq(
+            gambitSupplyFinal,
+            gambitSupplyIntermediate + weeklyStreakReward
+        );
+        assertEq(
+            playerGambitBalanceFinal,
+            playerGambitBalanceIntermediate + weeklyStreakReward
+        );
+    }
 }

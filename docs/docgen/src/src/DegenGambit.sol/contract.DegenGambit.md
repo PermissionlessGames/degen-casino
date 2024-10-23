@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//mrk-hub/degen-casino/blob/4d6d89c5d4d29372b53f3dbd9ffb5027b7dddb18/src/DegenGambit.sol)
+[Git Source](https://github.com//mrk-hub/degen-casino/blob/1f53709a56cb0320c31a34f54d2a779bd568f84b/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -547,7 +547,7 @@ function spin(bool boost) external payable;
 
 ### spinFor
 
-Spin the slot machine.
+Spin the slot machine for the spinPlayer.
 
 If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
 

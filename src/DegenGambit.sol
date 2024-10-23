@@ -746,7 +746,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         _spin(msg.sender, msg.sender, boost, msg.value);
     }
 
-    /// Spin the slot machine.
+    /// Spin the slot machine for the spinPlayer.
     /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
     /// @dev  This call can be delegated to a different account.
     /// @param boost Whether or not the player is using a boost, msg.sender is paying the boost
