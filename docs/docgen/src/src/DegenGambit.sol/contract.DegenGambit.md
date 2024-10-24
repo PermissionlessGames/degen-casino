@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9240c2f8376533fc14998415c873e071e106ba21/src/DegenGambit.sol)
+[Git Source](https://github.com//mrk-hub/degen-casino/blob/1f53709a56cb0320c31a34f54d2a779bd568f84b/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -444,11 +444,30 @@ function payout(uint256 left, uint256 center, uint256 right) public view returns
 function prizes() external view returns (uint256[5] memory prizesAmount);
 ```
 
+### _accept
+
+This is the function a player calls to accept the outcome of a spin.
+
+*This call can be delegated to a different account.*
+
+
+```solidity
+function _accept(address player)
+    internal
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`player`|`address`|account claiming a prize.|
+
+
 ### accept
 
 This is the function a player calls to accept the outcome of a spin.
 
-*msg.sender is assumed to be the player. This call cannot be delegated to a different account.*
+*This call cannot be delegated to a different account.*
 
 
 ```solidity
@@ -458,6 +477,26 @@ function accept()
     returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 ```
 
+### acceptFor
+
+This is the function a player calls to accept the outcome of a spin.
+
+*This call can be delegated to a different account.*
+
+
+```solidity
+function acceptFor(address player)
+    external
+    nonReentrant
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`player`|`address`|account claiming a prize.|
+
+
 ### spinCost
 
 
@@ -465,13 +504,35 @@ function accept()
 function spinCost(address degenerate) public view returns (uint256);
 ```
 
+### _spin
+
+Spin the slot machine.
+
+If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
+
+*This call can be delegated to a different account.*
+
+
+```solidity
+function _spin(address spinPlayer, address streakPlayer, bool boost, uint256 value) internal;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`spinPlayer`|`address`|account spin is for|
+|`streakPlayer`|`address`|account streak reward is for|
+|`boost`|`bool`|Whether or not the player is using a boost, msg.sender is paying the boost|
+|`value`|`uint256`|value being sent to contract|
+
+
 ### spin
 
 Spin the slot machine.
 
 If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
 
-*msg.sender is assumed to be the player. This call cannot be delegated to a different account.*
+*Assumes msg.sender is player. This call cannot be delegated to a different account.*
 
 
 ```solidity
@@ -481,7 +542,28 @@ function spin(bool boost) external payable;
 
 |Name|Type|Description|
 |----|----|-----------|
-|`boost`|`bool`|Whether or not the player is using a boost.|
+|`boost`|`bool`|Whether or not the player is using a boost, msg.sender is paying the boost|
+
+
+### spinFor
+
+Spin the slot machine for the spinPlayer.
+
+If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
+
+*This call can be delegated to a different account.*
+
+
+```solidity
+function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`spinPlayer`|`address`|account spin is for|
+|`streakPlayer`|`address`|account streak reward is for|
+|`boost`|`bool`|Whether or not the player is using a boost, msg.sender is paying the boost|
 
 
 ### inspectEntropy

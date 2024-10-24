@@ -47,17 +47,20 @@ decode the result. Please consult the relevant library documentation to see how 
 
 ## Spinning the slot machine
 
-*Degen's Gambit* exposes a [`spin` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spin) which you can call to spin the reels on the slot machine.
+*Degen's Gambit* exposes [`spin` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spin) and [`spinFor` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spinFor) which you can call to spin the reels on the slot machine.
 
-This method has the following signature:
+These methods has the following signature:
 
 ```solidity
 function spin(bool boost) external payable;
+function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable;
 ```
 
-Each spin costs the player native tokens to execute. If `boost = true`, the spin will be boosted. This is something we cover in greater detail in the next section,
+Each spin/spinFor costs the player/caller native tokens to execute. If `boost = true`, the spin will be boosted. This is something we cover in greater detail in the next section,
 [Boosting spins with GAMBIT](#boosting-spins-with-gambit). The basic mechanics of spinning (and respinning) work the same way whether `boost` is `true` or `false`.
 This section elaborates on these mechanics.
+
+When a caller uses spinFor to spin for a player. Parameters `spinPlayer = Receives Payout, streakPlayer = Receives Gambit` are used instead of assuming caller as player.
 
 When a player spins, the entropy used to determine the outcome of their spin is determined as a combination of the block hash of the block in which their spin
 transaction was included on the blockchain together with their Ethereum account address.
@@ -101,10 +104,17 @@ Being a public variable, you can access this parameter by calling `BlocksToAct` 
 ```
 
 After a player spins, they have `BlocksToAct` blocks to either:
-1. Accept the outcome of their spin by submitting an [`accept` transaction](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#accept).
+1. Accept the outcome of their spin by submitting an [`accept` transaction](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#accept) or [`acceptFor` transaction](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#acceptFor).
 1. *Not* accept the outcome of their spin and respin at a discounted cost by submitting a
 [`spin` transaction](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spin).
 1. Do nothing.
+
+The accept methods have the following signature:
+
+```solidity
+function accept() external;
+function acceptFor(address player) external;
+```
 
 A client can inspect the status of this deadline for a given `player` by checking if:
 

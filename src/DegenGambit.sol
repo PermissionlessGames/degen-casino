@@ -622,7 +622,37 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// This is the function a player calls to accept the outcome of a spin.
-    /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
+    /// @dev This call can be delegated to a different account.
+    /// @param player account claiming a prize.
+    function _accept(
+        address player
+    )
+        internal
+        returns (
+            uint256 left,
+            uint256 center,
+            uint256 right,
+            uint256 remainingEntropy,
+            uint256 prize
+        )
+    {
+        _enforceTick(player);
+        _enforceDeadline(player);
+
+        (left, center, right, remainingEntropy) = outcome(
+            _entropy(player),
+            LastSpinBoosted[player]
+        );
+        prize = payout(left, center, right);
+        payable(player).transfer(prize);
+        emit Award(player, prize);
+
+        delete LastSpinBoosted[player];
+        delete LastSpinBlock[player];
+    }
+
+    /// This is the function a player calls to accept the outcome of a spin.
+    /// @dev This call cannot be delegated to a different account.
     function accept()
         external
         nonReentrant
@@ -634,19 +664,26 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             uint256 prize
         )
     {
-        _enforceTick(msg.sender);
-        _enforceDeadline(msg.sender);
+        (left, center, right, remainingEntropy, prize) = _accept(msg.sender);
+    }
 
-        (left, center, right, remainingEntropy) = outcome(
-            _entropy(msg.sender),
-            LastSpinBoosted[msg.sender]
-        );
-        prize = payout(left, center, right);
-        payable(msg.sender).transfer(prize);
-        emit Award(msg.sender, prize);
-
-        delete LastSpinBoosted[msg.sender];
-        delete LastSpinBlock[msg.sender];
+    /// This is the function a player calls to accept the outcome of a spin.
+    /// @dev This call can be delegated to a different account.
+    /// @param player account claiming a prize.
+    function acceptFor(
+        address player
+    )
+        external
+        nonReentrant
+        returns (
+            uint256 left,
+            uint256 center,
+            uint256 right,
+            uint256 remainingEntropy,
+            uint256 prize
+        )
+    {
+        (left, center, right, remainingEntropy, prize) = _accept(player);
     }
 
     function spinCost(address degenerate) public view returns (uint256) {
@@ -660,37 +697,67 @@ contract DegenGambit is ERC20, ReentrancyGuard {
 
     /// Spin the slot machine.
     /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
-    /// @dev msg.sender is assumed to be the player. This call cannot be delegated to a different account.
-    /// @param boost Whether or not the player is using a boost.
-    function spin(bool boost) external payable {
-        uint256 requiredFee = spinCost(msg.sender);
-        if (msg.value < requiredFee) {
+    /// @dev  This call can be delegated to a different account.
+    /// @param boost Whether or not the player is using a boost, msg.sender is paying the boost
+    /// @param spinPlayer account spin is for
+    /// @param streakPlayer account streak reward is for
+    /// @param value value being sent to contract
+    function _spin(
+        address spinPlayer,
+        address streakPlayer,
+        bool boost,
+        uint256 value
+    ) internal {
+        uint256 requiredFee = spinCost(spinPlayer);
+        if (value < requiredFee) {
             revert InsufficientValue();
         }
 
         uint256 currentDay = block.timestamp / SECONDS_PER_DAY;
-        if (LastStreakDay[msg.sender] + 1 == currentDay) {
-            _mint(msg.sender, DailyStreakReward);
-            emit DailyStreak(msg.sender, currentDay);
+        if (LastStreakDay[streakPlayer] + 1 == currentDay) {
+            _mint(streakPlayer, DailyStreakReward);
+            emit DailyStreak(streakPlayer, currentDay);
         }
-        LastStreakDay[msg.sender] = currentDay;
+        LastStreakDay[streakPlayer] = currentDay;
 
         uint256 currentWeek = currentDay / 7;
-        if (LastStreakWeek[msg.sender] + 1 == currentWeek) {
-            _mint(msg.sender, WeeklyStreakReward);
-            emit WeeklyStreak(msg.sender, currentWeek);
+        if (LastStreakWeek[streakPlayer] + 1 == currentWeek) {
+            _mint(streakPlayer, WeeklyStreakReward);
+            emit WeeklyStreak(streakPlayer, currentWeek);
         }
-        LastStreakWeek[msg.sender] = currentWeek;
+        LastStreakWeek[streakPlayer] = currentWeek;
 
         if (boost) {
             // Burn an ERC20 token off of this contract from the player's account.
             _burn(msg.sender, 1);
         }
 
-        LastSpinBlock[msg.sender] = _blockNumber();
-        LastSpinBoosted[msg.sender] = boost;
+        LastSpinBlock[spinPlayer] = _blockNumber();
+        LastSpinBoosted[spinPlayer] = boost;
 
-        emit Spin(msg.sender, boost);
+        emit Spin(spinPlayer, boost);
+    }
+
+    /// Spin the slot machine.
+    /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
+    /// @dev  Assumes msg.sender is player. This call cannot be delegated to a different account.
+    /// @param boost Whether or not the player is using a boost, msg.sender is paying the boost
+    function spin(bool boost) external payable {
+        _spin(msg.sender, msg.sender, boost, msg.value);
+    }
+
+    /// Spin the slot machine for the spinPlayer.
+    /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
+    /// @dev  This call can be delegated to a different account.
+    /// @param boost Whether or not the player is using a boost, msg.sender is paying the boost
+    /// @param spinPlayer account spin is for
+    /// @param streakPlayer account streak reward is for
+    function spinFor(
+        address spinPlayer,
+        address streakPlayer,
+        bool boost
+    ) external payable {
+        _spin(spinPlayer, streakPlayer, boost, msg.value);
     }
 
     /// inspectEntropy is a view method which allows clients to check the current entropy for a player given only their address.
