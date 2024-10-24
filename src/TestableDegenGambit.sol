@@ -40,4 +40,95 @@ contract TestableDegenGambit is DegenGambit {
     function setWeeklyStreak(uint256 weeklyStreak, address player) public {
         LastStreakWeek[player] = weeklyStreak;
     }
+
+    function generateEntropyForUnmodifiedReelOutcome(
+        uint256 leftOutcome,
+        uint256 centerOutcome,
+        uint256 rightOutcome
+    ) public view returns (uint256) {
+        // Ensure the outcome indices are within the valid range (0-17)
+        require(leftOutcome < 18, "Invalid left outcome");
+        require(centerOutcome < 18, "Invalid center outcome");
+        require(rightOutcome < 18, "Invalid right outcome");
+
+        // Get the valid range for the left outcome
+        uint256 leftSample = getSampleForOutcome(
+            leftOutcome,
+            UnmodifiedLeftReel
+        );
+
+        // Get the valid range for the center outcome
+        uint256 centerSample = getSampleForOutcome(
+            centerOutcome,
+            UnmodifiedCenterReel
+        );
+
+        // Get the valid range for the right outcome
+        uint256 rightSample = getSampleForOutcome(
+            rightOutcome,
+            UnmodifiedRightReel
+        );
+
+        // Combine the samples into an entropy value
+        uint256 entropy = (leftSample << 60) |
+            (centerSample << 30) |
+            rightSample;
+
+        return entropy;
+    }
+
+    function setEntropyFromOutcomes(
+        uint256 left,
+        uint256 center,
+        uint256 right,
+        address player,
+        bool boost
+    ) public {
+        uint256 entropy = boost
+            ? generateEntropyForImprovedReelOutcome(left, center, right)
+            : generateEntropyForUnmodifiedReelOutcome(left, center, right);
+        EntropyForPlayer[player] = entropy;
+    }
+
+    function generateEntropyForImprovedReelOutcome(
+        uint256 leftOutcome,
+        uint256 centerOutcome,
+        uint256 rightOutcome
+    ) public view returns (uint256) {
+        // Ensure the outcome indices are within the valid range (0-17)
+        require(leftOutcome < 18, "Invalid left outcome");
+        require(centerOutcome < 18, "Invalid center outcome");
+        require(rightOutcome < 18, "Invalid right outcome");
+
+        // Get the valid range for the left outcome
+        uint256 leftSample = getSampleForOutcome(leftOutcome, ImprovedLeftReel);
+
+        // Get the valid range for the center outcome
+        uint256 centerSample = getSampleForOutcome(
+            centerOutcome,
+            ImprovedCenterReel
+        );
+
+        // Get the valid range for the right outcome
+        uint256 rightSample = getSampleForOutcome(
+            rightOutcome,
+            ImprovedRightReel
+        );
+
+        // Combine the samples into an entropy value
+        uint256 entropy = (leftSample << 60) |
+            (centerSample << 30) |
+            rightSample;
+
+        return entropy;
+    }
+
+    function getSampleForOutcome(
+        uint256 outcome,
+        uint256[19] storage reel
+    ) internal view returns (uint256) {
+        uint256 minSample = reel[outcome - 1]; // The minimum sample value for this outcome
+
+        return minSample;
+    }
 }

@@ -198,8 +198,6 @@ contract DegenGambitTest is Test {
         // Guarantees that the payout does not fall under balance-based clamping flow.
         vm.deal(address(degenGambit), costToSpin << 30);
 
-        uint256 entropy = 143946520351854296877309383;
-
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
 
@@ -208,7 +206,7 @@ contract DegenGambitTest is Test {
         vm.expectEmit();
         emit Spin(player1, false);
         degenGambit.spin{value: costToSpin}(false);
-        degenGambit.setEntropy(player1, entropy);
+        degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
 
         uint256 gameBalanceIntermediate = address(degenGambit).balance;
         uint256 playerBalanceIntermediate = player1.balance;
@@ -255,8 +253,6 @@ contract DegenGambitTest is Test {
         // Guarantees that the payout falls under balance-based clamping flow.
         vm.deal(address(degenGambit), costToSpin);
 
-        uint256 entropy = 143946520351854296877309383;
-
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
 
@@ -265,7 +261,7 @@ contract DegenGambitTest is Test {
         vm.expectEmit();
         emit Spin(player1, false);
         degenGambit.spin{value: costToSpin}(false);
-        degenGambit.setEntropy(player1, entropy);
+        degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
 
         uint256 gameBalanceIntermediate = address(degenGambit).balance;
         uint256 playerBalanceIntermediate = player1.balance;
@@ -320,7 +316,11 @@ contract DegenGambitTest is Test {
         // Guarantees that the player has enough GAMBIT for a boosted spin
         degenGambit.mint(player1, 1);
 
-        uint256 entropy = 1208809274197797772061421487;
+        uint256 entropy = degenGambit.generateEntropyForImprovedReelOutcome(
+            17,
+            17,
+            17
+        );
 
         uint256 gameBalanceBefore = address(degenGambit).balance;
         uint256 playerBalanceBefore = player1.balance;
@@ -351,6 +351,7 @@ contract DegenGambitTest is Test {
 
         // This guarantees that the outcome isn't coming from the regular distributions but the boosted ones.
         (left, center, right, ) = degenGambit.outcome(entropy, false);
+        console.log(left, center, right);
         assertNotEq(left, 17);
         assertNotEq(center, 17);
         assertNotEq(right, 17);

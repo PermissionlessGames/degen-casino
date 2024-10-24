@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b9fb495a9110c38147996f0bc6db8a1cd7c4ba0d/src/TestableDegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/1d66614c03b77a2ac9c755d8aaedde4eddf3a579/src/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
@@ -62,5 +62,39 @@ function setDailyStreak(uint256 dailyStreak, address player) public;
 
 ```solidity
 function setWeeklyStreak(uint256 weeklyStreak, address player) public;
+```
+
+### generateEntropyForUnmodifiedReelOutcome
+
+
+```solidity
+function generateEntropyForUnmodifiedReelOutcome(uint256 leftOutcome, uint256 centerOutcome, uint256 rightOutcome)
+    public
+    view
+    returns (uint256);
+```
+
+### setEntropyFromOutcomes
+
+
+```solidity
+function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost) public;
+```
+
+### generateEntropyForImprovedReelOutcome
+
+
+```solidity
+function generateEntropyForImprovedReelOutcome(uint256 leftOutcome, uint256 centerOutcome, uint256 rightOutcome)
+    public
+    view
+    returns (uint256);
+```
+
+### getSampleForOutcome
+
+
+```solidity
+function getSampleForOutcome(uint256 outcome, uint256[19] storage reel) internal view returns (uint256);
 ```
 
