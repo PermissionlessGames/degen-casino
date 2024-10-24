@@ -567,7 +567,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         uint256 left,
         uint256 center,
         uint256 right
-    ) public view returns (uint256 result) {
+    ) public view virtual returns (uint256 result) {
         if (left >= 19 || center >= 19 || right >= 19) {
             revert OutcomeOutOfBounds();
         }
@@ -609,7 +609,12 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     // Payout Estimate function to easily display current payouts estimate at time of function call
-    function prizes() external view returns (uint256[5] memory prizesAmount) {
+    function prizes()
+        external
+        view
+        virtual
+        returns (uint256[5] memory prizesAmount)
+    {
         prizesAmount[0] = 50 * CostToSpin < address(this).balance >> 6
             ? 50 * CostToSpin
             : address(this).balance >> 6;
@@ -621,7 +626,28 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         prizesAmount[4] = address(this).balance >> 1;
     }
 
-    /// This is the function a player calls to accept the outcome of a spin.
+    //This is the function that handles the payout for the prizes
+    function _transferPrize(uint256 prize, address player) internal virtual {
+        payable(player).transfer(prize);
+    }
+
+    //This is a simple function for middleware contracts or UI to determine if there is a prize to accept for player
+    function hasPrize(address player) external view returns (bool toReceive) {
+        toReceive =
+            _blockNumber() > LastSpinBlock[player] &&
+            _blockNumber() <= LastSpinBlock[player] + BlocksToAct;
+        if (toReceive) {
+            (uint256 left, uint256 center, uint256 right, ) = outcome(
+                _entropy(player),
+                LastSpinBoosted[player]
+            );
+            uint256 prize = payout(left, center, right);
+            toReceive = prize > 0;
+        }
+        return toReceive;
+    }
+
+    /// This is the internal function called to accept the outcome of a spin.
     /// @dev This call can be delegated to a different account.
     /// @param player account claiming a prize.
     function _accept(
@@ -644,7 +670,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             LastSpinBoosted[player]
         );
         prize = payout(left, center, right);
-        payable(player).transfer(prize);
+        _transferPrize(prize, player);
         emit Award(player, prize);
 
         delete LastSpinBoosted[player];
@@ -655,6 +681,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// @dev This call cannot be delegated to a different account.
     function accept()
         external
+        virtual
         nonReentrant
         returns (
             uint256 left,
@@ -674,6 +701,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         address player
     )
         external
+        virtual
         nonReentrant
         returns (
             uint256 left,
@@ -695,24 +723,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         return CostToSpin;
     }
 
-    /// Spin the slot machine.
-    /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
-    /// @dev  This call can be delegated to a different account.
-    /// @param boost Whether or not the player is using a boost, msg.sender is paying the boost
-    /// @param spinPlayer account spin is for
-    /// @param streakPlayer account streak reward is for
-    /// @param value value being sent to contract
-    function _spin(
-        address spinPlayer,
-        address streakPlayer,
-        bool boost,
-        uint256 value
-    ) internal {
-        uint256 requiredFee = spinCost(spinPlayer);
-        if (value < requiredFee) {
-            revert InsufficientValue();
-        }
-
+    //Calculates Gambit for playing streaks
+    function _streaks(address streakPlayer) internal virtual {
         uint256 currentDay = block.timestamp / SECONDS_PER_DAY;
         if (LastStreakDay[streakPlayer] + 1 == currentDay) {
             _mint(streakPlayer, DailyStreakReward);
@@ -726,6 +738,27 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             emit WeeklyStreak(streakPlayer, currentWeek);
         }
         LastStreakWeek[streakPlayer] = currentWeek;
+    }
+
+    /// Spin the slot machine.
+    /// @notice If the player sends more value than they absolutely need to, the contract simply accepts it into the pot.
+    /// @dev  This call can be delegated to a different account.
+    /// @param boost Whether or not the player is using a boost, msg.sender is paying the boost
+    /// @param spinPlayer account spin is for
+    /// @param streakPlayer account streak reward is for
+    /// @param value value being sent to contract
+    function _spin(
+        address spinPlayer,
+        address streakPlayer,
+        bool boost,
+        uint256 value
+    ) internal virtual {
+        uint256 requiredFee = spinCost(spinPlayer);
+        if (value < requiredFee) {
+            revert InsufficientValue();
+        }
+
+        _streaks(streakPlayer);
 
         if (boost) {
             // Burn an ERC20 token off of this contract from the player's account.
