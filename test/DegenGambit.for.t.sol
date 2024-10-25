@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
 import {ArbSys} from "../src/ArbSys.sol";
-import {TestableDegenGambit} from "../src/TestableDegenGambit.sol";
+import {TestableDegenGambit} from "../src/testable/TestableDegenGambit.sol";
 
 contract ArbSysMock is ArbSys {
     function arbBlockNumber() external view returns (uint) {

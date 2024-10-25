@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {DegenGambit} from "../src/DegenGambit.sol";
+import {DegenGambit} from "../DegenGambit.sol";
 
 contract TestableDegenGambit is DegenGambit {
     mapping(address => uint256) public EntropyForPlayer;
