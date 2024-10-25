@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/9b00df6b1597b03ed63ef7c7d1f49ac2945b0480/src/TestableDegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/2987631eec97b2ac110b5fc9a7cb66e7e61afced/src/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
@@ -41,13 +41,6 @@ function _entropy(address player) internal view override returns (uint256);
 
 ```solidity
 function mint(address to, uint256 amount) public;
-```
-
-### reverseEntropy
-
-
-```solidity
-function reverseEntropy(uint256 left, uint256 center, uint256 right, address player) public;
 ```
 
 ### setDailyStreak

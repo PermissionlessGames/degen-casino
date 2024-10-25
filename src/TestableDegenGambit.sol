@@ -24,15 +24,6 @@ contract TestableDegenGambit is DegenGambit {
         _mint(to, amount);
     }
 
-    function reverseEntropy(
-        uint256 left,
-        uint256 center,
-        uint256 right,
-        address player
-    ) public {
-        //TODO: calculate entorpy for specific positions
-    }
-
     function setDailyStreak(uint256 dailyStreak, address player) public {
         LastStreakDay[player] = dailyStreak;
     }
@@ -46,10 +37,10 @@ contract TestableDegenGambit is DegenGambit {
         uint256 centerOutcome,
         uint256 rightOutcome
     ) public view returns (uint256) {
-        // Ensure the outcome indices are within the valid range (0-17)
-        require(leftOutcome < 18, "Invalid left outcome");
-        require(centerOutcome < 18, "Invalid center outcome");
-        require(rightOutcome < 18, "Invalid right outcome");
+        // Ensure the outcome indices are within the valid range (0-18)
+        require(leftOutcome < 19, "Invalid left outcome");
+        require(centerOutcome < 19, "Invalid center outcome");
+        require(rightOutcome < 19, "Invalid right outcome");
 
         // Get the valid range for the left outcome
         uint256 leftSample = getSampleForOutcome(
@@ -127,8 +118,8 @@ contract TestableDegenGambit is DegenGambit {
         uint256 outcome,
         uint256[19] storage reel
     ) internal view returns (uint256) {
-        uint256 minSample = reel[outcome - 1]; // The minimum sample value for this outcome
+        uint256 sample = outcome == 0 ? 0 : reel[outcome - 1]; // The minimum sample value for this outcome
 
-        return minSample;
+        return sample;
     }
 }
