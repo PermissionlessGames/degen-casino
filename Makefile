@@ -1,6 +1,6 @@
 .PHONY: clean generate test docs redocs forge
 
-build: forge generate docs bin/casino bin/technician
+build: forge generate docs bin/casino bin/technician bin/test
 
 rebuild: clean build
 
@@ -25,6 +25,10 @@ bin/casino: bindings/DegenGambit/DegenGambit.go
 bin/technician: bindings/BlockInspector/BlockInspector.go
 	go mod tidy
 	go build -o bin/technician ./cmd/technician
+
+bin/test: bindings/Tests.go
+	go mod tidy
+	go build -o bin/test ./cmd/test
 
 test:
 	forge test -vvv
