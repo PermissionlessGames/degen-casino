@@ -4,7 +4,7 @@ This document describes the player flows on the `DegenGambit` smart contract and
 flow can be implemented in terms of the smart contract methods involved. It is meant for people
 programming *Degen's Gambit* game clients.
 
-Interactin with a `DegenGambit` smart contract:
+Interacting with a `DegenGambit` smart contract:
 - Use the [`DegenGambit` ABI](./abis/DegenGambit.abi.json) if you want to interact with a game contract from outside the blockchain.
 - Use the [`IDegenGambit` interface](./interfaces/IDegenGambit.sol) if you want to interact with a game contract from another contract.
 
@@ -17,7 +17,7 @@ Flows:
 ## The Pot
 
 *Degen's Gambit* is a permissionless slot machine. This means that there is no organization or company charging a rake every time a player spins
-the reels. Instead, any money the player loses goes into a commmunal pot which represents the total *Degen's Gambit* prize pool. Any money that players win
+the reels. Instead, any money the player loses goes into a communal pot which represents the total *Degen's Gambit* prize pool. Any money that players win
 by playing *Degen's Gambit* comes from this pot.
 
 The pot for a *Degen's Gambit* smart contract is denominated in the native token of the blockchain it exists on. To check the current size of the pot, simply
@@ -32,11 +32,11 @@ function prizes() external view returns(uint256[5] memory prizesAmount)
 ```
 
 The return values, in order:
-1. Index 0 prize for spinning all matching minor symbols
-2. Index 1 prize for spinning matching minor symbol left and right, with a major symbol center
-3. Index 2 prize for spinning matching major symbol left and right, with a different major symbol center
-4. Index 3 prize for spinning 3 different major symbols
-5. index 4 prize for spinning all matching major symbol
+1. Index 0: prize for spinning all matching minor symbols
+2. Index 1: prize for spinning matching minor symbol left and right, with a major symbol center
+3. Index 2: prize for spinning matching major symbol left and right, with a different major symbol center
+4. Index 3: prize for spinning 3 different major symbols
+5. index 4: prize for spinning all matching major symbol
 
 
 The `"result"` key is the hexadecimal representation of the balance. In this case, the pot size is `0x3a99e = 240030`.
@@ -49,7 +49,7 @@ decode the result. Please consult the relevant library documentation to see how 
 
 *Degen's Gambit* exposes [`spin` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spin) and [`spinFor` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spinFor) which you can call to spin the reels on the slot machine.
 
-These methods has the following signature:
+These methods have the following signature:
 
 ```solidity
 function spin(bool boost) external payable;
@@ -165,7 +165,7 @@ This is one way that game clients could implement the spin flow for players:
 
 1. Call [`spinCost`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#spincost) and communicate to the player how much their next spin would cost.
 2. If the player has a positive GAMBIT balance, give them the option of making a boosted spin. This is covered in detail in the
-[*Bossting spins with GAMBIT*](#boosting-spins-with-gambit) section below.
+[*Boosting spins with GAMBIT*](#boosting-spins-with-gambit) section below.
 3. Once the player makes the spin, start polling the chain's block number.
 4. Once the spin transaction has been included in the blockchain, call [`inspectOutcome`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#inspectoutcome) to show the player the symbols on the reels, and what they would receive in prizes if they accepted that outcome.
 5. Allow the players to either respin (go back to the beginning of this flow) or `accept` the outcome until `BlocksToAct` blocks have passed since they made their spin.
@@ -189,10 +189,10 @@ If a player makes a boosted spin, a single `GAMBIT` token is burned from their a
 
 There are two ways for players to acquire GAMBIT tokens:
 1. Earn `GAMBIT` from the game by continuing a daily or weekly streak. The [Daily and weekly streaks](#daily-and-weekly-streaks) below discusses this mechanic.
-2. Acquire `GAMBIT` on the open market. We do not cover this flow in this integration guide - there is a lot of diversity in how players could purcahse or acquire
+2. Acquire `GAMBIT` on the open market. We do not cover this flow in this integration guide - there is a lot of diversity in how players could purchase or acquire
 `GAMBIT` from others (DEX purchases, loans, prize sharing agreements, etc.).
 
-The only want that `GAMBIT` is actually produced in the economy is by players coming in and spinning the slot machine on consecutive days and consecutive weeks.
+The only way that `GAMBIT` is actually produced in the economy is by players coming in and spinning the slot machine on consecutive days and consecutive weeks.
 
 ## Daily and weekly streaks
 
