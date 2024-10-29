@@ -28,8 +28,55 @@ contract DegenGambitConfigurationTest is Test {
 
     function test_ERC20Metadata() public view {
         assertEq(degenGambit.name(), "Degen's Gambit");
-        assertEq(degenGambit.symbol(), "GAMBIT");
         assertEq(degenGambit.decimals(), 0);
+        // Call the symbol function
+        string memory symbol = degenGambit.symbol();
+
+        // Ensure the symbol starts with "DG-"
+        bytes memory prefix = bytes("DG-");
+        for (uint i = 0; i < prefix.length; i++) {
+            assertEq(
+                bytes(symbol)[i],
+                prefix[i],
+                "Symbol prefix does not match 'DG-'"
+            );
+        }
+
+        // Check if the suffix is a number between 0 and 9999
+        string memory suffix = substring(symbol, 3, bytes(symbol).length); // Get the number part
+        uint256 value = parseUint(suffix);
+
+        // Assert the suffix number is within range
+        assertTrue(
+            value >= 0 && value < 10000,
+            "Symbol suffix is out of expected range"
+        );
+    }
+
+    // Helper function to parse a string to a uint
+    function parseUint(string memory _a) internal pure returns (uint256) {
+        bytes memory bresult = bytes(_a);
+        uint256 result = 0;
+        for (uint256 i = 0; i < bresult.length; i++) {
+            if (uint8(bresult[i]) >= 48 && uint8(bresult[i]) <= 57) {
+                result = result * 10 + (uint8(bresult[i]) - 48);
+            }
+        }
+        return result;
+    }
+
+    // Helper function to extract substring
+    function substring(
+        string memory str,
+        uint256 startIndex,
+        uint256 endIndex
+    ) internal pure returns (string memory) {
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(endIndex - startIndex);
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = strBytes[i];
+        }
+        return string(result);
     }
 
     // Test generated using the generate_sample_tests() function from the game design notebook

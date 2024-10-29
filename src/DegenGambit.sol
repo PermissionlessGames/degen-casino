@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {ArbSys} from "./ArbSys.sol";
 import {ERC20} from "../lib/openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ReentrancyGuard} from "../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 /// @title DegenGambit
 /// @notice This is the game contract for Degen's Gambit, a permissionless slot machine game.
@@ -827,5 +828,14 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         );
 
         prize = payout(left, center, right);
+    }
+
+    function symbol() public view override returns (string memory) {
+        bytes32 hash = keccak256(abi.encodePacked(address(this)));
+        // Convert to uint256 and take modulus 10^4
+        return
+            string(
+                abi.encodePacked("DG-", Strings.toString(uint256(hash) % 10000))
+            );
     }
 }
