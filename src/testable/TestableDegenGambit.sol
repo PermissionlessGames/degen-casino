@@ -32,6 +32,10 @@ contract TestableDegenGambit is DegenGambit {
         LastStreakWeek[player] = weeklyStreak;
     }
 
+    function isDebugger() external returns (bool debug) {
+        debug = true;
+    }
+
     function generateEntropyForUnmodifiedReelOutcome(
         uint256 leftOutcome,
         uint256 centerOutcome,
