@@ -4,15 +4,26 @@ pragma solidity ^0.8.13;
 import {IERC20} from "../lib/openzeppelin/contracts/token/IERC20/IERC20.sol";
 
 contract Receiver {
-    address immutable owner;
+    
+    event NewOwner(address _owner)
+
+    address public owner;
+    address immutable launcher;
     address immutable _erc20;
+
     modifier onlyOwner() {
-        require(owner == msg.sender, "Only Owner can call");
+        require(owner == msg.sender || msg.sender == launcher, "Only Owner can call");
         _;
     }
 
-    constructor(address erc20) {
-        owner = msg.sender;
+    function setOwner(address newOwner) external onlyOwner{
+        owner = newOwner;
+        emit NewOwner(_owner);
+    }
+
+    constructor(address erc20, address _owner) {
+        owner = _owner;
+        launcher = msg.sender;
         _erc20 = erc20;
     }
 
