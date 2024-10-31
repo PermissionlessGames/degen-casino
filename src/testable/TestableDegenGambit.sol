@@ -32,8 +32,13 @@ contract TestableDegenGambit is DegenGambit {
         LastStreakWeek[player] = weeklyStreak;
     }
 
-    function isDebugger() external returns (bool debug) {
-        debug = true;
+    function debuggerVersion()
+        external
+        pure
+        override
+        returns (string memory version)
+    {
+        version = "version: 0.1";
     }
 
     function generateEntropyForUnmodifiedReelOutcome(

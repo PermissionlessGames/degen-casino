@@ -260,3 +260,30 @@ For weekly streaks:
 1. If `LastStreakWeek` did not change on a `spin`, then there has been no change to the player's streaks.
 2. If `LastStreakWeek` increased by 1, the player has extended a streak and received `WeeklyStreakReward()` `GAMBIT` tokens.
 3. If `LastStreakWeek` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `WeeklyStreakReward()` `GAMBIT` tokens if they `spin` again next week.
+
+## Debugging
+
+Interacting with a `TestableDegenGambit` smart contract:
+- Use the [`TestableDegenGambit` ABI](./abis/testable/TestableDegenGambit.abi.json) if you want to interact with a game contract from outside the blockchain.
+
+The `TestableDegenGambit` debugging uses a testable contract to improve and test functions and condintions on and off chain.
+
+Developers can use the debugger to check for the version of the testable smart contract. This allows front-end developers to easily test on-chain events that will trigger on-screen events i.e. reels spinning, jackpots hit etc.. This funciton on a debuggable contract will return a non-empty string [`debuggerVersion` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#debuggerVersion):
+
+```solidity
+	function debuggerVersion() external pure virtual returns (string memory version);
+```
+
+Testing specfic outcomes on `TestableDegenGambit` using [`setEntropyFromOutcomes` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setEntropyFromOutcomes): 
+```solidity
+	// function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost) public;
+```
+
+Testing daily and weekly streaks using [`setDailyStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setDailyStreak) and [`setWeekltStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setWeeklyStreak)
+
+
+```solidity
+function setDailyStreak(uint256 dailyStreak, address player) public;
+
+function setWeeklyStreak(uint256 weeklyStreak, address player) public;
+```

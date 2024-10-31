@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/21118028c4d16776cc4e0848d8d63f720dd16e5b/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/d61fe6eb0d399ff7c16d8771ce36c6c21d7e013c/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -593,6 +593,16 @@ function inspectOutcome(address degenerate)
     external
     view
     returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
+```
+
+### debuggerVersion
+
+isDebuggable pure function that returns a string with debug version
+if empty string non-debuggable
+
+
+```solidity
+function debuggerVersion() external pure virtual returns (string memory version);
 ```
 
 ## Events

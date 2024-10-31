@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/21118028c4d16776cc4e0848d8d63f720dd16e5b/src/testable/TestableDegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/d61fe6eb0d399ff7c16d8771ce36c6c21d7e013c/src/testable/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
@@ -55,6 +55,13 @@ function setDailyStreak(uint256 dailyStreak, address player) public;
 
 ```solidity
 function setWeeklyStreak(uint256 weeklyStreak, address player) public;
+```
+
+### debuggerVersion
+
+
+```solidity
+function debuggerVersion() external pure override returns (string memory version);
 ```
 
 ### generateEntropyForUnmodifiedReelOutcome
