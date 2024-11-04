@@ -1,24 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {IERC20} from "../lib/openzeppelin/contracts/token/IERC20/IERC20.sol";
+import {IERC20} from "../../../lib/openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Receiver {
-    
-    event NewOwner(address _owner)
+    event NewOwner(address _owner);
 
     address public owner;
     address immutable launcher;
     address immutable _erc20;
 
     modifier onlyOwner() {
-        require(owner == msg.sender || msg.sender == launcher, "Only Owner can call");
+        require(
+            owner == msg.sender || msg.sender == launcher,
+            "Only Owner can call"
+        );
         _;
     }
 
-    function setOwner(address newOwner) external onlyOwner{
+    function setOwner(address newOwner) external onlyOwner {
         owner = newOwner;
-        emit NewOwner(_owner);
+        emit NewOwner(newOwner);
     }
 
     constructor(address erc20, address _owner) {
@@ -45,7 +47,7 @@ contract Receiver {
 
     function _nativeTransfer(address to) internal returns (uint256 amount) {
         amount = address(this).balance;
-        payable(prizeReciever).transfer(amount);
+        payable(to).transfer(amount);
     }
 
     function _erc20Transfer(address to) internal returns (uint256 amount) {

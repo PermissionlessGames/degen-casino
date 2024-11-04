@@ -621,6 +621,22 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         prizesAmount[4] = address(this).balance >> 1;
     }
 
+    //This is a simple function for middleware contracts or UI to determine if there is a prize to accept for player
+    function hasPrize(address player) external view returns (bool toReceive) {
+        toReceive =
+            _blockNumber() > LastSpinBlock[player] &&
+            _blockNumber() <= LastSpinBlock[player] + BlocksToAct;
+        if (toReceive) {
+            (uint256 left, uint256 center, uint256 right, ) = outcome(
+                _entropy(player),
+                LastSpinBoosted[player]
+            );
+            uint256 prize = payout(left, center, right);
+            toReceive = prize > 0;
+        }
+        return toReceive;
+    }
+
     /// This is the function a player calls to accept the outcome of a spin.
     /// @dev This call can be delegated to a different account.
     /// @param player account claiming a prize.

@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//mrk-hub/degen-casino/blob/1f53709a56cb0320c31a34f54d2a779bd568f84b/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/22309111ceb3a063b3a75ee9357ecc503a2827a1/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -444,6 +444,13 @@ function payout(uint256 left, uint256 center, uint256 right) public view returns
 function prizes() external view returns (uint256[5] memory prizesAmount);
 ```
 
+### hasPrize
+
+
+```solidity
+function hasPrize(address player) external view returns (bool toReceive);
+```
+
 ### _accept
 
 This is the function a player calls to accept the outcome of a spin.
@@ -555,7 +562,7 @@ If the player sends more value than they absolutely need to, the contract simply
 
 
 ```solidity
-function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable;
+function spinFor(address spinPlayer, address streakPlayer, bool boost) public payable;
 ```
 **Parameters**
 
