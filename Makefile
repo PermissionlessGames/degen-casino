@@ -1,4 +1,4 @@
-.PHONY: clean generate docs redocs forge
+.PHONY: clean generate docs test redocs forge
 
 build: forge generate docs bin/casino bin/technician
 

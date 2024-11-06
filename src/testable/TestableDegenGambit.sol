@@ -32,8 +32,8 @@ contract TestableDegenGambit is DegenGambit {
         LastStreakWeek[player] = weeklyStreak;
     }
 
-    function version() external pure override returns (string memory version) {
-        version = "1 - debuggable";
+    function version() external pure override returns (string memory) {
+        return "1 - debuggable";
     }
 
     function generateEntropyForUnmodifiedReelOutcome(
@@ -125,5 +125,25 @@ contract TestableDegenGambit is DegenGambit {
         uint256 sample = outcome == 0 ? 0 : reel[outcome - 1]; // The minimum sample value for this outcome
 
         return sample;
+    }
+
+    function setBlocksToAct(uint256 newBlocksToAct) external {
+        BlocksToAct = newBlocksToAct;
+    }
+
+    function setLastSpinBoosted(address player, bool boost) external {
+        LastSpinBoosted[player] = boost;
+    }
+
+    function setLastSpinBlock(address player, uint256 blockNumber) external {
+        LastSpinBlock[player] = blockNumber;
+    }
+
+    function setCostToSpin(uint256 newCostToSpin) external {
+        CostToSpin = newCostToSpin;
+    }
+
+    function setCostToRespin(uint256 newCostToRespin) external {
+        CostToRespin = newCostToRespin;
     }
 }

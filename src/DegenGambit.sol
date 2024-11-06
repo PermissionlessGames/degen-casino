@@ -797,7 +797,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// version pure function that returns a string with version
-    function version() external pure virtual returns (string memory version) {
-        version = "1";
+    function version() external pure virtual returns (string memory) {
+        return "1";
     }
 }

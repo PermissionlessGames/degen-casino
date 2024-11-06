@@ -439,19 +439,6 @@
   },
   {
     "type": "function",
-    "name": "debuggerVersion",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "version",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "stateMutability": "pure"
-  },
-  {
-    "type": "function",
     "name": "decimals",
     "inputs": [],
     "outputs": [
@@ -581,7 +568,7 @@
   },
   {
     "type": "function",
-    "name": "mint",
+    "name": "mintGambit",
     "inputs": [
       {
         "name": "to",
@@ -807,6 +794,45 @@
   },
   {
     "type": "function",
+    "name": "setBlocksToAct",
+    "inputs": [
+      {
+        "name": "newBlocksToAct",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setCostToRespin",
+    "inputs": [
+      {
+        "name": "newCostToRespin",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setCostToSpin",
+    "inputs": [
+      {
+        "name": "newCostToSpin",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setDailyStreak",
     "inputs": [
       {
@@ -860,6 +886,42 @@
         "type": "uint256",
         "internalType": "uint256"
       },
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "boost",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setLastSpinBlock",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "blockNumber",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setLastSpinBoosted",
+    "inputs": [
       {
         "name": "player",
         "type": "address",
@@ -1044,6 +1106,19 @@
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "version",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "pure"
   },
   {
     "type": "event",

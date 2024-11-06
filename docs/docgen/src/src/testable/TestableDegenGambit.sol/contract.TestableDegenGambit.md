@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/0fcf9b94218e26ecdc1d5cfff275d0c7e00950eb/src/testable/TestableDegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/be631370552ab99d862543a957ff8761a8dfdfec/src/testable/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
@@ -36,11 +36,11 @@ function setEntropy(address player, uint256 entropy) public;
 function _entropy(address player) internal view override returns (uint256);
 ```
 
-### mint
+### mintGambit
 
 
 ```solidity
-function mint(address to, uint256 amount) public;
+function mintGambit(address to, uint256 amount) public;
 ```
 
 ### setDailyStreak
@@ -57,11 +57,11 @@ function setDailyStreak(uint256 dailyStreak, address player) public;
 function setWeeklyStreak(uint256 weeklyStreak, address player) public;
 ```
 
-### debuggerVersion
+### version
 
 
 ```solidity
-function debuggerVersion() external pure override returns (string memory version);
+function version() external pure override returns (string memory);
 ```
 
 ### generateEntropyForUnmodifiedReelOutcome
@@ -96,5 +96,40 @@ function generateEntropyForImprovedReelOutcome(uint256 leftOutcome, uint256 cent
 
 ```solidity
 function getSampleForOutcome(uint256 outcome, uint256[19] storage reel) internal view returns (uint256);
+```
+
+### setBlocksToAct
+
+
+```solidity
+function setBlocksToAct(uint256 newBlocksToAct) external;
+```
+
+### setLastSpinBoosted
+
+
+```solidity
+function setLastSpinBoosted(address player, bool boost) external;
+```
+
+### setLastSpinBlock
+
+
+```solidity
+function setLastSpinBlock(address player, uint256 blockNumber) external;
+```
+
+### setCostToSpin
+
+
+```solidity
+function setCostToSpin(uint256 newCostToSpin) external;
+```
+
+### setCostToRespin
+
+
+```solidity
+function setCostToRespin(uint256 newCostToRespin) external;
 ```
 
