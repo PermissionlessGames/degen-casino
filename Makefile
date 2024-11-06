@@ -1,10 +1,10 @@
-.PHONY: clean generate test docs redocs forge
+.PHONY: clean generate docs redocs forge
 
-build: forge generate docs bin/casino bin/technician bin/test
+build: forge generate docs bin/casino bin/technician
 
 rebuild: clean build
 
-generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/Tests.go
+generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/TestableDegenGambit/TestableDegenGambit.go
 
 bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
@@ -14,9 +14,9 @@ bindings/BlockInspector/BlockInspector.go:
 	mkdir -p bindings/BlockInspector
 	seer evm generate --package BlockInspector --output bindings/BlockInspector/BlockInspector.go --foundry out/BlockInspector.sol/BlockInspector.json --cli --struct BlockInspector
 
-bindings/Tests.go:
-	mkdir -p bindings/Tests/TestableDegenGambit
-	seer evm generate --package TestableDegenGambit --output bindings/Tests/TestableDegenGambit/TestableDegenGambit.go --foundry out/TestableDegenGambit.sol/TestableDegenGambit.json --cli --struct TestableDegenGambit
+bindings/TestableDegenGambit/TestableDegenGambit.go:
+	mkdir -p bindings/TestableDegenGambit
+	seer evm generate --package TestableDegenGambit --output bindings/TestableDegenGambit/TestableDegenGambit.go --foundry out/TestableDegenGambit.sol/TestableDegenGambit.json --cli --struct TestableDegenGambit
 
 bin/casino: bindings/DegenGambit/DegenGambit.go
 	go mod tidy
@@ -25,10 +25,6 @@ bin/casino: bindings/DegenGambit/DegenGambit.go
 bin/technician: bindings/BlockInspector/BlockInspector.go
 	go mod tidy
 	go build -o bin/technician ./cmd/technician
-
-bin/test: bindings/Tests.go
-	go mod tidy
-	go build -o bin/test ./cmd/test
 
 test:
 	forge test -vvv

@@ -20,7 +20,7 @@ contract TestableDegenGambit is DegenGambit {
         return EntropyForPlayer[player];
     }
 
-    function mint(address to, uint256 amount) public {
+    function mintGambit(address to, uint256 amount) public {
         _mint(to, amount);
     }
 
@@ -32,13 +32,8 @@ contract TestableDegenGambit is DegenGambit {
         LastStreakWeek[player] = weeklyStreak;
     }
 
-    function debuggerVersion()
-        external
-        pure
-        override
-        returns (string memory version)
-    {
-        version = "version: 0.1";
+    function version() external pure override returns (string memory version) {
+        version = "1 - debuggable";
     }
 
     function generateEntropyForUnmodifiedReelOutcome(
@@ -95,10 +90,10 @@ contract TestableDegenGambit is DegenGambit {
         uint256 centerOutcome,
         uint256 rightOutcome
     ) public view returns (uint256) {
-        // Ensure the outcome indices are within the valid range (0-17)
-        require(leftOutcome < 18, "Invalid left outcome");
-        require(centerOutcome < 18, "Invalid center outcome");
-        require(rightOutcome < 18, "Invalid right outcome");
+        // Ensure the outcome indices are within the valid range (0-18)
+        require(leftOutcome < 19, "Invalid left outcome");
+        require(centerOutcome < 19, "Invalid center outcome");
+        require(rightOutcome < 19, "Invalid right outcome");
 
         // Get the valid range for the left outcome
         uint256 leftSample = getSampleForOutcome(leftOutcome, ImprovedLeftReel);
