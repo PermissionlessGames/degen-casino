@@ -420,19 +420,6 @@
   },
   {
     "type": "function",
-    "name": "debuggerVersion",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "version",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "stateMutability": "pure"
-  },
-  {
-    "type": "function",
     "name": "decimals",
     "inputs": [],
     "outputs": [
@@ -862,6 +849,19 @@
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "version",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "pure"
   },
   {
     "type": "event",

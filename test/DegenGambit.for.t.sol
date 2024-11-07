@@ -352,7 +352,7 @@ contract DegenGambitTest is Test {
 
     function test_gambit_minted_on_streak_boosted_spinfor() public {
         // Make sure the player has GAMBIT to boost with.
-        degenGambit.mint(player1, 2);
+        degenGambit.mintGambit(player1, 2);
 
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);

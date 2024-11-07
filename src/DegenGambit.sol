@@ -796,14 +796,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         prize = payout(left, center, right);
     }
 
-    /// isDebuggable pure function that returns a string with debug version
-    /// if empty string non-debuggable
-    function debuggerVersion()
-        external
-        pure
-        virtual
-        returns (string memory version)
-    {
-        version = "";
+    /// version pure function that returns a string with version
+    function version() external pure virtual returns (string memory) {
+        return "1";
     }
 }

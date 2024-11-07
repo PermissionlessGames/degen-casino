@@ -314,7 +314,7 @@ contract DegenGambitTest is Test {
         vm.deal(address(degenGambit), costToSpin << 30);
 
         // Guarantees that the player has enough GAMBIT for a boosted spin
-        degenGambit.mint(player1, 1);
+        degenGambit.mintGambit(player1, 1);
 
         uint256 entropy = degenGambit.generateEntropyForImprovedReelOutcome(
             17,
@@ -498,7 +498,7 @@ contract DegenGambitTest is Test {
 
     function test_gambit_minted_on_streak_boosted() public {
         // Make sure the player has GAMBIT to boost with.
-        degenGambit.mint(player1, 2);
+        degenGambit.mintGambit(player1, 2);
 
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
@@ -764,7 +764,7 @@ contract DegenGambitTest is Test {
 
     function test_gambit_minted_on_weekly_streak_boosted() public {
         // Make sure the player has GAMBIT to boost with.
-        degenGambit.mint(player1, 2);
+        degenGambit.mintGambit(player1, 2);
 
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
