@@ -1,5 +1,5 @@
 # Receiver
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/22309111ceb3a063b3a75ee9357ecc503a2827a1/src/syndication/utils/Receiver.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/12976e9fd5c84ac10effba9d0fe44362cdc76a38/src/syndication/utils/Receiver.sol)
 
 
 ## State Variables

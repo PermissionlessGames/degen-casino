@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/22309111ceb3a063b3a75ee9357ecc503a2827a1/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/12976e9fd5c84ac10effba9d0fe44362cdc76a38/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -562,7 +562,7 @@ If the player sends more value than they absolutely need to, the contract simply
 
 
 ```solidity
-function spinFor(address spinPlayer, address streakPlayer, bool boost) public payable;
+function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable;
 ```
 **Parameters**
 
