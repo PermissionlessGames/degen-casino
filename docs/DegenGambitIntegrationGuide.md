@@ -268,10 +268,10 @@ Interacting with a `TestableDegenGambit` smart contract:
 
 The `TestableDegenGambit` debugging uses a testable contract to improve and test functions and condintions on and off chain.
 
-Developers can use the debugger to check for the version of the testable smart contract. This allows front-end developers to easily test on-chain events that will trigger on-screen events i.e. reels spinning, jackpots hit etc.. This funciton on a debuggable contract will return a non-empty string [`debuggerVersion` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#debuggerVersion):
+Developers can use the debugger to check for the version of the testable smart contract. This allows front-end developers to easily test on-chain events that will trigger on-screen events i.e. reels spinning, jackpots hit etc.. This allows for front-end development to determine between a testable and non-testable based on contract versions string [`version` method](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#debuggerVersion):
 
 ```solidity
-	function debuggerVersion() external pure virtual returns (string memory version);
+	function version() external pure virtual returns (string memory);
 ```
 
 Testing specfic outcomes on `TestableDegenGambit` using [`setEntropyFromOutcomes` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setEntropyFromOutcomes): 
