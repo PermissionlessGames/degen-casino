@@ -287,3 +287,27 @@ function setDailyStreak(uint256 dailyStreak, address player) public;
 
 function setWeeklyStreak(uint256 weeklyStreak, address player) public;
 ```
+
+Testing spin's LastSpinBoosted and LastSpinBlock streaks using [`setLastSpinBoosted` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setLastSpinBoosted) and [`setLastSpinBlock` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setLastSpinBlock). Setting LastSpinBlock can activate a spin without calling spin or spinFor and setting LastSpinBoosted allows for quick reponses(without events emit) and allows for accept and acceptFor to be called.
+
+```solidity
+    function setLastSpinBoosted(address player, bool boost) external;
+
+    function setLastSpinBlock(address player, uint256 blockNumber) external;
+```
+
+Testing Gambit fixed variables CostToSpin, CostToRespin, BlocksToAct using [`setBlocksToAct` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setBlocksToAct), [`setCostToSpin` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setCostToSpin), [`setCostToRespin` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#setCostToRespin). Allows for adjusting constructor parameters during debugging.
+
+```solidity
+    function setBlocksToAct(uint256 newBlocksToAct) external;
+
+    function setCostToSpin(uint256 newCostToSpin) external;
+
+    function setCostToRespin(uint256 newCostToRespin) external;
+```
+
+Testing Gambit transfers for boosted spins use [`mintGambit` method](./docgen/src/src/testable/TestableDegenGambit.sol/DegenGambit.sol/contract.DegenGambit.md#mintGambit). This will mint gambit for the desinated address. 
+
+```solidity
+	function mintGambit(address to, uint256 amount) public;
+```
