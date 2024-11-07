@@ -42,9 +42,9 @@ contract TestableDegenGambit is DegenGambit {
         uint256 rightOutcome
     ) public view returns (uint256) {
         // Ensure the outcome indices are within the valid range (0-18)
-        require(leftOutcome < 19, "Invalid left outcome");
-        require(centerOutcome < 19, "Invalid center outcome");
-        require(rightOutcome < 19, "Invalid right outcome");
+        if (leftOutcome >= 19 || centerOutcome >= 19 || rightOutcome >= 19) {
+            revert OutcomeOutOfBounds();
+        }
 
         // Get the valid range for the left outcome
         uint256 leftSample = getSampleForOutcome(
@@ -78,8 +78,8 @@ contract TestableDegenGambit is DegenGambit {
         uint256 right,
         address player,
         bool boost
-    ) public {
-        uint256 entropy = boost
+    ) public returns (uint256 entropy) {
+        entropy = boost
             ? generateEntropyForImprovedReelOutcome(left, center, right)
             : generateEntropyForUnmodifiedReelOutcome(left, center, right);
         EntropyForPlayer[player] = entropy;

@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/fb55dd6dcd4cff2d1433abb049aee7349c8f401c/src/testable/TestableDegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f4fc748b1732414b147ac1fb4dbe8f680b6484bd/src/testable/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
@@ -78,7 +78,9 @@ function generateEntropyForUnmodifiedReelOutcome(uint256 leftOutcome, uint256 ce
 
 
 ```solidity
-function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost) public;
+function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost)
+    public
+    returns (uint256 entropy);
 ```
 
 ### generateEntropyForImprovedReelOutcome
