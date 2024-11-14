@@ -5,11 +5,10 @@ This checklist describes how to deploy the Gambit contract
 ## Enviroment variables
 ```bash
 export RPC='<RPC url example: https://testnet-rpc.game7.io>'
-export BLOCKSTOACT=20
+export BLOCKSTOACT=50
 export COSTTORESPIN=7
 export COSTTOSPIN=10
 export KEY='<keyfile path>'
-export VERIFIERURL='<verifier url example: https://testnet.game7.io/api/>'
 ```
 
 ## Deploy
@@ -26,9 +25,9 @@ bin/technician testable-gambit deploy \
 
 ```bash
 forge verify-contract \
-  --rpc-url $RPC \
+  --rpc-url https://testnet-rpc.game7.io \
   --verifier blockscout \
-  --verifier-url $VERIFIERURL \
-  '<deployment address>' \
+  --verifier-url 'https://testnet.game7.io/api/' \
+  0xdfac471c67788e290aC81eD07F69878439d673a3 \
   src/testable/TestableDegenGambit.sol:TestableDegenGambit 
 ```

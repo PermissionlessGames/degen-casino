@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f4fc748b1732414b147ac1fb4dbe8f680b6484bd/src/testable/TestableDegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/dddddd6f0ead128c3c0d012b84366f406feaf839/src/testable/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
@@ -13,6 +13,13 @@ mapping(address => uint256) public EntropyForPlayer;
 ```
 
 
+### EntropyIsHash
+
+```solidity
+bool public EntropyIsHash;
+```
+
+
 ## Functions
 ### constructor
 
@@ -20,6 +27,13 @@ mapping(address => uint256) public EntropyForPlayer;
 ```solidity
 constructor(uint256 blocksToAct, uint256 costToSpin, uint256 costToRespin)
     DegenGambit(blocksToAct, costToSpin, costToRespin);
+```
+
+### setEntropySource
+
+
+```solidity
+function setEntropySource(bool isFromHash) external;
 ```
 
 ### setEntropy

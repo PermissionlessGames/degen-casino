@@ -5,6 +5,7 @@ import {DegenGambit} from "../DegenGambit.sol";
 
 contract TestableDegenGambit is DegenGambit {
     mapping(address => uint256) public EntropyForPlayer;
+    bool public EntropyIsHash;
 
     constructor(
         uint256 blocksToAct,
@@ -12,12 +13,20 @@ contract TestableDegenGambit is DegenGambit {
         uint256 costToRespin
     ) DegenGambit(blocksToAct, costToSpin, costToRespin) {}
 
+    function setEntropySource(bool isFromHash) external {
+        EntropyIsHash = isFromHash;
+    }
+
     function setEntropy(address player, uint256 entropy) public {
         EntropyForPlayer[player] = entropy;
     }
 
     function _entropy(address player) internal view override returns (uint256) {
-        return EntropyForPlayer[player];
+        if (EntropyIsHash) {
+            return super._entropy(player);
+        } else {
+            return EntropyForPlayer[player];
+        }
     }
 
     function mintGambit(address to, uint256 amount) public {
