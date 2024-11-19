@@ -268,7 +268,7 @@ Interacting with a `TestableDegenGambit` smart contract:
 
 The `TestableDegenGambit` debugging uses a testable contract to improve and test functions and condintions on and off chain.
 
-Current `TestableDegenGambit` launched [`0xdfac471c67788e290aC81eD07F69878439d673a3`](https://testnet.game7.io/address/0xdfac471c67788e290aC81eD07F69878439d673a3?tab=contract)
+Current `TestableDegenGambit` launched [`0x32Ab35AF615241D80801C1cFbF5798762BA31f3b`](https://testnet.game7.io/address/0x32Ab35AF615241D80801C1cFbF5798762BA31f3b?tab=contract)
 
 Developers can use the debugger to check for the version of the testable smart contract. This allows front-end developers to easily test on-chain events that will trigger on-screen events i.e. reels spinning, jackpots hit etc.. This allows for front-end development to determine between a testable and non-testable based on contract versions string [`version` method](./docgen/src/src/TestableDegenGambit.sol/contract.TestableDegenGambit.md#version):
 
