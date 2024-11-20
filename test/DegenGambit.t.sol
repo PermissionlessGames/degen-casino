@@ -45,7 +45,7 @@ contract DegenGambitTest is Test {
 
         vm.deal(address(degenGambit), costToSpin << 30);
         vm.deal(player1, 10 * costToSpin);
-
+        vm.warp(100 days);
         ArbSysMock arbSys = new ArbSysMock();
         vm.etch(address(100), address(arbSys).code);
     }
@@ -73,7 +73,9 @@ contract DegenGambitTest is Test {
         vm.startPrank(player1);
 
         vm.expectRevert(DegenGambit.InsufficientValue.selector);
+
         degenGambit.spin{value: cost - 1}(false);
+        uint256 time = block.timestamp;
 
         vm.stopPrank();
 
@@ -87,10 +89,9 @@ contract DegenGambitTest is Test {
     function test_spin_takes_all_sent_value() public {
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
-
-        uint256 cost = degenGambit.spinCost(player1);
-
         vm.startPrank(player1);
+        vm.roll(block.number + 15000);
+        uint256 cost = degenGambit.spinCost(player1);
 
         degenGambit.spin{value: 2 * cost}(false);
 
@@ -214,8 +215,13 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        uint256 expectedPayout = degenGambit.payout(2, 2, 2);
+        (uint256 expectedPayout, bool nativeToken) = degenGambit.payout(
+            2,
+            2,
+            2
+        );
         assertEq(expectedPayout, 50 * costToSpin);
+        assertEq(nativeToken, true);
 
         vm.roll(block.number + 1);
 
@@ -269,8 +275,13 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        uint256 expectedPayout = degenGambit.payout(2, 2, 2);
+        (uint256 expectedPayout, bool nativeToken) = degenGambit.payout(
+            2,
+            2,
+            2
+        );
         assertEq(expectedPayout, address(degenGambit).balance >> 6);
+        assertEq(nativeToken, true);
 
         vm.roll(block.number + 1);
 
@@ -341,17 +352,20 @@ contract DegenGambitTest is Test {
 
         gameBalanceBefore = address(degenGambit).balance;
         playerBalanceBefore = player1.balance;
-
-        uint256 expectedPayout = degenGambit.payout(17, 17, 17);
-        assertEq(expectedPayout, gameBalanceBefore >> 1);
-
+        uint256 expectedPayout;
+        {
+            bool nativeToken;
+            (expectedPayout, nativeToken) = degenGambit.payout(17, 17, 17);
+            assertEq(expectedPayout, gameBalanceBefore >> 1);
+            assertEq(nativeToken, true);
+        }
         assertEq(degenGambit.LastSpinBoosted(player1), true);
 
         vm.roll(block.number + 1);
 
         // This guarantees that the outcome isn't coming from the regular distributions but the boosted ones.
         (left, center, right, ) = degenGambit.outcome(entropy, false);
-        console.log(left, center, right);
+
         assertNotEq(left, 17);
         assertNotEq(center, 17);
         assertNotEq(right, 17);
@@ -509,6 +523,7 @@ contract DegenGambitTest is Test {
 
         vm.expectEmit();
         emit Spin(player1, true);
+
         degenGambit.spin{value: costToSpin}(true);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
@@ -915,54 +930,57 @@ contract DegenGambitTest is Test {
         vm.expectRevert(DegenGambit.OutcomeOutOfBounds.selector);
         degenGambit.payout(19, 19, 19);
 
-        uint256[5] memory prizes = degenGambit.prizes();
+        (uint256[6] memory prizes, ) = degenGambit.prizes();
 
-        uint256 payout = degenGambit.payout(0, 0, 0);
+        (uint256 payout, ) = degenGambit.payout(0, 0, 0);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(0, 1, 2);
+        (payout, ) = degenGambit.payout(0, 1, 2);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(1, 2, 3);
+        (payout, ) = degenGambit.payout(1, 2, 3);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(1, 6, 1);
+        (payout, ) = degenGambit.payout(0, 16, 0);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(0, 16, 0);
+        (payout, ) = degenGambit.payout(1, 16, 2);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(1, 16, 2);
+        (payout, ) = degenGambit.payout(16, 2, 16);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(16, 2, 16);
+        (payout, ) = degenGambit.payout(16, 16, 17);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(16, 16, 17);
+        (payout, ) = degenGambit.payout(16, 16, 6);
         assertEq(0, payout);
 
-        payout = degenGambit.payout(16, 16, 6);
-        assertEq(0, payout);
-
-        payout = degenGambit.payout(1, 1, 1);
+        (payout, ) = degenGambit.payout(1, 6, 1);
         assertEq(prizes[0], payout);
 
-        payout = degenGambit.payout(15, 15, 15);
+        (payout, ) = degenGambit.payout(15, 1, 15);
         assertEq(prizes[0], payout);
 
-        payout = degenGambit.payout(1, 16, 1);
+        (payout, ) = degenGambit.payout(1, 1, 1);
         assertEq(prizes[1], payout);
 
-        payout = degenGambit.payout(15, 16, 15);
+        (payout, ) = degenGambit.payout(15, 15, 15);
         assertEq(prizes[1], payout);
 
-        payout = degenGambit.payout(17, 16, 18);
+        (payout, ) = degenGambit.payout(1, 16, 1);
         assertEq(prizes[2], payout);
 
-        payout = degenGambit.payout(16, 17, 16);
+        (payout, ) = degenGambit.payout(15, 16, 15);
+        assertEq(prizes[2], payout);
+
+        (payout, ) = degenGambit.payout(17, 16, 18);
         assertEq(prizes[3], payout);
 
-        payout = degenGambit.payout(16, 16, 16);
+        (payout, ) = degenGambit.payout(16, 17, 16);
         assertEq(prizes[4], payout);
+
+        (payout, ) = degenGambit.payout(16, 16, 16);
+        assertEq(prizes[5], payout);
     }
 }

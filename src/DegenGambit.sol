@@ -181,8 +181,14 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// Day on which the last in-streak spin was made by a given player. This is for daily streaks.
     mapping(address => uint256) public LastStreakDay;
 
+    /// The length of the current daily streak the made by a given player. This is for daily streak length.
+    mapping(address => uint256) public CurrentDailyStreakLength;
+
     /// Week on which the last in-streak spin was made by a given player. This is for weekly streaks.
     mapping(address => uint256) public LastStreakWeek;
+
+    /// The length of the current weekly streak the made by a given player. This is for weekly streak length.
+    mapping(address => uint256) public CurrentWeeklyStreakLength;
 
     /// Fired when a player spins (and respins).
     event Spin(address indexed player, bool indexed bonus);
@@ -568,25 +574,31 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         uint256 left,
         uint256 center,
         uint256 right
-    ) public view virtual returns (uint256 result) {
+    ) public view virtual returns (uint256 result, bool nativeToken) {
         if (left >= 19 || center >= 19 || right >= 19) {
             revert OutcomeOutOfBounds();
         }
         //Default 0 for everything else
         result = 0;
         if (left != 0 && right != 0 && center != 0) {
-            if (left == right && left == center && left <= 15) {
-                // 3 of a kind with a minor symbol. Case 1
+            if (left == right && left != center && left <= 15 && center <= 15) {
+                // Minor symbol pair on outside reels with minor symbol in the center. Case 2
+                result = 1;
+                nativeToken = false;
+            } else if (left == right && left == center && left <= 15) {
+                // 3 of a kind with a minor symbol. Case 2
                 result = 50 * CostToSpin;
                 if (result > address(this).balance >> 6) {
                     result = address(this).balance >> 6;
                 }
+                nativeToken = true;
             } else if (left == right && center >= 16 && left <= 15) {
-                // Minor symbol pair on outside reels with major symbol in the center. Case 2
+                // Minor symbol pair on outside reels with major symbol in the center. Case 3
                 result = 100 * CostToSpin;
                 if (result > address(this).balance >> 4) {
                     result = address(this).balance >> 4;
                 }
+                nativeToken = true;
             } else if (
                 left != right &&
                 center != left &&
@@ -595,16 +607,19 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 center >= 16 &&
                 right >= 16
             ) {
-                // Three distinct major symbols. Case 3
+                // Three distinct major symbols. Case 4
                 result = address(this).balance >> 3;
+                nativeToken = true;
             } else if (
                 left == right && left != center && left >= 16 && center >= 16
             ) {
-                // Major symbol pair on the outside with a different major symbol in the center. Case 4
+                // Major symbol pair on the outside with a different major symbol in the center. Case 5
                 result = address(this).balance >> 3;
+                nativeToken = true;
             } else if (left == center && center == right && left >= 16) {
-                // 3 of a kind with a major symbol. Jackpot! Case 5
+                // 3 of a kind with a major symbol. Jackpot! Case 6
                 result = address(this).balance >> 1;
+                nativeToken = true;
             }
         }
     }
@@ -614,22 +629,37 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         external
         view
         virtual
-        returns (uint256[5] memory prizesAmount)
+        returns (uint256[6] memory prizesAmount, string[6] memory typeOfPrize)
     {
-        prizesAmount[0] = 50 * CostToSpin < address(this).balance >> 6
+        prizesAmount[0] = 1;
+        typeOfPrize[0] = name();
+        prizesAmount[1] = 50 * CostToSpin < address(this).balance >> 6
             ? 50 * CostToSpin
             : address(this).balance >> 6;
-        prizesAmount[1] = 100 * CostToSpin < address(this).balance >> 4
+        typeOfPrize[1] = "Native";
+        prizesAmount[2] = 100 * CostToSpin < address(this).balance >> 4
             ? 100 * CostToSpin
             : address(this).balance >> 4;
-        prizesAmount[2] = address(this).balance >> 3;
+        typeOfPrize[2] = "Native";
         prizesAmount[3] = address(this).balance >> 3;
-        prizesAmount[4] = address(this).balance >> 1;
+        typeOfPrize[3] = "Native";
+        prizesAmount[4] = address(this).balance >> 3;
+        typeOfPrize[4] = "Native";
+        prizesAmount[5] = address(this).balance >> 1;
+        typeOfPrize[5] = "Native";
     }
 
     //This is the function that handles the payout for the prizes
-    function _transferPrize(uint256 prize, address player) internal virtual {
-        payable(player).transfer(prize);
+    function _transferPrize(
+        uint256 prize,
+        address player,
+        bool nativeToken
+    ) internal virtual {
+        if (nativeToken) {
+            payable(player).transfer(prize);
+        } else {
+            _mint(player, prize);
+        }
     }
 
     //This is a simple function for middleware contracts or UI to determine if there is a prize to accept for player
@@ -642,7 +672,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 _entropy(player),
                 LastSpinBoosted[player]
             );
-            uint256 prize = payout(left, center, right);
+            (uint256 prize, ) = payout(left, center, right);
             toReceive = prize > 0;
         }
         return toReceive;
@@ -663,6 +693,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             uint256 prize
         )
     {
+        bool nativeToken;
         _enforceTick(player);
         _enforceDeadline(player);
 
@@ -670,8 +701,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             _entropy(player),
             LastSpinBoosted[player]
         );
-        prize = payout(left, center, right);
-        _transferPrize(prize, player);
+        (prize, nativeToken) = payout(left, center, right);
+        _transferPrize(prize, player, nativeToken);
         emit Award(player, prize);
 
         delete LastSpinBoosted[player];
@@ -729,14 +760,22 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         uint256 currentDay = block.timestamp / SECONDS_PER_DAY;
         if (LastStreakDay[streakPlayer] + 1 == currentDay) {
             _mint(streakPlayer, DailyStreakReward);
+            CurrentDailyStreakLength[streakPlayer] += 1;
             emit DailyStreak(streakPlayer, currentDay);
+        }
+        if (LastStreakDay[streakPlayer] < currentDay - 1) {
+            CurrentDailyStreakLength[streakPlayer] = 0;
         }
         LastStreakDay[streakPlayer] = currentDay;
 
         uint256 currentWeek = currentDay / 7;
         if (LastStreakWeek[streakPlayer] + 1 == currentWeek) {
             _mint(streakPlayer, WeeklyStreakReward);
+            CurrentWeeklyStreakLength[streakPlayer] += 1;
             emit WeeklyStreak(streakPlayer, currentWeek);
+        }
+        if (LastStreakWeek[streakPlayer] < currentWeek - 1) {
+            CurrentWeeklyStreakLength[streakPlayer] = 0;
         }
         LastStreakWeek[streakPlayer] = currentWeek;
     }
@@ -818,7 +857,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             uint256 center,
             uint256 right,
             uint256 remainingEntropy,
-            uint256 prize
+            uint256 prize,
+            bool nativeToken
         )
     {
         _enforceDeadline(degenerate);
@@ -827,7 +867,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             LastSpinBoosted[degenerate]
         );
 
-        prize = payout(left, center, right);
+        (prize, nativeToken) = payout(left, center, right);
     }
 
     function symbol() public view override returns (string memory) {

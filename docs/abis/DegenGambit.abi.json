@@ -65,6 +65,44 @@
   },
   {
     "type": "function",
+    "name": "CurrentDailyStreakLength",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "CurrentWeeklyStreakLength",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "DailyStreakReward",
     "inputs": [],
     "outputs": [
@@ -504,6 +542,11 @@
         "name": "prize",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "nativeToken",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -585,6 +628,11 @@
         "name": "result",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "nativeToken",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -596,8 +644,13 @@
     "outputs": [
       {
         "name": "prizesAmount",
-        "type": "uint256[5]",
-        "internalType": "uint256[5]"
+        "type": "uint256[6]",
+        "internalType": "uint256[6]"
+      },
+      {
+        "name": "typeOfPrize",
+        "type": "string[6]",
+        "internalType": "string[6]"
       }
     ],
     "stateMutability": "view"

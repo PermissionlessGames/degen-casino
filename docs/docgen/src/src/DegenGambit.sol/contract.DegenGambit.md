@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/826964e7c93cd23441266d14cb83dbd7e5a43955/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cfcf5ab295cce6baafb26b8bc991d794369803ff/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -274,12 +274,30 @@ mapping(address => uint256) public LastStreakDay;
 ```
 
 
+### CurrentDailyStreakLength
+The length of the current daily streak the made by a given player. This is for daily streak length.
+
+
+```solidity
+mapping(address => uint256) public CurrentDailyStreakLength;
+```
+
+
 ### LastStreakWeek
 Week on which the last in-streak spin was made by a given player. This is for weekly streaks.
 
 
 ```solidity
 mapping(address => uint256) public LastStreakWeek;
+```
+
+
+### CurrentWeeklyStreakLength
+The length of the current weekly streak the made by a given player. This is for weekly streak length.
+
+
+```solidity
+mapping(address => uint256) public CurrentWeeklyStreakLength;
 ```
 
 
@@ -434,21 +452,25 @@ Payout function for symbol combinations.
 
 
 ```solidity
-function payout(uint256 left, uint256 center, uint256 right) public view virtual returns (uint256 result);
+function payout(uint256 left, uint256 center, uint256 right)
+    public
+    view
+    virtual
+    returns (uint256 result, bool nativeToken);
 ```
 
 ### prizes
 
 
 ```solidity
-function prizes() external view virtual returns (uint256[5] memory prizesAmount);
+function prizes() external view virtual returns (uint256[6] memory prizesAmount, string[6] memory typeOfPrize);
 ```
 
 ### _transferPrize
 
 
 ```solidity
-function _transferPrize(uint256 prize, address player) internal virtual;
+function _transferPrize(uint256 prize, address player, bool nativeToken) internal virtual;
 ```
 
 ### hasPrize
@@ -615,7 +637,7 @@ convenient and natural way to simulate the outcome of a spin, which also works o
 function inspectOutcome(address degenerate)
     external
     view
-    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize, bool nativeToken);
 ```
 
 ### symbol
