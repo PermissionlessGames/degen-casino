@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
 import {ArbSys} from "../src/ArbSys.sol";
+import {TestableDegenGambit} from "../src/testable/TestableDegenGambit.sol";
 
 contract ArbSysMock is ArbSys {
     function arbBlockNumber() external view returns (uint) {
@@ -12,28 +13,6 @@ contract ArbSysMock is ArbSys {
 
     function arbBlockHash(uint256 arbBlockNum) external view returns (bytes32) {
         return blockhash(arbBlockNum);
-    }
-}
-
-contract TestableDegenGambit is DegenGambit {
-    mapping(address => uint256) public EntropyForPlayer;
-
-    constructor(
-        uint256 blocksToAct,
-        uint256 costToSpin,
-        uint256 costToRespin
-    ) DegenGambit(blocksToAct, costToSpin, costToRespin) {}
-
-    function setEntropy(address player, uint256 entropy) public {
-        EntropyForPlayer[player] = entropy;
-    }
-
-    function _entropy(address player) internal view override returns (uint256) {
-        return EntropyForPlayer[player];
-    }
-
-    function mint(address to, uint256 amount) public {
-        _mint(to, amount);
     }
 }
 
@@ -219,8 +198,6 @@ contract DegenGambitTest is Test {
         // Guarantees that the payout does not fall under balance-based clamping flow.
         vm.deal(address(degenGambit), costToSpin << 30);
 
-        uint256 entropy = 143946520351854296877309383;
-
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
 
@@ -229,7 +206,7 @@ contract DegenGambitTest is Test {
         vm.expectEmit();
         emit Spin(player1, false);
         degenGambit.spin{value: costToSpin}(false);
-        degenGambit.setEntropy(player1, entropy);
+        degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
 
         uint256 gameBalanceIntermediate = address(degenGambit).balance;
         uint256 playerBalanceIntermediate = player1.balance;
@@ -276,8 +253,6 @@ contract DegenGambitTest is Test {
         // Guarantees that the payout falls under balance-based clamping flow.
         vm.deal(address(degenGambit), costToSpin);
 
-        uint256 entropy = 143946520351854296877309383;
-
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
 
@@ -286,7 +261,7 @@ contract DegenGambitTest is Test {
         vm.expectEmit();
         emit Spin(player1, false);
         degenGambit.spin{value: costToSpin}(false);
-        degenGambit.setEntropy(player1, entropy);
+        degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
 
         uint256 gameBalanceIntermediate = address(degenGambit).balance;
         uint256 playerBalanceIntermediate = player1.balance;
@@ -339,9 +314,13 @@ contract DegenGambitTest is Test {
         vm.deal(address(degenGambit), costToSpin << 30);
 
         // Guarantees that the player has enough GAMBIT for a boosted spin
-        degenGambit.mint(player1, 1);
+        degenGambit.mintGambit(player1, 1);
 
-        uint256 entropy = 1208809274197797772061421487;
+        uint256 entropy = degenGambit.generateEntropyForImprovedReelOutcome(
+            17,
+            17,
+            17
+        );
 
         uint256 gameBalanceBefore = address(degenGambit).balance;
         uint256 playerBalanceBefore = player1.balance;
@@ -372,6 +351,7 @@ contract DegenGambitTest is Test {
 
         // This guarantees that the outcome isn't coming from the regular distributions but the boosted ones.
         (left, center, right, ) = degenGambit.outcome(entropy, false);
+        console.log(left, center, right);
         assertNotEq(left, 17);
         assertNotEq(center, 17);
         assertNotEq(right, 17);
@@ -518,7 +498,7 @@ contract DegenGambitTest is Test {
 
     function test_gambit_minted_on_streak_boosted() public {
         // Make sure the player has GAMBIT to boost with.
-        degenGambit.mint(player1, 2);
+        degenGambit.mintGambit(player1, 2);
 
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
@@ -784,7 +764,7 @@ contract DegenGambitTest is Test {
 
     function test_gambit_minted_on_weekly_streak_boosted() public {
         // Make sure the player has GAMBIT to boost with.
-        degenGambit.mint(player1, 2);
+        degenGambit.mintGambit(player1, 2);
 
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
