@@ -26,6 +26,11 @@ contract DegenGambitConfigurationTest is Test {
         assertEq(degenGambit.supportsInterface(0x36372b07), true);
     }
 
+    function test_version() public view {
+        string memory version = degenGambit.version();
+        assertEq(version, "1");
+    }
+
     function test_ERC20Metadata() public view {
         assertEq(degenGambit.name(), "Degen's Gambit");
         assertEq(degenGambit.decimals(), 0);

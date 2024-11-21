@@ -1365,6 +1365,37 @@ func (_DegenGambit *DegenGambitCallerSession) TotalSupply() (*big.Int, error) {
 	return _DegenGambit.Contract.TotalSupply(&_DegenGambit.CallOpts)
 }
 
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() pure returns(string)
+func (_DegenGambit *DegenGambitCaller) Version(opts *bind.CallOpts) (string, error) {
+	var out []interface{}
+	err := _DegenGambit.contract.Call(opts, &out, "version")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() pure returns(string)
+func (_DegenGambit *DegenGambitSession) Version() (string, error) {
+	return _DegenGambit.Contract.Version(&_DegenGambit.CallOpts)
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() pure returns(string)
+func (_DegenGambit *DegenGambitCallerSession) Version() (string, error) {
+	return _DegenGambit.Contract.Version(&_DegenGambit.CallOpts)
+}
+
 // Accept is a paid mutator transaction binding the contract method 0x2852b71c.
 //
 // Solidity: function accept() returns(uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize)
@@ -5231,6 +5262,69 @@ func CreateUnmodifiedRightReelCommand() *cobra.Command {
 
 	return cmd
 }
+func CreateVersionCommand() *cobra.Command {
+	var contractAddressRaw, rpc string
+	var contractAddress common.Address
+	var timeout uint
+
+	var blockNumberRaw, fromAddressRaw string
+	var pending bool
+
+	var capture0 string
+
+	cmd := &cobra.Command{
+		Use:   "version",
+		Short: "Call the Version view method on a DegenGambit contract",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if contractAddressRaw == "" {
+				return fmt.Errorf("--contract not specified")
+			} else if !common.IsHexAddress(contractAddressRaw) {
+				return fmt.Errorf("--contract is not a valid Ethereum address")
+			}
+			contractAddress = common.HexToAddress(contractAddressRaw)
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, clientErr := NewClient(rpc)
+			if clientErr != nil {
+				return clientErr
+			}
+
+			contract, contractErr := NewDegenGambit(contractAddress, client)
+			if contractErr != nil {
+				return contractErr
+			}
+
+			callOpts := bind.CallOpts{}
+			SetCallParametersFromArgs(&callOpts, pending, fromAddressRaw, blockNumberRaw)
+
+			session := DegenGambitCallerSession{
+				Contract: &contract.DegenGambitCaller,
+				CallOpts: callOpts,
+			}
+
+			var callErr error
+			capture0, callErr = session.Version()
+			if callErr != nil {
+				return callErr
+			}
+
+			cmd.Printf("0: %s\n", capture0)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&rpc, "rpc", "", "URL of the JSONRPC API to use")
+	cmd.Flags().StringVar(&blockNumberRaw, "block", "", "Block number at which to call the view method")
+	cmd.Flags().BoolVar(&pending, "pending", false, "Set this flag if it's ok to call the view method against pending state")
+	cmd.Flags().UintVar(&timeout, "timeout", 60, "Timeout (in seconds) for interactions with the JSONRPC API")
+	cmd.Flags().StringVar(&contractAddressRaw, "contract", "", "Address of the contract to interact with")
+	cmd.Flags().StringVar(&fromAddressRaw, "from", "", "Optional address for caller of the view method")
+
+	return cmd
+}
 func CreateWeeklyStreakRewardCommand() *cobra.Command {
 	var contractAddressRaw, rpc string
 	var contractAddress common.Address
@@ -7223,6 +7317,9 @@ func CreateDegenGambitCommand() *cobra.Command {
 	cmdViewUnmodifiedRightReel := CreateUnmodifiedRightReelCommand()
 	cmdViewUnmodifiedRightReel.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewUnmodifiedRightReel)
+	cmdViewVersion := CreateVersionCommand()
+	cmdViewVersion.GroupID = ViewGroup.ID
+	cmd.AddCommand(cmdViewVersion)
 	cmdViewWeeklyStreakReward := CreateWeeklyStreakRewardCommand()
 	cmdViewWeeklyStreakReward.GroupID = ViewGroup.ID
 	cmd.AddCommand(cmdViewWeeklyStreakReward)
