@@ -47,6 +47,11 @@ contract TestableDegenGambitTest is Test {
         vm.etch(address(100), address(arbSys).code);
     }
 
+    function test_version() public view {
+        string memory version = testableDegenGambit.version();
+        assertEq(version, "1 - debuggable");
+    }
+
     function test_entropy_generation_value() public {
         vm.startPrank(player1);
 
@@ -149,7 +154,7 @@ contract TestableDegenGambitTest is Test {
         assertEq(100, testableDegenGambit.balanceOf(player1));
     }
 
-    function test_set_steaks() public {
+    function test_set_streaks() public {
         uint256 initialDaily = testableDegenGambit.LastStreakDay(player1);
         uint256 initialWeekly = testableDegenGambit.LastStreakWeek(player1);
         assertNotEq(101, initialDaily);
