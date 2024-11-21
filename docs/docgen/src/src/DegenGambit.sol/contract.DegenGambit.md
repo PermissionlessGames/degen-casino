@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/dddddd6f0ead128c3c0d012b84366f406feaf839/src/DegenGambit.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/826964e7c93cd23441266d14cb83dbd7e5a43955/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -434,19 +434,33 @@ Payout function for symbol combinations.
 
 
 ```solidity
-function payout(uint256 left, uint256 center, uint256 right) public view returns (uint256 result);
+function payout(uint256 left, uint256 center, uint256 right) public view virtual returns (uint256 result);
 ```
 
 ### prizes
 
 
 ```solidity
-function prizes() external view returns (uint256[5] memory prizesAmount);
+function prizes() external view virtual returns (uint256[5] memory prizesAmount);
+```
+
+### _transferPrize
+
+
+```solidity
+function _transferPrize(uint256 prize, address player) internal virtual;
+```
+
+### hasPrize
+
+
+```solidity
+function hasPrize(address player) external view returns (bool toReceive);
 ```
 
 ### _accept
 
-This is the function a player calls to accept the outcome of a spin.
+This is the internal function called to accept the outcome of a spin.
 
 *This call can be delegated to a different account.*
 
@@ -473,6 +487,7 @@ This is the function a player calls to accept the outcome of a spin.
 ```solidity
 function accept()
     external
+    virtual
     nonReentrant
     returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 ```
@@ -487,6 +502,7 @@ This is the function a player calls to accept the outcome of a spin.
 ```solidity
 function acceptFor(address player)
     external
+    virtual
     nonReentrant
     returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
 ```
@@ -504,6 +520,13 @@ function acceptFor(address player)
 function spinCost(address degenerate) public view returns (uint256);
 ```
 
+### _streaks
+
+
+```solidity
+function _streaks(address streakPlayer) internal virtual;
+```
+
 ### _spin
 
 Spin the slot machine.
@@ -514,7 +537,7 @@ If the player sends more value than they absolutely need to, the contract simply
 
 
 ```solidity
-function _spin(address spinPlayer, address streakPlayer, bool boost, uint256 value) internal;
+function _spin(address spinPlayer, address streakPlayer, bool boost, uint256 value) internal virtual;
 ```
 **Parameters**
 
@@ -593,6 +616,13 @@ function inspectOutcome(address degenerate)
     external
     view
     returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
+```
+
+### symbol
+
+
+```solidity
+function symbol() public view override returns (string memory);
 ```
 
 ### version

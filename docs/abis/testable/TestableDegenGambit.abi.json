@@ -523,6 +523,25 @@
   },
   {
     "type": "function",
+    "name": "hasPrize",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "toReceive",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "inspectEntropy",
     "inputs": [
       {
