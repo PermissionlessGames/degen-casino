@@ -19,12 +19,14 @@ contract TestableDegenGambitTest is Test {
 
     uint256 startingBalance = 1e21;
 
+    uint256 nativeRewardCommissionBasisPoints = 250;
+
     AccountSystem accountSystem;
     TestableDegenGambit erc20Contract;
 
     function setUp() public {
         vm.startPrank(deployer);
-        accountSystem = new AccountSystem();
+        accountSystem = new AccountSystem(nativeRewardCommissionBasisPoints);
         erc20Contract = new TestableDegenGambit(1, 1, 1);
         vm.stopPrank();
 
@@ -32,15 +34,21 @@ contract TestableDegenGambitTest is Test {
         vm.deal(player2, startingBalance);
     }
 
-    function test_AccountSystemCreated_event() public {
+    function test_deployment() public {
         vm.startPrank(deployer);
         vm.expectEmit();
         emit AccountSystem.AccountSystemCreated(
             AccountSystemVersion,
-            AccountVersion
+            AccountVersion,
+            nativeRewardCommissionBasisPoints
         );
-        new AccountSystem();
+        new AccountSystem(nativeRewardCommissionBasisPoints);
         vm.stopPrank();
+
+        vm.assertEq(
+            accountSystem.nativeRewardCommissionBasisPoints(),
+            nativeRewardCommissionBasisPoints
+        );
     }
 
     function test_account_creation() public {
@@ -57,7 +65,8 @@ contract TestableDegenGambitTest is Test {
         emit AccountSystem.AccountCreated(
             expectedAccountAddress,
             player1,
-            AccountVersion
+            AccountVersion,
+            nativeRewardCommissionBasisPoints
         );
         (address accountAddress, bool created) = accountSystem.createAccount(
             player1
@@ -70,6 +79,11 @@ contract TestableDegenGambitTest is Test {
 
         address actualPlayer = accountSystem.accounts(player1).player();
         vm.assertEq(actualPlayer, player1);
+
+        vm.assertEq(
+            accountSystem.accounts(player1).nativeRewardCommissionBasisPoints(),
+            accountSystem.nativeRewardCommissionBasisPoints()
+        );
     }
 
     function test_account_creation_is_idempotent() public {
@@ -115,7 +129,8 @@ contract TestableDegenGambitTest is Test {
         emit AccountSystem.AccountCreated(
             expectedAccountAddress,
             player1,
-            AccountVersion
+            AccountVersion,
+            nativeRewardCommissionBasisPoints
         );
         accountSystem.createAccount(player1);
 
