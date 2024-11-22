@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {IERC20} from "../lib/openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Test, console} from "../lib/forge-std/src/Test.sol";
-import {Account, AccountSystem, AccountVersion, AccountSystemVersion} from "../src/AccountSystem.sol";
+import {DegenCasinoAccount, AccountSystem, AccountVersion, AccountSystemVersion} from "../src/AccountSystem.sol";
 import {TestableDegenGambit} from "../src/testable/TestableDegenGambit.sol";
 
 contract TestableDegenGambitTest is Test {
@@ -17,14 +17,19 @@ contract TestableDegenGambitTest is Test {
     uint256 player2PrivateKey = 0x14471;
     address player2 = vm.addr(player2PrivateKey);
 
+    uint256 startingBalance = 1e21;
+
     AccountSystem accountSystem;
-    IERC20 erc20Contract;
+    TestableDegenGambit erc20Contract;
 
     function setUp() public {
         vm.startPrank(deployer);
         accountSystem = new AccountSystem();
         erc20Contract = new TestableDegenGambit(1, 1, 1);
         vm.stopPrank();
+
+        vm.deal(player1, startingBalance);
+        vm.deal(player2, startingBalance);
     }
 
     function test_AccountSystemCreated_event() public {
@@ -125,7 +130,121 @@ contract TestableDegenGambitTest is Test {
 
     function test_withdraw_native_token() public {
         vm.startPrank(player1);
-        accountSystem.createAccount(player1);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        uint256 initialPlayerBalance = player1.balance;
+
+        vm.assertEq(accountAddress.balance, 0);
+
+        uint256 depositAmount = startingBalance / 10;
+        uint256 withdrawalAmount = depositAmount / 2;
+
+        accountAddress.call{value: depositAmount}("");
+
+        vm.assertEq(accountAddress.balance, depositAmount);
+        vm.assertEq(player1.balance, initialPlayerBalance - depositAmount);
+
+        account.withdraw(address(0), withdrawalAmount);
+
+        vm.assertEq(accountAddress.balance, depositAmount - withdrawalAmount);
+        vm.assertEq(
+            player1.balance,
+            initialPlayerBalance - depositAmount + withdrawalAmount
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_withdraw_native_token_fails_as_nonplayer() public {
+        vm.startPrank(player2);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        vm.assertEq(accountAddress.balance, 0);
+
+        uint256 depositAmount = startingBalance / 10;
+        uint256 withdrawalAmount = depositAmount / 2;
+
+        accountAddress.call{value: depositAmount}("");
+
+        vm.assertEq(accountAddress.balance, depositAmount);
+
+        vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
+        account.withdraw(address(0), withdrawalAmount);
+
+        vm.assertEq(accountAddress.balance, depositAmount);
+
+        vm.stopPrank();
+    }
+
+    function test_withdraw_erc20_token() public {
+        vm.startPrank(player1);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        erc20Contract.mintGambit(player1, startingBalance);
+
+        uint256 initialPlayerBalance = erc20Contract.balanceOf(player1);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+
+        uint256 depositAmount = startingBalance / 10;
+        uint256 withdrawalAmount = depositAmount / 2;
+
+        erc20Contract.transfer(accountAddress, depositAmount);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(
+            erc20Contract.balanceOf(player1),
+            initialPlayerBalance - depositAmount
+        );
+
+        account.withdraw(address(erc20Contract), withdrawalAmount);
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            depositAmount - withdrawalAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player1),
+            initialPlayerBalance - depositAmount + withdrawalAmount
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_withdraw_erc20_token_fails_as_nonplayer() public {
+        vm.startPrank(player2);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        erc20Contract.mintGambit(player2, startingBalance);
+
+        uint256 initialPlayerBalance = erc20Contract.balanceOf(player2);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+
+        uint256 depositAmount = startingBalance / 10;
+        uint256 withdrawalAmount = depositAmount / 2;
+
+        erc20Contract.transfer(accountAddress, depositAmount);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(
+            erc20Contract.balanceOf(player2),
+            initialPlayerBalance - depositAmount
+        );
+
+        vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
+        account.withdraw(address(erc20Contract), withdrawalAmount);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(
+            erc20Contract.balanceOf(player2),
+            initialPlayerBalance - depositAmount
+        );
+
         vm.stopPrank();
     }
 }

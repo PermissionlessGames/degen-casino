@@ -7,24 +7,29 @@ import {SafeERC20} from "../lib/openzeppelin/contracts/token/ERC20/utils/SafeERC
 string constant AccountSystemVersion = "1";
 string constant AccountVersion = "1";
 
-/// @title Account
+/// @title DegenCasinoAccount
 /// @notice Player smart accounts for The Degen Casino.
-contract Account {
+contract DegenCasinoAccount {
     using SafeERC20 for IERC20;
 
     address public player;
     string public constant accountVersion = AccountVersion;
 
+    error Unauthorized();
+
     constructor(address _player) {
         player = _player;
     }
 
-    /// Used to deposit native tokens to the Account.
+    /// @notice Used to deposit native tokens to the DegenCasinoAccount.
     receive() external payable {}
 
-    /// Used to withdraw native tokens from the Account.
-    function withdraw(address tokenAddress, uint256 amount) public {
-        require(msg.sender == player, "Account.withdraw: unauthorized");
+    /// @notice Used to withdraw native tokens or ERC20 tokens from the DegenCasinoAccount.
+    function withdraw(address tokenAddress, uint256 amount) external {
+        if (msg.sender != player) {
+            revert Unauthorized();
+        }
+
         if (tokenAddress == address(0)) {
             // Native token case
             payable(player).call{value: amount}("");
@@ -39,7 +44,7 @@ contract Account {
 /// @notice Manages player accounts for The Degen Casino. Can be deployed permissionlessly. Any number of these contracts
 /// can be deployed to a chain. There can be multiple independent instances of this contract on a chain.
 contract AccountSystem {
-    mapping(address => Account) public accounts;
+    mapping(address => DegenCasinoAccount) public accounts;
     string public constant systemVersion = AccountSystemVersion;
     string public constant accountVersion = AccountVersion;
 
@@ -65,7 +70,10 @@ contract AccountSystem {
         address deployer = address(this);
         // Hash of the initCode, which is the contract bytecode together with the encoded constructor arguments.
         bytes32 initCodeHash = keccak256(
-            abi.encodePacked(type(Account).creationCode, abi.encode(player))
+            abi.encodePacked(
+                type(DegenCasinoAccount).creationCode,
+                abi.encode(player)
+            )
         );
 
         assembly {
@@ -99,9 +107,9 @@ contract AccountSystem {
             return (address(accounts[player]), false);
         }
 
-        Account account = new Account{salt: bytes32(abi.encode(player))}(
-            player
-        );
+        DegenCasinoAccount account = new DegenCasinoAccount{
+            salt: bytes32(abi.encode(player))
+        }(player);
         accounts[player] = account;
         emit AccountCreated(address(account), player, accountVersion);
 
