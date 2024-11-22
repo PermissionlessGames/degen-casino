@@ -1,18 +1,43 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {IERC20} from "../lib/openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "../lib/openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 string constant AccountSystemVersion = "1";
 string constant AccountVersion = "1";
 
+/// @title Account
+/// @notice Player smart accounts for The Degen Casino.
 contract Account {
+    using SafeERC20 for IERC20;
+
     address public player;
     string public constant accountVersion = AccountVersion;
 
     constructor(address _player) {
         player = _player;
     }
+
+    /// Used to deposit native tokens to the Account.
+    receive() external payable {}
+
+    /// Used to withdraw native tokens from the Account.
+    function withdraw(address tokenAddress, uint256 amount) public {
+        require(msg.sender == player, "Account.withdraw: unauthorized");
+        if (tokenAddress == address(0)) {
+            // Native token case
+            payable(player).call{value: amount}("");
+        } else {
+            // ERC20 token case
+            IERC20(tokenAddress).transfer(player, amount);
+        }
+    }
 }
 
+/// @title AccountSystem
+/// @notice Manages player accounts for The Degen Casino. Can be deployed permissionlessly. Any number of these contracts
+/// can be deployed to a chain. There can be multiple independent instances of this contract on a chain.
 contract AccountSystem {
     mapping(address => Account) public accounts;
     string public constant systemVersion = AccountSystemVersion;

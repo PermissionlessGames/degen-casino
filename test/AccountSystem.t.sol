@@ -55,5 +55,36 @@ contract TestableDegenGambitTest is Test {
 
         actualAccountAddress = address(accountSystem.accounts(player1));
         vm.assertEq(expectedAccountAddress, actualAccountAddress);
+
+        address actualPlayer = accountSystem.accounts(player1).player();
+        vm.assertEq(actualPlayer, player1);
+    }
+
+    function test_account_creation_is_permissionless() public {
+        address expectedAccountAddress = accountSystem.calculateAccountAddress(
+            player1
+        );
+
+        address actualAccountAddress = address(accountSystem.accounts(player1));
+        vm.assertEq(actualAccountAddress, address(0));
+
+        // Even player2 can create an account for player1.
+        vm.startPrank(player2);
+
+        vm.expectEmit(address(accountSystem));
+        emit AccountSystem.AccountCreated(
+            expectedAccountAddress,
+            player1,
+            AccountVersion
+        );
+        accountSystem.createAccount(player1);
+
+        vm.stopPrank();
+
+        actualAccountAddress = address(accountSystem.accounts(player1));
+        vm.assertEq(expectedAccountAddress, actualAccountAddress);
+
+        address actualPlayer = accountSystem.accounts(player1).player();
+        vm.assertEq(actualPlayer, player1);
     }
 }
