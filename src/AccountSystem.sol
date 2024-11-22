@@ -25,7 +25,7 @@ contract DegenCasinoAccount {
     receive() external payable {}
 
     /// @notice Used to withdraw native tokens or ERC20 tokens from the DegenCasinoAccount.
-    function withdraw(address tokenAddress, uint256 amount) external {
+    function withdraw(address tokenAddress, uint256 amount) public {
         if (msg.sender != player) {
             revert Unauthorized();
         }
@@ -36,6 +36,26 @@ contract DegenCasinoAccount {
         } else {
             // ERC20 token case
             IERC20(tokenAddress).transfer(player, amount);
+        }
+    }
+
+    /// @notice Used to drain native tokens or ERC20 tokens from the DegenCasinoAccount.
+    function drain(address tokenAddress) public {
+        if (msg.sender != player) {
+            revert Unauthorized();
+        }
+
+        uint256 amount;
+
+        if (tokenAddress == address(0)) {
+            amount = address(this).balance;
+            // Native token case
+            payable(player).call{value: amount}("");
+        } else {
+            IERC20 token = IERC20(tokenAddress);
+            amount = token.balanceOf(address(this));
+            // ERC20 token case
+            token.transfer(player, amount);
         }
     }
 }
