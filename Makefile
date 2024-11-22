@@ -30,7 +30,8 @@ test:
 	forge test -vvv
 
 clean:
-	rm -rf out/* bin/* docs/docgen/* bindings/*
+	forge clean
+	rm -rf bin/* docs/docgen/* bindings/*
 
 forge:
 	forge build

@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {ArbSys} from "./ArbSys.sol";
 import {ERC20} from "../lib/openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ReentrancyGuard} from "../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "../lib/openzeppelin/contracts/utils/Strings.sol";
 
 /// @title DegenGambit
 /// @notice This is the game contract for Degen's Gambit, a permissionless slot machine game.
