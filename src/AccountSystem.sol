@@ -90,15 +90,21 @@ contract AccountSystem {
         }
     }
 
-    function createAccount(address player) public {
-        require(
-            address(accounts[player]) == address(0),
-            "CasinoAcountSystem.createAccount: account already exists"
-        );
+    /// @notice Creates an account for the given player assuming that one doesn't already exist.
+    /// @param player The player for whom the account is being created.
+    /// @return account The address of the created account.
+    /// @return created A boolean indicating whether the account was created (true) or whether it already existed (false).
+    function createAccount(address player) public returns (address, bool) {
+        if (address(accounts[player]) != address(0)) {
+            return (address(accounts[player]), false);
+        }
+
         Account account = new Account{salt: bytes32(abi.encode(player))}(
             player
         );
         accounts[player] = account;
         emit AccountCreated(address(account), player, accountVersion);
+
+        return (address(account), true);
     }
 }
