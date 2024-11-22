@@ -19,14 +19,14 @@ contract TestableDegenGambitTest is Test {
 
     uint256 startingBalance = 1e21;
 
-    uint256 nativeRewardCommissionBasisPoints = 250;
+    uint256 rewardCommissionBasisPoints = 250;
 
     AccountSystem accountSystem;
     TestableDegenGambit erc20Contract;
 
     function setUp() public {
         vm.startPrank(deployer);
-        accountSystem = new AccountSystem(nativeRewardCommissionBasisPoints);
+        accountSystem = new AccountSystem(rewardCommissionBasisPoints);
         erc20Contract = new TestableDegenGambit(1, 1, 1);
         vm.stopPrank();
 
@@ -40,14 +40,14 @@ contract TestableDegenGambitTest is Test {
         emit AccountSystem.AccountSystemCreated(
             AccountSystemVersion,
             AccountVersion,
-            nativeRewardCommissionBasisPoints
+            rewardCommissionBasisPoints
         );
-        new AccountSystem(nativeRewardCommissionBasisPoints);
+        new AccountSystem(rewardCommissionBasisPoints);
         vm.stopPrank();
 
         vm.assertEq(
-            accountSystem.nativeRewardCommissionBasisPoints(),
-            nativeRewardCommissionBasisPoints
+            accountSystem.rewardCommissionBasisPoints(),
+            rewardCommissionBasisPoints
         );
     }
 
@@ -66,7 +66,7 @@ contract TestableDegenGambitTest is Test {
             expectedAccountAddress,
             player1,
             AccountVersion,
-            nativeRewardCommissionBasisPoints
+            rewardCommissionBasisPoints
         );
         (address accountAddress, bool created) = accountSystem.createAccount(
             player1
@@ -81,8 +81,8 @@ contract TestableDegenGambitTest is Test {
         vm.assertEq(actualPlayer, player1);
 
         vm.assertEq(
-            accountSystem.accounts(player1).nativeRewardCommissionBasisPoints(),
-            accountSystem.nativeRewardCommissionBasisPoints()
+            accountSystem.accounts(player1).rewardCommissionBasisPoints(),
+            accountSystem.rewardCommissionBasisPoints()
         );
     }
 
@@ -130,7 +130,7 @@ contract TestableDegenGambitTest is Test {
             expectedAccountAddress,
             player1,
             AccountVersion,
-            nativeRewardCommissionBasisPoints
+            rewardCommissionBasisPoints
         );
         accountSystem.createAccount(player1);
 
