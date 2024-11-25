@@ -14,13 +14,11 @@ contract DegenCasinoAccount {
 
     address public player;
     string public constant accountVersion = AccountVersion;
-    uint256 public rewardCommissionBasisPoints;
 
     error Unauthorized();
 
-    constructor(address _player, uint256 _rewardCommissionBasisPoints) {
+    constructor(address _player) {
         player = _player;
-        rewardCommissionBasisPoints = _rewardCommissionBasisPoints;
     }
 
     /// @notice Used to deposit native tokens to the DegenCasinoAccount.
@@ -69,27 +67,19 @@ contract AccountSystem {
     mapping(address => DegenCasinoAccount) public accounts;
     string public constant systemVersion = AccountSystemVersion;
     string public constant accountVersion = AccountVersion;
-    uint256 public rewardCommissionBasisPoints;
 
     event AccountSystemCreated(
         string indexed systemVersion,
-        string indexed accountVersion,
-        uint256 rewardCommissionBasisPoints
+        string indexed accountVersion
     );
     event AccountCreated(
         address account,
         address indexed player,
-        string indexed accountVersion,
-        uint256 rewardCommissionBasisPoints
+        string indexed accountVersion
     );
 
-    constructor(uint256 _rewardCommissionBasisPoints) {
-        rewardCommissionBasisPoints = _rewardCommissionBasisPoints;
-        emit AccountSystemCreated(
-            systemVersion,
-            accountVersion,
-            rewardCommissionBasisPoints
-        );
+    constructor() {
+        emit AccountSystemCreated(systemVersion, accountVersion);
     }
 
     // Modeled off of computeAddress from OpenZeppelin's Create2 contract: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/d6c7cee32191850d3635222826985f46996e64fd/contracts/utils/Create2.sol
@@ -102,7 +92,7 @@ contract AccountSystem {
         bytes32 initCodeHash = keccak256(
             abi.encodePacked(
                 type(DegenCasinoAccount).creationCode,
-                abi.encode(player, rewardCommissionBasisPoints)
+                abi.encode(player)
             )
         );
 
@@ -139,14 +129,9 @@ contract AccountSystem {
 
         DegenCasinoAccount account = new DegenCasinoAccount{
             salt: bytes32(abi.encode(player))
-        }(player, rewardCommissionBasisPoints);
+        }(player);
         accounts[player] = account;
-        emit AccountCreated(
-            address(account),
-            player,
-            accountVersion,
-            rewardCommissionBasisPoints
-        );
+        emit AccountCreated(address(account), player, accountVersion);
 
         return (address(account), true);
     }

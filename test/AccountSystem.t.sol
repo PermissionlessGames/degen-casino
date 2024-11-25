@@ -19,14 +19,12 @@ contract TestableDegenGambitTest is Test {
 
     uint256 startingBalance = 1e21;
 
-    uint256 rewardCommissionBasisPoints = 250;
-
     AccountSystem accountSystem;
     TestableDegenGambit erc20Contract;
 
     function setUp() public {
         vm.startPrank(deployer);
-        accountSystem = new AccountSystem(rewardCommissionBasisPoints);
+        accountSystem = new AccountSystem();
         erc20Contract = new TestableDegenGambit(1, 1, 1);
         vm.stopPrank();
 
@@ -39,16 +37,10 @@ contract TestableDegenGambitTest is Test {
         vm.expectEmit();
         emit AccountSystem.AccountSystemCreated(
             AccountSystemVersion,
-            AccountVersion,
-            rewardCommissionBasisPoints
+            AccountVersion
         );
-        new AccountSystem(rewardCommissionBasisPoints);
+        new AccountSystem();
         vm.stopPrank();
-
-        vm.assertEq(
-            accountSystem.rewardCommissionBasisPoints(),
-            rewardCommissionBasisPoints
-        );
     }
 
     function test_account_creation() public {
@@ -65,8 +57,7 @@ contract TestableDegenGambitTest is Test {
         emit AccountSystem.AccountCreated(
             expectedAccountAddress,
             player1,
-            AccountVersion,
-            rewardCommissionBasisPoints
+            AccountVersion
         );
         (address accountAddress, bool created) = accountSystem.createAccount(
             player1
@@ -79,11 +70,6 @@ contract TestableDegenGambitTest is Test {
 
         address actualPlayer = accountSystem.accounts(player1).player();
         vm.assertEq(actualPlayer, player1);
-
-        vm.assertEq(
-            accountSystem.accounts(player1).rewardCommissionBasisPoints(),
-            accountSystem.rewardCommissionBasisPoints()
-        );
     }
 
     function test_account_creation_is_idempotent() public {
@@ -129,8 +115,7 @@ contract TestableDegenGambitTest is Test {
         emit AccountSystem.AccountCreated(
             expectedAccountAddress,
             player1,
-            AccountVersion,
-            rewardCommissionBasisPoints
+            AccountVersion
         );
         accountSystem.createAccount(player1);
 
