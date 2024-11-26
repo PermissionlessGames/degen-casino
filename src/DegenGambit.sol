@@ -208,6 +208,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     error InsufficientValue();
     /// Signifies that a reel outcome is out of bounds.
     error OutcomeOutOfBounds();
+    // Signifies that Prize transfer has failed
+    error FailedPrizeTransfer();
 
     function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
         return
@@ -656,7 +658,10 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         bool nativeToken
     ) internal virtual {
         if (nativeToken) {
-            payable(player).transfer(prize);
+            (bool success, ) = payable(player).call{value: prize}("");
+            if (!success) {
+                revert FailedPrizeTransfer();
+            }
         } else {
             _mint(player, prize);
         }
@@ -758,25 +763,27 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     //Calculates Gambit for playing streaks
     function _streaks(address streakPlayer) internal virtual {
         uint256 currentDay = block.timestamp / SECONDS_PER_DAY;
+        if (LastStreakDay[streakPlayer] < currentDay - 1) {
+            delete CurrentDailyStreakLength[streakPlayer];
+        }
         if (LastStreakDay[streakPlayer] + 1 == currentDay) {
             _mint(streakPlayer, DailyStreakReward);
             CurrentDailyStreakLength[streakPlayer] += 1;
             emit DailyStreak(streakPlayer, currentDay);
         }
-        if (LastStreakDay[streakPlayer] < currentDay - 1) {
-            CurrentDailyStreakLength[streakPlayer] = 0;
-        }
+
         LastStreakDay[streakPlayer] = currentDay;
 
         uint256 currentWeek = currentDay / 7;
+        if (LastStreakWeek[streakPlayer] < currentWeek - 1) {
+            delete CurrentWeeklyStreakLength[streakPlayer];
+        }
         if (LastStreakWeek[streakPlayer] + 1 == currentWeek) {
             _mint(streakPlayer, WeeklyStreakReward);
             CurrentWeeklyStreakLength[streakPlayer] += 1;
             emit WeeklyStreak(streakPlayer, currentWeek);
         }
-        if (LastStreakWeek[streakPlayer] < currentWeek - 1) {
-            CurrentWeeklyStreakLength[streakPlayer] = 0;
-        }
+
         LastStreakWeek[streakPlayer] = currentWeek;
     }
 

@@ -1154,6 +1154,11 @@
   },
   {
     "type": "error",
+    "name": "FailedPrizeTransfer",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InsufficientValue",
     "inputs": []
   },

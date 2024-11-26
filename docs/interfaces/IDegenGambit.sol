@@ -116,6 +116,7 @@ interface IDegenGambit {
 	error ERC20InvalidReceiver(address receiver);
 	error ERC20InvalidSender(address sender);
 	error ERC20InvalidSpender(address spender);
+	error FailedPrizeTransfer();
 	error InsufficientValue();
 	error OutcomeOutOfBounds();
 	error ReentrancyGuardReentrantCall();

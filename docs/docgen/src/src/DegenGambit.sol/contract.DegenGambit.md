@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cfcf5ab295cce6baafb26b8bc991d794369803ff/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/73dfcdd1ddd071376cdbecf0ea28b669c067bbd1/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -721,5 +721,11 @@ Signifies that a reel outcome is out of bounds.
 
 ```solidity
 error OutcomeOutOfBounds();
+```
+
+### FailedPrizeTransfer
+
+```solidity
+error FailedPrizeTransfer();
 ```
 
