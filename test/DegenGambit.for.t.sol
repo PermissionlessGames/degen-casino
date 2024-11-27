@@ -204,13 +204,13 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        (uint256 expectedPayout, bool nativeToken) = degenGambit.payout(
+        (uint256 expectedPayout, uint256 typeOfPrize) = degenGambit.payout(
             2,
             2,
             2
         );
         assertEq(expectedPayout, 50 * costToSpin);
-        assertEq(nativeToken, true);
+        assertEq(typeOfPrize, 1);
 
         vm.roll(block.number + 1);
 

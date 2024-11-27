@@ -116,6 +116,19 @@
   },
   {
     "type": "function",
+    "name": "GambitPrize",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "ImprovedCenterReel",
     "inputs": [
       {
@@ -544,9 +557,9 @@
         "internalType": "uint256"
       },
       {
-        "name": "nativeToken",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "typeOfPrize",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -630,9 +643,9 @@
         "internalType": "uint256"
       },
       {
-        "name": "nativeToken",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "typeOfPrize",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -649,8 +662,8 @@
       },
       {
         "name": "typeOfPrize",
-        "type": "string[6]",
-        "internalType": "string[6]"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"

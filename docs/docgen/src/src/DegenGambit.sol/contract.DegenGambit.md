@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/73dfcdd1ddd071376cdbecf0ea28b669c067bbd1/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/c6340c8afa6cd9034f6c21c162d0424569cf49d1/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -33,7 +33,7 @@ The GAMBIT reward for daily streaks.
 
 
 ```solidity
-uint256 public constant DailyStreakReward = 1;
+uint256 public constant DailyStreakReward = 1e18;
 ```
 
 
@@ -42,7 +42,16 @@ The GAMBIT reward for weekly streaks.
 
 
 ```solidity
-uint256 public constant WeeklyStreakReward = 5;
+uint256 public constant WeeklyStreakReward = 5e18;
+```
+
+
+### GambitPrize
+The Gambit Prize for case 1
+
+
+```solidity
+uint256 public constant GambitPrize = 1e18;
 ```
 
 
@@ -456,21 +465,21 @@ function payout(uint256 left, uint256 center, uint256 right)
     public
     view
     virtual
-    returns (uint256 result, bool nativeToken);
+    returns (uint256 result, uint256 typeOfPrize);
 ```
 
 ### prizes
 
 
 ```solidity
-function prizes() external view virtual returns (uint256[6] memory prizesAmount, string[6] memory typeOfPrize);
+function prizes() external view virtual returns (uint256[6] memory prizesAmount, uint256 typeOfPrize);
 ```
 
 ### _transferPrize
 
 
 ```solidity
-function _transferPrize(uint256 prize, address player, bool nativeToken) internal virtual;
+function _transferPrize(uint256 prize, address player, uint256 typeOfPrize) internal virtual;
 ```
 
 ### hasPrize
@@ -637,7 +646,7 @@ convenient and natural way to simulate the outcome of a spin, which also works o
 function inspectOutcome(address degenerate)
     external
     view
-    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize, bool nativeToken);
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize, uint256 typeOfPrize);
 ```
 
 ### symbol

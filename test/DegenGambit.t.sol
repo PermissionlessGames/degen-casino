@@ -214,13 +214,13 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        (uint256 expectedPayout, bool nativeToken) = degenGambit.payout(
+        (uint256 expectedPayout, uint256 typeOfPrize) = degenGambit.payout(
             2,
             2,
             2
         );
         assertEq(expectedPayout, 50 * costToSpin);
-        assertEq(nativeToken, true);
+        assertEq(typeOfPrize, 1);
 
         vm.roll(block.number + 1);
 
@@ -274,13 +274,13 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        (uint256 expectedPayout, bool nativeToken) = degenGambit.payout(
+        (uint256 expectedPayout, uint256 typeOfPrize) = degenGambit.payout(
             2,
             2,
             2
         );
         assertEq(expectedPayout, address(degenGambit).balance >> 6);
-        assertEq(nativeToken, true);
+        assertEq(typeOfPrize, 1);
 
         vm.roll(block.number + 1);
 
@@ -342,10 +342,10 @@ contract DegenGambitTest is Test {
 
         uint256 expectedPayout;
         {
-            bool nativeToken;
-            (expectedPayout, nativeToken) = degenGambit.payout(2, 3, 2);
+            uint256 typeOfPrize;
+            (expectedPayout, typeOfPrize) = degenGambit.payout(2, 3, 2);
             assertEq(expectedPayout, 1);
-            assertEq(nativeToken, false);
+            assertEq(typeOfPrize, 20);
         }
         assertEq(degenGambit.LastSpinBoosted(player1), false);
 
@@ -414,10 +414,10 @@ contract DegenGambitTest is Test {
         playerBalanceBefore = player1.balance;
         uint256 expectedPayout;
         {
-            bool nativeToken;
-            (expectedPayout, nativeToken) = degenGambit.payout(17, 17, 17);
+            uint256 typeOfPrize;
+            (expectedPayout, typeOfPrize) = degenGambit.payout(17, 17, 17);
             assertEq(expectedPayout, gameBalanceBefore >> 1);
-            assertEq(nativeToken, true);
+            assertEq(typeOfPrize, 1);
         }
         assertEq(degenGambit.LastSpinBoosted(player1), true);
 
@@ -1090,5 +1090,36 @@ contract DegenGambitTest is Test {
         internal_streak_length(7);
         assertEq(degenGambit.CurrentWeeklyStreakLength(player1), 0);
         assertEq(degenGambit.CurrentDailyStreakLength(player1), 6);
+    }
+
+    function test_streak_weekly_length_seven_weeks() public {
+        vm.startPrank(player1);
+        vm.deal(player1, 49 * costToSpin);
+        internal_streak_length(49);
+        assertEq(degenGambit.CurrentWeeklyStreakLength(player1), 6);
+        assertEq(degenGambit.CurrentDailyStreakLength(player1), 48);
+    }
+
+    function test_daily_weekly_streak_length_reset() public {
+        vm.startPrank(player1);
+
+        uint256 initialDaily = degenGambit.CurrentDailyStreakLength(player1);
+        uint256 initialWeekly = degenGambit.CurrentWeeklyStreakLength(player1);
+        degenGambit.setDailyStreakLength(10, player1);
+        degenGambit.setWeeklyStreakLength(10, player1);
+
+        assertEq(
+            degenGambit.CurrentDailyStreakLength(player1),
+            initialDaily + 10
+        );
+        assertEq(
+            degenGambit.CurrentWeeklyStreakLength(player1),
+            initialWeekly + 10
+        );
+
+        degenGambit.spin{value: costToSpin}(false);
+
+        assertEq(degenGambit.CurrentDailyStreakLength(player1), 0);
+        assertEq(degenGambit.CurrentWeeklyStreakLength(player1), 0);
     }
 }

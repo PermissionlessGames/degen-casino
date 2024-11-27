@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/73dfcdd1ddd071376cdbecf0ea28b669c067bbd1/src/testable/TestableDegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/c6340c8afa6cd9034f6c21c162d0424569cf49d1/src/testable/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
@@ -64,11 +64,25 @@ function mintGambit(address to, uint256 amount) public;
 function setDailyStreak(uint256 dailyStreak, address player) public;
 ```
 
+### setDailyStreakLength
+
+
+```solidity
+function setDailyStreakLength(uint256 dailyStreakLength, address player) public;
+```
+
 ### setWeeklyStreak
 
 
 ```solidity
 function setWeeklyStreak(uint256 weeklyStreak, address player) public;
+```
+
+### setWeeklyStreakLength
+
+
+```solidity
+function setWeeklyStreakLength(uint256 weeklyStreakLength, address player) public;
 ```
 
 ### version

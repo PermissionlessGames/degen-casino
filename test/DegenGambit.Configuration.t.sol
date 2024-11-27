@@ -28,7 +28,7 @@ contract DegenGambitConfigurationTest is Test {
 
     function test_ERC20Metadata() public view {
         assertEq(degenGambit.name(), "Degen's Gambit");
-        assertEq(degenGambit.decimals(), 0);
+        assertEq(degenGambit.decimals(), 18);
         // Call the symbol function
         string memory symbol = degenGambit.symbol();
 
