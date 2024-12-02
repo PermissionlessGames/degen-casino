@@ -65,6 +65,44 @@
   },
   {
     "type": "function",
+    "name": "CurrentDailyStreakLength",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "CurrentWeeklyStreakLength",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "DailyStreakReward",
     "inputs": [],
     "outputs": [
@@ -104,6 +142,19 @@
         "name": "",
         "type": "bool",
         "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "GambitPrize",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -594,6 +645,11 @@
         "name": "prize",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "typeOfPrize",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -693,6 +749,11 @@
         "name": "result",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "typeOfPrize",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -704,8 +765,13 @@
     "outputs": [
       {
         "name": "prizesAmount",
-        "type": "uint256[5]",
-        "internalType": "uint256[5]"
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "typeOfPrize",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "stateMutability": "view"
@@ -883,6 +949,24 @@
   },
   {
     "type": "function",
+    "name": "setDailyStreakLength",
+    "inputs": [
+      {
+        "name": "dailyStreakLength",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setEntropy",
     "inputs": [
       {
@@ -993,6 +1077,24 @@
     "inputs": [
       {
         "name": "weeklyStreak",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setWeeklyStreakLength",
+    "inputs": [
+      {
+        "name": "weeklyStreakLength",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -1387,6 +1489,11 @@
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "FailedPrizeTransfer",
+    "inputs": []
   },
   {
     "type": "error",

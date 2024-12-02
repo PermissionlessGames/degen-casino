@@ -33,7 +33,7 @@ The GAMBIT reward for daily streaks.
 
 
 ```solidity
-uint256 public constant DailyStreakReward = 1;
+uint256 public constant DailyStreakReward = 1e18;
 ```
 
 
@@ -42,7 +42,16 @@ The GAMBIT reward for weekly streaks.
 
 
 ```solidity
-uint256 public constant WeeklyStreakReward = 5;
+uint256 public constant WeeklyStreakReward = 5e18;
+```
+
+
+### GambitPrize
+The Gambit Prize for case 1
+
+
+```solidity
+uint256 public constant GambitPrize = 1e18;
 ```
 
 
@@ -274,12 +283,30 @@ mapping(address => uint256) public LastStreakDay;
 ```
 
 
+### CurrentDailyStreakLength
+The length of the current daily streak the made by a given player. This is for daily streak length.
+
+
+```solidity
+mapping(address => uint256) public CurrentDailyStreakLength;
+```
+
+
 ### LastStreakWeek
 Week on which the last in-streak spin was made by a given player. This is for weekly streaks.
 
 
 ```solidity
 mapping(address => uint256) public LastStreakWeek;
+```
+
+
+### CurrentWeeklyStreakLength
+The length of the current weekly streak the made by a given player. This is for weekly streak length.
+
+
+```solidity
+mapping(address => uint256) public CurrentWeeklyStreakLength;
 ```
 
 
@@ -434,21 +461,25 @@ Payout function for symbol combinations.
 
 
 ```solidity
-function payout(uint256 left, uint256 center, uint256 right) public view virtual returns (uint256 result);
+function payout(uint256 left, uint256 center, uint256 right)
+    public
+    view
+    virtual
+    returns (uint256 result, uint256 typeOfPrize);
 ```
 
 ### prizes
 
 
 ```solidity
-function prizes() external view virtual returns (uint256[5] memory prizesAmount);
+function prizes() external view virtual returns (uint256[] memory prizesAmount, uint256[] memory typeOfPrize);
 ```
 
 ### _transferPrize
 
 
 ```solidity
-function _transferPrize(uint256 prize, address player) internal virtual;
+function _transferPrize(uint256 prize, address player, uint256 typeOfPrize) internal virtual;
 ```
 
 ### hasPrize
@@ -615,7 +646,7 @@ convenient and natural way to simulate the outcome of a spin, which also works o
 function inspectOutcome(address degenerate)
     external
     view
-    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize);
+    returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize, uint256 typeOfPrize);
 ```
 
 ### symbol
@@ -699,5 +730,11 @@ Signifies that a reel outcome is out of bounds.
 
 ```solidity
 error OutcomeOutOfBounds();
+```
+
+### FailedPrizeTransfer
+
+```solidity
+error FailedPrizeTransfer();
 ```
 

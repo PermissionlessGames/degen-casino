@@ -37,8 +37,22 @@ contract TestableDegenGambit is DegenGambit {
         LastStreakDay[player] = dailyStreak;
     }
 
+    function setDailyStreakLength(
+        uint256 dailyStreakLength,
+        address player
+    ) public {
+        CurrentDailyStreakLength[player] = dailyStreakLength;
+    }
+
     function setWeeklyStreak(uint256 weeklyStreak, address player) public {
         LastStreakWeek[player] = weeklyStreak;
+    }
+
+    function setWeeklyStreakLength(
+        uint256 weeklyStreakLength,
+        address player
+    ) public {
+        CurrentWeeklyStreakLength[player] = weeklyStreakLength;
     }
 
     function version() external pure override returns (string memory) {

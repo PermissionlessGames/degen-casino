@@ -49,7 +49,7 @@ contract DegenGambitTest is Test {
         vm.deal(address(degenGambit), costToSpin << 30);
         vm.deal(player1, 10 * costToSpin);
         vm.deal(player2, 10 * costToSpin);
-
+        vm.warp(100 days);
         ArbSysMock arbSys = new ArbSysMock();
         vm.etch(address(100), address(arbSys).code);
     }
@@ -204,8 +204,13 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        uint256 expectedPayout = degenGambit.payout(2, 2, 2);
+        (uint256 expectedPayout, uint256 typeOfPrize) = degenGambit.payout(
+            2,
+            2,
+            2
+        );
         assertEq(expectedPayout, 50 * costToSpin);
+        assertEq(typeOfPrize, 1);
 
         vm.roll(block.number + 1);
 
