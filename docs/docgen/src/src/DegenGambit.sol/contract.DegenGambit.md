@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/c6340c8afa6cd9034f6c21c162d0424569cf49d1/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/4fb4301206419a98f69f367fc3f01d889a031b63/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -472,7 +472,7 @@ function payout(uint256 left, uint256 center, uint256 right)
 
 
 ```solidity
-function prizes() external view virtual returns (uint256[6] memory prizesAmount, uint256 typeOfPrize);
+function prizes() external view virtual returns (uint256[] memory prizesAmount, uint256[] memory typeOfPrize);
 ```
 
 ### _transferPrize

@@ -765,13 +765,13 @@
     "outputs": [
       {
         "name": "prizesAmount",
-        "type": "uint256[6]",
-        "internalType": "uint256[6]"
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       },
       {
         "name": "typeOfPrize",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "stateMutability": "view"

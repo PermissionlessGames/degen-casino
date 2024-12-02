@@ -344,7 +344,7 @@ contract DegenGambitTest is Test {
         {
             uint256 typeOfPrize;
             (expectedPayout, typeOfPrize) = degenGambit.payout(2, 3, 2);
-            assertEq(expectedPayout, 1);
+            assertEq(expectedPayout, degenGambit.GambitPrize());
             assertEq(typeOfPrize, 20);
         }
         assertEq(degenGambit.LastSpinBoosted(player1), false);
@@ -366,8 +366,14 @@ contract DegenGambitTest is Test {
         assertEq(remainingEntropy, 0);
         assertEq(prize, expectedPayout);
         assertEq(address(degenGambit).balance, gameBalanceBefore + costToSpin);
-        assertEq(gambitSupplyFinal, gambitSupplyBefore + 1);
-        assertEq(playerGambitBalanceFinal, playerGambitBalanceBefore + 1);
+        assertEq(
+            gambitSupplyFinal,
+            gambitSupplyBefore + degenGambit.GambitPrize()
+        );
+        assertEq(
+            playerGambitBalanceFinal,
+            playerGambitBalanceBefore + degenGambit.GambitPrize()
+        );
 
         assertEq(degenGambit.LastSpinBoosted(player1), false);
     }
@@ -989,59 +995,79 @@ contract DegenGambitTest is Test {
     function test_prizes_and_payout_match() public {
         vm.expectRevert(DegenGambit.OutcomeOutOfBounds.selector);
         degenGambit.payout(19, 19, 19);
-
-        (uint256[6] memory prizes, ) = degenGambit.prizes();
-
-        (uint256 payout, ) = degenGambit.payout(0, 0, 0);
+        console.log("Hello 1");
+        (uint256[] memory prizes, uint256[] memory typeOfPrize) = degenGambit
+            .prizes();
+        console.log("Hello 2");
+        //No Payout
+        (uint256 payout, uint256 prizeType) = degenGambit.payout(0, 0, 0);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(0, 1, 2);
+        (payout, prizeType) = degenGambit.payout(0, 1, 2);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(1, 2, 3);
+        (payout, prizeType) = degenGambit.payout(1, 2, 3);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(0, 16, 0);
+        (payout, prizeType) = degenGambit.payout(0, 16, 0);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(1, 16, 2);
+        (payout, prizeType) = degenGambit.payout(1, 16, 2);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(16, 2, 16);
+        (payout, prizeType) = degenGambit.payout(16, 2, 16);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(16, 16, 17);
+        (payout, prizeType) = degenGambit.payout(16, 16, 17);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(16, 16, 6);
+        (payout, prizeType) = degenGambit.payout(16, 16, 6);
         assertEq(0, payout);
+        assertEq(0, prizeType);
 
-        (payout, ) = degenGambit.payout(1, 6, 1);
+        //Prizes
+        (payout, prizeType) = degenGambit.payout(1, 6, 1);
         assertEq(prizes[0], payout);
+        assertEq(typeOfPrize[0], prizeType);
 
-        (payout, ) = degenGambit.payout(15, 1, 15);
+        (payout, prizeType) = degenGambit.payout(15, 1, 15);
         assertEq(prizes[0], payout);
+        assertEq(typeOfPrize[0], prizeType);
 
-        (payout, ) = degenGambit.payout(1, 1, 1);
+        (payout, prizeType) = degenGambit.payout(1, 1, 1);
         assertEq(prizes[1], payout);
+        assertEq(typeOfPrize[1], prizeType);
 
-        (payout, ) = degenGambit.payout(15, 15, 15);
+        (payout, prizeType) = degenGambit.payout(15, 15, 15);
         assertEq(prizes[1], payout);
+        assertEq(typeOfPrize[1], prizeType);
 
         (payout, ) = degenGambit.payout(1, 16, 1);
         assertEq(prizes[2], payout);
+        assertEq(typeOfPrize[2], prizeType);
 
-        (payout, ) = degenGambit.payout(15, 16, 15);
+        (payout, prizeType) = degenGambit.payout(15, 16, 15);
         assertEq(prizes[2], payout);
+        assertEq(typeOfPrize[2], prizeType);
 
-        (payout, ) = degenGambit.payout(17, 16, 18);
+        (payout, prizeType) = degenGambit.payout(17, 16, 18);
         assertEq(prizes[3], payout);
+        assertEq(typeOfPrize[3], prizeType);
 
-        (payout, ) = degenGambit.payout(16, 17, 16);
+        (payout, prizeType) = degenGambit.payout(16, 17, 16);
         assertEq(prizes[4], payout);
+        assertEq(typeOfPrize[4], prizeType);
 
-        (payout, ) = degenGambit.payout(16, 16, 16);
+        (payout, prizeType) = degenGambit.payout(16, 16, 16);
         assertEq(prizes[5], payout);
+        assertEq(typeOfPrize[5], prizeType);
     }
 
     function test_streak_count_fail_under_one_week() public {

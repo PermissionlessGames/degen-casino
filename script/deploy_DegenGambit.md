@@ -28,6 +28,6 @@ forge verify-contract \
   --rpc-url https://testnet-rpc.game7.io \
   --verifier blockscout \
   --verifier-url 'https://testnet.game7.io/api/' \
-  0x5C462aBedc9d33C78d07650C5Da041e247DD1348 \
+  0xCE75cd656b2C4114aD9fb3c82E188658E6fc6a4C \
   src/DegenGambit.sol:DegenGambit 
 ```

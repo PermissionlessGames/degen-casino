@@ -588,7 +588,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         if (left != 0 && right != 0 && center != 0) {
             if (left == right && left != center && left <= 15 && center <= 15) {
                 // Minor symbol pair on outside reels with different minor symbol in the center. Case 1
-                result = 1;
+                result = GambitPrize;
                 typeOfPrize = 20;
             } else if (left == right && left == center && left <= 15) {
                 // 3 of a kind with a minor symbol. Case 2
@@ -634,24 +634,26 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         external
         view
         virtual
-        returns (uint256[6] memory prizesAmount, uint256 typeOfPrize)
+        returns (uint256[] memory prizesAmount, uint256[] memory typeOfPrize)
     {
-        prizesAmount[0] = 1;
-        typeOfPrize = 20;
+        prizesAmount = new uint256[](6);
+        typeOfPrize = new uint256[](6);
+        prizesAmount[0] = GambitPrize;
+        typeOfPrize[0] = 20;
         prizesAmount[1] = 50 * CostToSpin < address(this).balance >> 6
             ? 50 * CostToSpin
             : address(this).balance >> 6;
-        typeOfPrize = 1;
+        typeOfPrize[1] = 1;
         prizesAmount[2] = 100 * CostToSpin < address(this).balance >> 4
             ? 100 * CostToSpin
             : address(this).balance >> 4;
-        typeOfPrize = 1;
+        typeOfPrize[2] = 1;
         prizesAmount[3] = address(this).balance >> 3;
-        typeOfPrize = 1;
+        typeOfPrize[3] = 1;
         prizesAmount[4] = address(this).balance >> 3;
-        typeOfPrize = 1;
+        typeOfPrize[4] = 1;
         prizesAmount[5] = address(this).balance >> 1;
-        typeOfPrize = 1;
+        typeOfPrize[5] = 1;
     }
 
     //This is the function that handles the payout for the prizes
