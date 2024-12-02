@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {ArbSys} from "../src/ArbSys.sol";
-import {TestableDegenGambit} from "../src/testable/TestableDegenGambit.sol";
+import {DevDegenGambit} from "../src/dev/DevDegenGambit.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
 
 contract ArbSysMock is ArbSys {
@@ -16,11 +16,11 @@ contract ArbSysMock is ArbSys {
     }
 }
 
-contract TestableDegenGambitTest is Test {
+contract DevDegenGambitTest is Test {
     uint256 private constant SECONDS_PER_DAY = 60 * 60 * 24;
     uint256 private constant SECONDS_PER_WEEK = 60 * 60 * 24 * 7;
 
-    TestableDegenGambit public testableDegenGambit;
+    DevDegenGambit public devDegenGambit;
 
     uint256 blocksToAct = 20;
     uint256 costToSpin = 0.1 ether;
@@ -33,13 +33,13 @@ contract TestableDegenGambitTest is Test {
     address player2 = vm.addr(player2PrivateKey);
 
     function setUp() public {
-        testableDegenGambit = new TestableDegenGambit(
+        devDegenGambit = new DevDegenGambit(
             blocksToAct,
             costToSpin,
             costToRespin
         );
 
-        vm.deal(address(testableDegenGambit), costToSpin << 30);
+        vm.deal(address(devDegenGambit), costToSpin << 30);
         vm.deal(player1, 10 * costToSpin);
         vm.deal(player2, 10 * costToSpin);
 
@@ -48,15 +48,15 @@ contract TestableDegenGambitTest is Test {
     }
 
     function test_version() public view {
-        string memory version = testableDegenGambit.version();
-        assertEq(version, "1 - debuggable");
+        string memory version = devDegenGambit.version();
+        assertEq(version, "1 - dev");
     }
 
     function test_entropy_generation_value() public {
         vm.startPrank(player1);
 
-        uint256 initialEntropy = testableDegenGambit.EntropyForPlayer(player1);
-        uint256 setEntropy = testableDegenGambit.setEntropyFromOutcomes(
+        uint256 initialEntropy = devDegenGambit.EntropyForPlayer(player1);
+        uint256 setEntropy = devDegenGambit.setEntropyFromOutcomes(
             12,
             12,
             12,
@@ -74,14 +74,14 @@ contract TestableDegenGambitTest is Test {
         uint256 right,
         bool boosted
     ) internal {
-        uint256 entropy = testableDegenGambit.setEntropyFromOutcomes(
+        uint256 entropy = devDegenGambit.setEntropyFromOutcomes(
             left,
             center,
             right,
             player1,
             boosted
         );
-        (uint256 oLeft, uint256 oCenter, uint256 oRight, ) = testableDegenGambit
+        (uint256 oLeft, uint256 oCenter, uint256 oRight, ) = devDegenGambit
             .outcome(entropy, boosted);
         assertEq(left, oLeft);
         assertEq(center, oCenter);
@@ -108,66 +108,66 @@ contract TestableDegenGambitTest is Test {
         vm.startPrank(player1);
 
         vm.expectRevert(DegenGambit.OutcomeOutOfBounds.selector);
-        testableDegenGambit.setEntropyFromOutcomes(19, 19, 19, player1, false);
+        devDegenGambit.setEntropyFromOutcomes(19, 19, 19, player1, false);
 
         vm.stopPrank();
     }
 
     function test_set_spin_cost() public {
         //assert initial cost is still set
-        assertEq(costToSpin, testableDegenGambit.CostToSpin());
-        assertEq(costToRespin, testableDegenGambit.CostToRespin());
+        assertEq(costToSpin, devDegenGambit.CostToSpin());
+        assertEq(costToRespin, devDegenGambit.CostToRespin());
 
         vm.startPrank(player1);
-        testableDegenGambit.setCostToSpin(0.05 ether);
-        testableDegenGambit.setCostToRespin(0.025 ether);
+        devDegenGambit.setCostToSpin(0.05 ether);
+        devDegenGambit.setCostToRespin(0.025 ether);
 
         vm.stopPrank();
 
-        assertNotEq(testableDegenGambit.CostToSpin(), costToSpin);
-        assertNotEq(testableDegenGambit.CostToRespin(), costToRespin);
+        assertNotEq(devDegenGambit.CostToSpin(), costToSpin);
+        assertNotEq(devDegenGambit.CostToRespin(), costToRespin);
 
-        assertEq(testableDegenGambit.CostToSpin(), 0.05 ether);
-        assertEq(testableDegenGambit.CostToRespin(), 0.025 ether);
+        assertEq(devDegenGambit.CostToSpin(), 0.05 ether);
+        assertEq(devDegenGambit.CostToRespin(), 0.025 ether);
     }
 
     function test_set_blocks_to_act() public {
-        assertEq(blocksToAct, testableDegenGambit.BlocksToAct());
+        assertEq(blocksToAct, devDegenGambit.BlocksToAct());
         vm.startPrank(player1);
-        testableDegenGambit.setBlocksToAct(10);
+        devDegenGambit.setBlocksToAct(10);
 
         vm.stopPrank();
 
-        assertNotEq(blocksToAct, testableDegenGambit.BlocksToAct());
-        assertEq(10, testableDegenGambit.BlocksToAct());
+        assertNotEq(blocksToAct, devDegenGambit.BlocksToAct());
+        assertEq(10, devDegenGambit.BlocksToAct());
     }
 
     function test_mint_gambit() public {
-        assertEq(0, testableDegenGambit.balanceOf(player1));
+        assertEq(0, devDegenGambit.balanceOf(player1));
 
         vm.startPrank(player1);
 
-        testableDegenGambit.mintGambit(player1, 100);
+        devDegenGambit.mintGambit(player1, 100);
 
         vm.stopPrank();
 
-        assertEq(100, testableDegenGambit.balanceOf(player1));
+        assertEq(100, devDegenGambit.balanceOf(player1));
     }
 
     function test_set_streaks() public {
-        uint256 initialDaily = testableDegenGambit.LastStreakDay(player1);
-        uint256 initialWeekly = testableDegenGambit.LastStreakWeek(player1);
+        uint256 initialDaily = devDegenGambit.LastStreakDay(player1);
+        uint256 initialWeekly = devDegenGambit.LastStreakWeek(player1);
         assertNotEq(101, initialDaily);
         assertNotEq(102, initialWeekly);
 
         vm.startPrank(player1);
 
-        testableDegenGambit.setDailyStreak(101, player1);
-        testableDegenGambit.setWeeklyStreak(102, player1);
+        devDegenGambit.setDailyStreak(101, player1);
+        devDegenGambit.setWeeklyStreak(102, player1);
 
         vm.stopPrank();
 
-        assertEq(101, testableDegenGambit.LastStreakDay(player1));
-        assertEq(102, testableDegenGambit.LastStreakWeek(player1));
+        assertEq(101, devDegenGambit.LastStreakDay(player1));
+        assertEq(102, devDegenGambit.LastStreakWeek(player1));
     }
 }

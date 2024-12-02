@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {DegenGambit} from "../DegenGambit.sol";
 
-contract TestableDegenGambit is DegenGambit {
+contract DevDegenGambit is DegenGambit {
     mapping(address => uint256) public EntropyForPlayer;
     bool public EntropyIsHash;
 
@@ -56,7 +56,7 @@ contract TestableDegenGambit is DegenGambit {
     }
 
     function version() external pure override returns (string memory) {
-        return "1 - debuggable";
+        return "1 - dev";
     }
 
     function generateEntropyForUnmodifiedReelOutcome(

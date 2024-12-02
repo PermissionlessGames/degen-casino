@@ -1,5 +1,5 @@
 # ArbSys
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/4fb4301206419a98f69f367fc3f01d889a031b63/src/ArbSys.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/eb2d7d82d92e18db78a4968a02361d0665e29030/src/ArbSys.sol)
 
 This code was adapted from the OffchainLabs/nitor-contracts repository: https://github.com/OffchainLabs/nitro-contracts.
 Specifically, the ArbSys contract at commit 2ba206505edd15ad1e177392c454e89479959ca5:
