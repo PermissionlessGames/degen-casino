@@ -24,38 +24,45 @@ contract DegenCasinoAccount {
     /// @notice Used to deposit native tokens to the DegenCasinoAccount.
     receive() external payable {}
 
-    /// @notice Used to withdraw native tokens or ERC20 tokens from the DegenCasinoAccount.
-    function withdraw(address tokenAddress, uint256 amount) public {
+    /// @notice Withdraw multiple different tokens (native or ERC20) from the DegenCasinoAccount in a single transaction.
+    function withdraw(
+        address[] memory tokenAddresses,
+        uint256[] memory amounts
+    ) public {
         if (msg.sender != player) {
             revert Unauthorized();
         }
 
-        if (tokenAddress == address(0)) {
-            // Native token case
-            payable(player).call{value: amount}("");
-        } else {
-            // ERC20 token case
-            IERC20(tokenAddress).transfer(player, amount);
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            if (tokenAddresses[i] == address(0)) {
+                // Native token case
+                payable(player).call{value: amounts[i]}("");
+            } else {
+                // ERC20 token case
+                IERC20(tokenAddresses[i]).transfer(player, amounts[i]);
+            }
         }
     }
 
     /// @notice Used to drain native tokens or ERC20 tokens from the DegenCasinoAccount.
-    function drain(address tokenAddress) public {
+    function drain(address[] memory tokenAddresses) public {
         if (msg.sender != player) {
             revert Unauthorized();
         }
 
-        uint256 amount;
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            uint256 amount;
 
-        if (tokenAddress == address(0)) {
-            amount = address(this).balance;
-            // Native token case
-            payable(player).call{value: amount}("");
-        } else {
-            IERC20 token = IERC20(tokenAddress);
-            amount = token.balanceOf(address(this));
-            // ERC20 token case
-            token.transfer(player, amount);
+            if (tokenAddresses[i] == address(0)) {
+                amount = address(this).balance;
+                // Native token case
+                payable(player).call{value: amount}("");
+            } else {
+                // ERC20 token case
+                IERC20 token = IERC20(tokenAddresses[i]);
+                amount = token.balanceOf(address(this));
+                token.transfer(player, amount);
+            }
         }
     }
 }

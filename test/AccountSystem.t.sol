@@ -145,7 +145,13 @@ contract TestableDegenGambitTest is Test {
         vm.assertEq(accountAddress.balance, depositAmount);
         vm.assertEq(player1.balance, initialPlayerBalance - depositAmount);
 
-        account.withdraw(address(0), withdrawalAmount);
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(0);
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = withdrawalAmount;
+
+        account.withdraw(tokenAddresses, amounts);
 
         vm.assertEq(accountAddress.balance, depositAmount - withdrawalAmount);
         vm.assertEq(
@@ -170,8 +176,14 @@ contract TestableDegenGambitTest is Test {
 
         vm.assertEq(accountAddress.balance, depositAmount);
 
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(0);
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = withdrawalAmount;
+
         vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
-        account.withdraw(address(0), withdrawalAmount);
+        account.withdraw(tokenAddresses, amounts);
 
         vm.assertEq(accountAddress.balance, depositAmount);
 
@@ -200,7 +212,13 @@ contract TestableDegenGambitTest is Test {
             initialPlayerBalance - depositAmount
         );
 
-        account.withdraw(address(erc20Contract), withdrawalAmount);
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(erc20Contract);
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = withdrawalAmount;
+
+        account.withdraw(tokenAddresses, amounts);
 
         vm.assertEq(
             erc20Contract.balanceOf(accountAddress),
@@ -236,8 +254,14 @@ contract TestableDegenGambitTest is Test {
             initialPlayerBalance - depositAmount
         );
 
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(erc20Contract);
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = withdrawalAmount;
+
         vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
-        account.withdraw(address(erc20Contract), withdrawalAmount);
+        account.withdraw(tokenAddresses, amounts);
 
         vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
         vm.assertEq(
@@ -264,7 +288,10 @@ contract TestableDegenGambitTest is Test {
         vm.assertEq(accountAddress.balance, depositAmount);
         vm.assertEq(player1.balance, initialPlayerBalance - depositAmount);
 
-        account.drain(address(0));
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(0);
+
+        account.drain(tokenAddresses);
 
         vm.assertEq(accountAddress.balance, 0);
         vm.assertEq(player1.balance, initialPlayerBalance);
@@ -285,8 +312,11 @@ contract TestableDegenGambitTest is Test {
 
         vm.assertEq(accountAddress.balance, depositAmount);
 
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(0);
+
         vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
-        account.drain(address(0));
+        account.drain(tokenAddresses);
 
         vm.assertEq(accountAddress.balance, depositAmount);
 
@@ -314,7 +344,10 @@ contract TestableDegenGambitTest is Test {
             initialPlayerBalance - depositAmount
         );
 
-        account.drain(address(erc20Contract));
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(erc20Contract);
+
+        account.drain(tokenAddresses);
 
         vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
         vm.assertEq(erc20Contract.balanceOf(player1), initialPlayerBalance);
@@ -343,8 +376,11 @@ contract TestableDegenGambitTest is Test {
             initialPlayerBalance - depositAmount
         );
 
+        address[] memory tokenAddresses = new address[](1);
+        tokenAddresses[0] = address(erc20Contract);
+
         vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
-        account.drain(address(erc20Contract));
+        account.drain(tokenAddresses);
 
         vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
         vm.assertEq(

@@ -1,5 +1,5 @@
 # DegenCasinoAccount
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/3a1795ece2870392267c2c2148f1b9be907fcbbd/src/AccountSystem.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/b51e81903772db019c2f6f0f6f126b6344c4ceb3/src/AccountSystem.sol)
 
 Player smart accounts for The Degen Casino.
 
@@ -38,11 +38,11 @@ receive() external payable;
 
 ### withdraw
 
-Used to withdraw native tokens or ERC20 tokens from the DegenCasinoAccount.
+Withdraw multiple different tokens (native or ERC20) from the DegenCasinoAccount in a single transaction.
 
 
 ```solidity
-function withdraw(address tokenAddress, uint256 amount) public;
+function withdraw(address[] memory tokenAddresses, uint256[] memory amounts) public;
 ```
 
 ### drain
@@ -51,7 +51,7 @@ Used to drain native tokens or ERC20 tokens from the DegenCasinoAccount.
 
 
 ```solidity
-function drain(address tokenAddress) public;
+function drain(address[] memory tokenAddresses) public;
 ```
 
 ## Errors
