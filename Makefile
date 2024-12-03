@@ -1,6 +1,6 @@
-.PHONY: clean generate docs test redocs forge
+.PHONY: clean generate docs test redocs forge interfaces
 
-build: forge generate docs bin/casino bin/technician
+build: forge generate docs bin/casino bin/technician interfaces
 
 rebuild: clean build
 
@@ -46,3 +46,12 @@ docs:
 	jq . docs/abis/DegenGambit.abi.json | solface -annotations -license MIT -name IDegenGambit -pragma "^0.8.13" >docs/interfaces/IDegenGambit.sol
 
 redocs: clean docs
+
+interfaces: src/interfaces/IAccountSystem.sol
+
+src/interfaces/IAccountSystem.sol: out/AccountSystem.sol/AccountSystem.json
+	mkdir -p src/interfaces
+	jq .abi out/AccountSystem.sol/AccountSystem.json | solface -annotations -license MIT -name IAccountSystem -pragma "^0.8.13" >src/interfaces/IAccountSystem.sol
+
+out/AccountSystem.sol/AccountSystem.json:
+	forge
