@@ -390,4 +390,148 @@ contract TestableDegenGambitTest is Test {
 
         vm.stopPrank();
     }
+
+    function test_withdraw_batch() public {
+        vm.startPrank(player1);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        uint256 initialNativePlayerBalance = player1.balance;
+
+        vm.assertEq(accountAddress.balance, 0);
+
+        uint256 nativeDepositAmount = startingBalance / 10;
+        uint256 nativeWithdrawalAmount = nativeDepositAmount / 2;
+
+        accountAddress.call{value: nativeDepositAmount}("");
+
+        erc20Contract.mintGambit(player1, startingBalance);
+
+        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player1);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+
+        uint256 erc20DepositAmount = startingBalance / 20;
+        uint256 erc20WithdrawalAmount = erc20DepositAmount / 4;
+
+        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+
+        vm.assertEq(accountAddress.balance, nativeDepositAmount);
+        vm.assertEq(
+            player1.balance,
+            initialNativePlayerBalance - nativeDepositAmount
+        );
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            erc20DepositAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player1),
+            initialERC20PlayerBalance - erc20DepositAmount
+        );
+
+        address[] memory tokenAddresses = new address[](2);
+        tokenAddresses[0] = address(0);
+        tokenAddresses[1] = address(erc20Contract);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = nativeWithdrawalAmount;
+        amounts[1] = erc20WithdrawalAmount;
+
+        account.withdraw(tokenAddresses, amounts);
+
+        vm.assertEq(
+            accountAddress.balance,
+            nativeDepositAmount - nativeWithdrawalAmount
+        );
+        vm.assertEq(
+            player1.balance,
+            initialNativePlayerBalance -
+                nativeDepositAmount +
+                nativeWithdrawalAmount
+        );
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            erc20DepositAmount - erc20WithdrawalAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player1),
+            initialERC20PlayerBalance -
+                erc20DepositAmount +
+                erc20WithdrawalAmount
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_withdraw_batch_fail_as_nonplayer() public {
+        vm.startPrank(player2);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        uint256 initialNativePlayerBalance = player1.balance;
+
+        vm.assertEq(accountAddress.balance, 0);
+
+        uint256 nativeDepositAmount = startingBalance / 10;
+        uint256 nativeWithdrawalAmount = nativeDepositAmount / 2;
+
+        accountAddress.call{value: nativeDepositAmount}("");
+
+        erc20Contract.mintGambit(player2, startingBalance);
+
+        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player2);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+
+        uint256 erc20DepositAmount = startingBalance / 20;
+        uint256 erc20WithdrawalAmount = erc20DepositAmount / 4;
+
+        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+
+        vm.assertEq(accountAddress.balance, nativeDepositAmount);
+        vm.assertEq(
+            player2.balance,
+            initialNativePlayerBalance - nativeDepositAmount
+        );
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            erc20DepositAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player2),
+            initialERC20PlayerBalance - erc20DepositAmount
+        );
+
+        address[] memory tokenAddresses = new address[](2);
+        tokenAddresses[0] = address(0);
+        tokenAddresses[1] = address(erc20Contract);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = nativeWithdrawalAmount;
+        amounts[1] = erc20WithdrawalAmount;
+
+        vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
+        account.withdraw(tokenAddresses, amounts);
+
+        vm.assertEq(accountAddress.balance, nativeDepositAmount);
+        vm.assertEq(
+            player2.balance,
+            initialNativePlayerBalance - nativeDepositAmount
+        );
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            erc20DepositAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player2),
+            initialERC20PlayerBalance - erc20DepositAmount
+        );
+
+        vm.stopPrank();
+    }
 }
