@@ -16,6 +16,7 @@ contract DegenCasinoAccount {
     string public constant accountVersion = AccountVersion;
 
     error Unauthorized();
+    error Unsuccessful();
 
     constructor(address _player) {
         player = _player;
@@ -36,7 +37,10 @@ contract DegenCasinoAccount {
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             if (tokenAddresses[i] == address(0)) {
                 // Native token case
-                payable(player).call{value: amounts[i]}("");
+                (bool success, ) = payable(player).call{value: amounts[i]}("");
+                if (!success) {
+                    revert Unsuccessful();
+                }
             } else {
                 // ERC20 token case
                 IERC20(tokenAddresses[i]).transfer(player, amounts[i]);
@@ -56,7 +60,10 @@ contract DegenCasinoAccount {
             if (tokenAddresses[i] == address(0)) {
                 amount = address(this).balance;
                 // Native token case
-                payable(player).call{value: amount}("");
+                (bool success, ) = payable(player).call{value: amount}("");
+                if (!success) {
+                    revert Unsuccessful();
+                }
             } else {
                 // ERC20 token case
                 IERC20 token = IERC20(tokenAddresses[i]);

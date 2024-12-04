@@ -1,5 +1,5 @@
 # AccountSystem
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/a5de5916419fddea1366432734c7e583b8020846/src/AccountSystem.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/747a9f879e52c48fe525c83a0a51a637e87ccd6e/src/AccountSystem.sol)
 
 Manages player accounts for The Degen Casino. Can be deployed permissionlessly. Any number of these contracts
 can be deployed to a chain. There can be multiple independent instances of this contract on a chain.
