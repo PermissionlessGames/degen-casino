@@ -534,4 +534,123 @@ contract TestableDegenGambitTest is Test {
 
         vm.stopPrank();
     }
+
+    function test_drain_batch() public {
+        vm.startPrank(player1);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        uint256 initialNativePlayerBalance = player1.balance;
+
+        vm.assertEq(accountAddress.balance, 0);
+
+        uint256 nativeDepositAmount = startingBalance / 10;
+
+        accountAddress.call{value: nativeDepositAmount}("");
+
+        erc20Contract.mintGambit(player1, startingBalance);
+
+        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player1);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+
+        uint256 erc20DepositAmount = startingBalance / 20;
+
+        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+
+        vm.assertEq(accountAddress.balance, nativeDepositAmount);
+        vm.assertEq(
+            player1.balance,
+            initialNativePlayerBalance - nativeDepositAmount
+        );
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            erc20DepositAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player1),
+            initialERC20PlayerBalance - erc20DepositAmount
+        );
+
+        address[] memory tokenAddresses = new address[](2);
+        tokenAddresses[0] = address(0);
+        tokenAddresses[1] = address(erc20Contract);
+
+        account.drain(tokenAddresses);
+
+        vm.assertEq(accountAddress.balance, 0);
+        vm.assertEq(player1.balance, initialNativePlayerBalance);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(
+            erc20Contract.balanceOf(player1),
+            initialERC20PlayerBalance
+        );
+
+        vm.stopPrank();
+    }
+
+    function test_drain_batch_fail_as_nonplayer() public {
+        vm.startPrank(player2);
+        (address accountAddress, ) = accountSystem.createAccount(player1);
+        DegenCasinoAccount account = accountSystem.accounts(player1);
+
+        uint256 initialNativePlayerBalance = player1.balance;
+
+        vm.assertEq(accountAddress.balance, 0);
+
+        uint256 nativeDepositAmount = startingBalance / 10;
+
+        accountAddress.call{value: nativeDepositAmount}("");
+
+        erc20Contract.mintGambit(player2, startingBalance);
+
+        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player2);
+
+        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+
+        uint256 erc20DepositAmount = startingBalance / 20;
+
+        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+
+        vm.assertEq(accountAddress.balance, nativeDepositAmount);
+        vm.assertEq(
+            player2.balance,
+            initialNativePlayerBalance - nativeDepositAmount
+        );
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            erc20DepositAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player2),
+            initialERC20PlayerBalance - erc20DepositAmount
+        );
+
+        address[] memory tokenAddresses = new address[](2);
+        tokenAddresses[0] = address(0);
+        tokenAddresses[1] = address(erc20Contract);
+
+        vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
+        account.drain(tokenAddresses);
+
+        vm.assertEq(accountAddress.balance, nativeDepositAmount);
+        vm.assertEq(
+            player2.balance,
+            initialNativePlayerBalance - nativeDepositAmount
+        );
+
+        vm.assertEq(
+            erc20Contract.balanceOf(accountAddress),
+            erc20DepositAmount
+        );
+        vm.assertEq(
+            erc20Contract.balanceOf(player2),
+            initialERC20PlayerBalance - erc20DepositAmount
+        );
+
+        vm.stopPrank();
+    }
 }
