@@ -1,5 +1,5 @@
 # DegenCasinoAccount
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/71373977d9155d3dd305aa87a7dd4ee332546c37/src/AccountSystem.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/b551bd78d47f8c60790f2eee2730aa5d11ca2648/src/AccountSystem.sol)
 
 **Inherits:**
 EIP712
@@ -106,6 +106,29 @@ function actionHash(Action memory action) public view returns (bytes32);
 |`<none>`|`bytes32`|The EIP712 hash of the action|
 
 
+### sessionHash
+
+Computes the EIP712 hash of a session
+
+
+```solidity
+function sessionHash(address executor, uint256 sessionID, uint256 expiration) public view returns (bytes32);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`executor`|`address`|The executor authorized by the player|
+|`sessionID`|`uint256`|The session ID|
+|`expiration`|`uint256`|The expiration timestamp of the session|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bytes32`|The EIP712 hash of the session|
+
+
 ### play
 
 Executes a game action with executor compensation
@@ -128,6 +151,51 @@ function play(
 |`action`|`Action`|The game action to execute|
 |`terms`|`ExecutorTerms`|The executor's compensation terms|
 |`playerActionSignature`|`bytes`|The player's signature for the action|
+|`playerTermsSignature`|`bytes`|The player's signature for the executor terms|
+
+
+### _play
+
+Internal function to execute the game action and pay executor rewards
+
+
+```solidity
+function _play(Action memory action, ExecutorTerms memory terms) internal;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`action`|`Action`|The game action to execute|
+|`terms`|`ExecutorTerms`|The executor's compensation terms|
+
+
+### playInSession
+
+Executes a game action with executor compensation in a session
+
+*Verifies session and terms signatures, executes the action*
+
+
+```solidity
+function playInSession(
+    Action memory action,
+    ExecutorTerms memory terms,
+    uint256 sessionID,
+    uint256 expiration,
+    bytes memory playerSessionSignature,
+    bytes memory playerTermsSignature
+) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`action`|`Action`|The game action to execute|
+|`terms`|`ExecutorTerms`|The executor's compensation terms|
+|`sessionID`|`uint256`|The session ID|
+|`expiration`|`uint256`|The expiration timestamp of the session|
+|`playerSessionSignature`|`bytes`|The player's signature for the session|
 |`playerTermsSignature`|`bytes`|The player's signature for the executor terms|
 
 
@@ -166,6 +234,18 @@ error InvalidPlayerActionSignature();
 
 ```solidity
 error InvalidPlayerTermsSignature();
+```
+
+### InvalidSessionSignature
+
+```solidity
+error InvalidSessionSignature();
+```
+
+### SessionExpired
+
+```solidity
+error SessionExpired();
 ```
 
 ### FailedToSendReward

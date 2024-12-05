@@ -48,6 +48,8 @@ contract DegenCasinoAccount is EIP712 {
     error RequestTooLow();
     error InvalidPlayerActionSignature();
     error InvalidPlayerTermsSignature();
+    error InvalidSessionSignature();
+    error SessionExpired();
     error FailedToSendReward();
     error ActionFailed();
 
@@ -269,6 +271,63 @@ contract DegenCasinoAccount is EIP712 {
                 }
             }
         }
+    }
+
+    /// @notice Executes a game action with executor compensation in a session
+    /// @dev Verifies session and terms signatures, executes the action
+    /// @param action The game action to execute
+    /// @param terms The executor's compensation terms
+    /// @param sessionID The session ID
+    /// @param expiration The expiration timestamp of the session
+    /// @param playerSessionSignature The player's signature for the session
+    /// @param playerTermsSignature The player's signature for the executor terms
+    function playInSession(
+        Action memory action,
+        ExecutorTerms memory terms,
+        uint256 sessionID,
+        uint256 expiration,
+        bytes memory playerSessionSignature,
+        bytes memory playerTermsSignature
+    ) external {
+        if (terms.rewardTokens.length != terms.basisPoints.length) {
+            revert MismatchedArrayLengths();
+        }
+
+        // Verify session signature
+        bytes32 implicitSessionHash = sessionHash(
+            msg.sender,
+            sessionID,
+            expiration
+        );
+        if (
+            !SignatureChecker.isValidSignatureNow(
+                player,
+                implicitSessionHash,
+                playerSessionSignature
+            )
+        ) {
+            revert InvalidSessionSignature();
+        }
+
+        // Check if the session has expired
+        if (block.timestamp > expiration) {
+            revert SessionExpired();
+        }
+
+        // Verify terms signature
+        bytes32 providedTermsHash = executorTermsHash(terms);
+        if (
+            !SignatureChecker.isValidSignatureNow(
+                player,
+                providedTermsHash,
+                playerTermsSignature
+            )
+        ) {
+            revert InvalidPlayerTermsSignature();
+        }
+
+        // Execute the game action and handle rewards
+        _play(action, terms);
     }
 }
 

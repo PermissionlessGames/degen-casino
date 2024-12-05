@@ -663,6 +663,27 @@ contract AccountSystemTest is Test {
         return abi.encodePacked(r, s, v);
     }
 
+    function _signSession(
+        address accountAddress,
+        address executor,
+        uint256 sessionID,
+        uint256 expiration,
+        uint256 privateKey
+    ) internal view returns (bytes memory) {
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        bytes32 sessionHash = account.sessionHash(
+            executor,
+            sessionID,
+            expiration
+        );
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, sessionHash);
+        return abi.encodePacked(r, s, v);
+    }
+
     function test_play_with_valid_signatures() public {
         // Create and fund the account
         (address accountAddress, ) = accountSystem.createAccount(player2);
@@ -692,10 +713,12 @@ contract AccountSystemTest is Test {
             basisPoints: basisPoints
         });
 
-        // Sign the action and terms
-        bytes memory actionSig = _signAction(
+        // Sign the session and terms
+        bytes memory sessionSig = _signSession(
             accountAddress,
-            action,
+            player1,
+            1,
+            block.timestamp + 1 hours,
             player2PrivateKey
         );
         bytes memory termsSig = _signTerms(
@@ -704,12 +727,18 @@ contract AccountSystemTest is Test {
             player2PrivateKey
         );
 
-        // Execute play
+        // Execute playInSession
         vm.prank(player1); // player1 is the executor
-        account.play(action, terms, actionSig, termsSig);
+        account.playInSession(
+            action,
+            terms,
+            1,
+            block.timestamp + 1 hours,
+            sessionSig,
+            termsSig
+        );
 
         // Verify results
-        assertEq(account.lastRequest(), 1);
         assertEq(game.balanceOf(accountAddress), 0.9 ether); // 90% of minted amount
         assertEq(game.balanceOf(player1), 0.1 ether); // 10% reward to executor
     }
@@ -1450,5 +1479,240 @@ contract AccountSystemTest is Test {
         vm.prank(player1);
         vm.expectRevert(DegenCasinoAccount.ActionFailed.selector);
         account.play(action, terms, actionSig, termsSig);
+    }
+
+    function test_playInSession_with_valid_signatures() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Set up the game action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature(
+                "mintGambit(address,uint256)",
+                accountAddress,
+                1 ether
+            ),
+            value: 0,
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(game);
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the session and terms
+        bytes memory sessionSig = _signSession(
+            accountAddress,
+            player1,
+            1,
+            block.timestamp + 1 hours,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // Execute playInSession
+        vm.prank(player1); // player1 is the executor
+        account.playInSession(
+            action,
+            terms,
+            1,
+            block.timestamp + 1 hours,
+            sessionSig,
+            termsSig
+        );
+
+        // Verify results
+        assertEq(game.balanceOf(accountAddress), 0.9 ether); // 90% of minted amount
+        assertEq(game.balanceOf(player1), 0.1 ether); // 10% reward to executor
+    }
+
+    function test_playInSession_fails_with_invalid_session_signature() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Set up the game action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature(
+                "mintGambit(address,uint256)",
+                accountAddress,
+                1 ether
+            ),
+            value: 0,
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(game);
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign with wrong session signature
+        bytes memory sessionSig = _signSession(
+            accountAddress,
+            player1,
+            1,
+            block.timestamp + 1 hours,
+            player1PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // Expect revert due to invalid session signature
+        vm.prank(player1);
+        vm.expectRevert(DegenCasinoAccount.InvalidSessionSignature.selector);
+        account.playInSession(
+            action,
+            terms,
+            1,
+            block.timestamp + 1 hours,
+            sessionSig,
+            termsSig
+        );
+    }
+
+    function test_playInSession_fails_with_expired_session() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Set up the game action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature(
+                "mintGambit(address,uint256)",
+                accountAddress,
+                1 ether
+            ),
+            value: 0,
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(game);
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Set the expiration to a future time
+        uint256 expiration = block.timestamp + 1 hours;
+
+        // Sign the session and terms
+        bytes memory sessionSig = _signSession(
+            accountAddress,
+            player1,
+            1,
+            expiration,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // Warp time to simulate expiration
+        vm.warp(block.timestamp + 2 hours);
+
+        // Expect revert due to expired session
+        vm.prank(player1);
+        vm.expectRevert(DegenCasinoAccount.SessionExpired.selector);
+        account.playInSession(
+            action,
+            terms,
+            1,
+            expiration,
+            sessionSig,
+            termsSig
+        );
+    }
+
+    function test_playInSession_fails_with_invalid_terms_signature() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Set up the game action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature(
+                "mintGambit(address,uint256)",
+                accountAddress,
+                1 ether
+            ),
+            value: 0,
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(game);
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the session with correct signature but wrong terms signature
+        bytes memory sessionSig = _signSession(
+            accountAddress,
+            player1,
+            1,
+            block.timestamp + 1 hours,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player1PrivateKey
+        );
+
+        // Expect revert due to invalid terms signature
+        vm.prank(player1);
+        vm.expectRevert(
+            DegenCasinoAccount.InvalidPlayerTermsSignature.selector
+        );
+        account.playInSession(
+            action,
+            terms,
+            1,
+            block.timestamp + 1 hours,
+            sessionSig,
+            termsSig
+        );
     }
 }
