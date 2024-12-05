@@ -43,15 +43,28 @@ docs:
 	mkdir -p docs/abis/testable
 	jq .abi out/DegenGambit.sol/DegenGambit.json >docs/abis/DegenGambit.abi.json
 	jq .abi out/TestableDegenGambit.sol/TestableDegenGambit.json >docs/abis/testable/TestableDegenGambit.abi.json
-	jq . docs/abis/DegenGambit.abi.json | solface -annotations -license MIT -name IDegenGambit -pragma "^0.8.13" >docs/interfaces/IDegenGambit.sol
 
 redocs: clean docs
 
-interfaces: src/interfaces/IAccountSystem.sol
+interfaces: src/interfaces/IAccountSystem.sol src/interfaces/IDegenCasinoAccount.sol src/interfaces/IDegenGambit.sol
 
 src/interfaces/IAccountSystem.sol: out/AccountSystem.sol/AccountSystem.json
 	mkdir -p src/interfaces
 	jq .abi out/AccountSystem.sol/AccountSystem.json | solface -annotations -license MIT -name IAccountSystem -pragma "^0.8.13" >src/interfaces/IAccountSystem.sol
 
+src/interfaces/IDegenCasinoAccount.sol: out/AccountSystem.sol/DegenCasinoAccount.json
+	mkdir -p src/interfaces
+	jq .abi out/AccountSystem.sol/DegenCasinoAccount.json | solface -annotations -license MIT -name IDegenCasinoAccount -pragma "^0.8.13" >src/interfaces/IDegenCasinoAccount.sol
+
+src/interfaces/IDegenGambit.sol: out/DegenGambit.sol/DegenGambit.json
+	mkdir -p src/interfaces
+	jq .abi out/DegenGambit.sol/DegenGambit.json | solface -annotations -license MIT -name IDegenGambit -pragma "^0.8.13" >src/interfaces/IDegenGambit.sol
+
 out/AccountSystem.sol/AccountSystem.json:
+	forge
+
+out/AccountSystem.sol/DegenCasinoAccount.json:
+	forge
+
+out/DegenGambit.sol/DegenGambit.json:
 	forge
