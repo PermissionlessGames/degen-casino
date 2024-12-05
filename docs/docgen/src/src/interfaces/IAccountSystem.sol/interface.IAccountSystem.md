@@ -1,5 +1,5 @@
 # IAccountSystem
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/96c4f5bf386b90645fa24f94b3d190fc428bca09/src/interfaces/IAccountSystem.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/8f57908c9fa7257d5b12b8ce17569a15ef42890a/src/interfaces/IAccountSystem.sol)
 
 
 ## Functions

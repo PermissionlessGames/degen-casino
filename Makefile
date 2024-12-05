@@ -4,7 +4,7 @@ build: forge generate docs bin/casino bin/technician interfaces
 
 rebuild: clean build
 
-generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/TestableDegenGambit/TestableDegenGambit.go
+generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/TestableDegenGambit/TestableDegenGambit.go bindings/AccountSystem/AccountSystem.go bindings/DegenCasinoAccount/DegenCasinoAccount.go
 
 bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
@@ -17,6 +17,14 @@ bindings/BlockInspector/BlockInspector.go:
 bindings/TestableDegenGambit/TestableDegenGambit.go:
 	mkdir -p bindings/TestableDegenGambit
 	seer evm generate --package TestableDegenGambit --output bindings/TestableDegenGambit/TestableDegenGambit.go --foundry out/TestableDegenGambit.sol/TestableDegenGambit.json --cli --struct TestableDegenGambit
+
+bindings/AccountSystem/AccountSystem.go:
+	mkdir -p bindings/AccountSystem
+	seer evm generate --package AccountSystem --output bindings/AccountSystem/AccountSystem.go --foundry out/AccountSystem.sol/AccountSystem.json --cli --struct AccountSystem
+
+bindings/DegenCasinoAccount/DegenCasinoAccount.go:
+	mkdir -p bindings/DegenCasinoAccount
+	seer evm generate --package DegenCasinoAccount --output bindings/DegenCasinoAccount/DegenCasinoAccount.go --foundry out/AccountSystem.sol/DegenCasinoAccount.json --cli --struct DegenCasinoAccount
 
 bin/casino: bindings/DegenGambit/DegenGambit.go
 	go mod tidy
