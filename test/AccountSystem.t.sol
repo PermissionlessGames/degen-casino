@@ -4,10 +4,11 @@ pragma solidity ^0.8.13;
 import {IERC20} from "../lib/openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Test, console} from "../lib/forge-std/src/Test.sol";
-import {DegenCasinoAccount, AccountSystem, AccountVersion, AccountSystemVersion} from "../src/AccountSystem.sol";
+import {ArbSysMock} from "./DegenGambit.t.sol";
+import {DegenCasinoAccount, AccountSystem, Action, ExecutorTerms, AccountVersion, AccountSystemVersion} from "../src/AccountSystem.sol";
 import {TestableDegenGambit} from "../src/testable/TestableDegenGambit.sol";
 
-contract TestableDegenGambitTest is Test {
+contract AccountSystemTest is Test {
     uint256 deployerPrivateKey = 0x42;
     address deployer = vm.addr(deployerPrivateKey);
 
@@ -20,16 +21,19 @@ contract TestableDegenGambitTest is Test {
     uint256 startingBalance = 1e21;
 
     AccountSystem accountSystem;
-    TestableDegenGambit erc20Contract;
+    TestableDegenGambit game;
 
     function setUp() public {
         vm.startPrank(deployer);
         accountSystem = new AccountSystem();
-        erc20Contract = new TestableDegenGambit(1, 1, 1);
+        game = new TestableDegenGambit(1, 1, 1);
         vm.stopPrank();
 
         vm.deal(player1, startingBalance);
         vm.deal(player2, startingBalance);
+
+        ArbSysMock arbSys = new ArbSysMock();
+        vm.etch(address(100), address(arbSys).code);
     }
 
     function test_deployment() public {
@@ -195,25 +199,25 @@ contract TestableDegenGambitTest is Test {
         (address accountAddress, ) = accountSystem.createAccount(player1);
         DegenCasinoAccount account = accountSystem.accounts(player1);
 
-        erc20Contract.mintGambit(player1, startingBalance);
+        game.mintGambit(player1, startingBalance);
 
-        uint256 initialPlayerBalance = erc20Contract.balanceOf(player1);
+        uint256 initialPlayerBalance = game.balanceOf(player1);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 depositAmount = startingBalance / 10;
         uint256 withdrawalAmount = depositAmount / 2;
 
-        erc20Contract.transfer(accountAddress, depositAmount);
+        game.transfer(accountAddress, depositAmount);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(game.balanceOf(accountAddress), depositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(player1),
+            game.balanceOf(player1),
             initialPlayerBalance - depositAmount
         );
 
         address[] memory tokenAddresses = new address[](1);
-        tokenAddresses[0] = address(erc20Contract);
+        tokenAddresses[0] = address(game);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = withdrawalAmount;
@@ -221,11 +225,11 @@ contract TestableDegenGambitTest is Test {
         account.withdraw(tokenAddresses, amounts);
 
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
+            game.balanceOf(accountAddress),
             depositAmount - withdrawalAmount
         );
         vm.assertEq(
-            erc20Contract.balanceOf(player1),
+            game.balanceOf(player1),
             initialPlayerBalance - depositAmount + withdrawalAmount
         );
 
@@ -237,25 +241,25 @@ contract TestableDegenGambitTest is Test {
         (address accountAddress, ) = accountSystem.createAccount(player1);
         DegenCasinoAccount account = accountSystem.accounts(player1);
 
-        erc20Contract.mintGambit(player2, startingBalance);
+        game.mintGambit(player2, startingBalance);
 
-        uint256 initialPlayerBalance = erc20Contract.balanceOf(player2);
+        uint256 initialPlayerBalance = game.balanceOf(player2);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 depositAmount = startingBalance / 10;
         uint256 withdrawalAmount = depositAmount / 2;
 
-        erc20Contract.transfer(accountAddress, depositAmount);
+        game.transfer(accountAddress, depositAmount);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(game.balanceOf(accountAddress), depositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialPlayerBalance - depositAmount
         );
 
         address[] memory tokenAddresses = new address[](1);
-        tokenAddresses[0] = address(erc20Contract);
+        tokenAddresses[0] = address(game);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = withdrawalAmount;
@@ -263,9 +267,9 @@ contract TestableDegenGambitTest is Test {
         vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
         account.withdraw(tokenAddresses, amounts);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(game.balanceOf(accountAddress), depositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialPlayerBalance - depositAmount
         );
 
@@ -328,29 +332,29 @@ contract TestableDegenGambitTest is Test {
         (address accountAddress, ) = accountSystem.createAccount(player1);
         DegenCasinoAccount account = accountSystem.accounts(player1);
 
-        erc20Contract.mintGambit(player1, startingBalance);
+        game.mintGambit(player1, startingBalance);
 
-        uint256 initialPlayerBalance = erc20Contract.balanceOf(player1);
+        uint256 initialPlayerBalance = game.balanceOf(player1);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 depositAmount = startingBalance / 10;
 
-        erc20Contract.transfer(accountAddress, depositAmount);
+        game.transfer(accountAddress, depositAmount);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(game.balanceOf(accountAddress), depositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(player1),
+            game.balanceOf(player1),
             initialPlayerBalance - depositAmount
         );
 
         address[] memory tokenAddresses = new address[](1);
-        tokenAddresses[0] = address(erc20Contract);
+        tokenAddresses[0] = address(game);
 
         account.drain(tokenAddresses);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
-        vm.assertEq(erc20Contract.balanceOf(player1), initialPlayerBalance);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(player1), initialPlayerBalance);
 
         vm.stopPrank();
     }
@@ -360,31 +364,31 @@ contract TestableDegenGambitTest is Test {
         (address accountAddress, ) = accountSystem.createAccount(player1);
         DegenCasinoAccount account = accountSystem.accounts(player1);
 
-        erc20Contract.mintGambit(player2, startingBalance);
+        game.mintGambit(player2, startingBalance);
 
-        uint256 initialPlayerBalance = erc20Contract.balanceOf(player2);
+        uint256 initialPlayerBalance = game.balanceOf(player2);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 depositAmount = startingBalance / 10;
 
-        erc20Contract.transfer(accountAddress, depositAmount);
+        game.transfer(accountAddress, depositAmount);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(game.balanceOf(accountAddress), depositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialPlayerBalance - depositAmount
         );
 
         address[] memory tokenAddresses = new address[](1);
-        tokenAddresses[0] = address(erc20Contract);
+        tokenAddresses[0] = address(game);
 
         vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
         account.drain(tokenAddresses);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), depositAmount);
+        vm.assertEq(game.balanceOf(accountAddress), depositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialPlayerBalance - depositAmount
         );
 
@@ -405,16 +409,16 @@ contract TestableDegenGambitTest is Test {
 
         accountAddress.call{value: nativeDepositAmount}("");
 
-        erc20Contract.mintGambit(player1, startingBalance);
+        game.mintGambit(player1, startingBalance);
 
-        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player1);
+        uint256 initialERC20PlayerBalance = game.balanceOf(player1);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 erc20DepositAmount = startingBalance / 20;
         uint256 erc20WithdrawalAmount = erc20DepositAmount / 4;
 
-        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+        game.transfer(accountAddress, erc20DepositAmount);
 
         vm.assertEq(accountAddress.balance, nativeDepositAmount);
         vm.assertEq(
@@ -422,18 +426,15 @@ contract TestableDegenGambitTest is Test {
             initialNativePlayerBalance - nativeDepositAmount
         );
 
+        vm.assertEq(game.balanceOf(accountAddress), erc20DepositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
-            erc20DepositAmount
-        );
-        vm.assertEq(
-            erc20Contract.balanceOf(player1),
+            game.balanceOf(player1),
             initialERC20PlayerBalance - erc20DepositAmount
         );
 
         address[] memory tokenAddresses = new address[](2);
         tokenAddresses[0] = address(0);
-        tokenAddresses[1] = address(erc20Contract);
+        tokenAddresses[1] = address(game);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = nativeWithdrawalAmount;
@@ -453,11 +454,11 @@ contract TestableDegenGambitTest is Test {
         );
 
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
+            game.balanceOf(accountAddress),
             erc20DepositAmount - erc20WithdrawalAmount
         );
         vm.assertEq(
-            erc20Contract.balanceOf(player1),
+            game.balanceOf(player1),
             initialERC20PlayerBalance -
                 erc20DepositAmount +
                 erc20WithdrawalAmount
@@ -480,16 +481,16 @@ contract TestableDegenGambitTest is Test {
 
         accountAddress.call{value: nativeDepositAmount}("");
 
-        erc20Contract.mintGambit(player2, startingBalance);
+        game.mintGambit(player2, startingBalance);
 
-        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player2);
+        uint256 initialERC20PlayerBalance = game.balanceOf(player2);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 erc20DepositAmount = startingBalance / 20;
         uint256 erc20WithdrawalAmount = erc20DepositAmount / 4;
 
-        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+        game.transfer(accountAddress, erc20DepositAmount);
 
         vm.assertEq(accountAddress.balance, nativeDepositAmount);
         vm.assertEq(
@@ -497,18 +498,15 @@ contract TestableDegenGambitTest is Test {
             initialNativePlayerBalance - nativeDepositAmount
         );
 
+        vm.assertEq(game.balanceOf(accountAddress), erc20DepositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
-            erc20DepositAmount
-        );
-        vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialERC20PlayerBalance - erc20DepositAmount
         );
 
         address[] memory tokenAddresses = new address[](2);
         tokenAddresses[0] = address(0);
-        tokenAddresses[1] = address(erc20Contract);
+        tokenAddresses[1] = address(game);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = nativeWithdrawalAmount;
@@ -523,12 +521,9 @@ contract TestableDegenGambitTest is Test {
             initialNativePlayerBalance - nativeDepositAmount
         );
 
+        vm.assertEq(game.balanceOf(accountAddress), erc20DepositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
-            erc20DepositAmount
-        );
-        vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialERC20PlayerBalance - erc20DepositAmount
         );
 
@@ -548,15 +543,15 @@ contract TestableDegenGambitTest is Test {
 
         accountAddress.call{value: nativeDepositAmount}("");
 
-        erc20Contract.mintGambit(player1, startingBalance);
+        game.mintGambit(player1, startingBalance);
 
-        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player1);
+        uint256 initialERC20PlayerBalance = game.balanceOf(player1);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 erc20DepositAmount = startingBalance / 20;
 
-        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+        game.transfer(accountAddress, erc20DepositAmount);
 
         vm.assertEq(accountAddress.balance, nativeDepositAmount);
         vm.assertEq(
@@ -564,29 +559,23 @@ contract TestableDegenGambitTest is Test {
             initialNativePlayerBalance - nativeDepositAmount
         );
 
+        vm.assertEq(game.balanceOf(accountAddress), erc20DepositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
-            erc20DepositAmount
-        );
-        vm.assertEq(
-            erc20Contract.balanceOf(player1),
+            game.balanceOf(player1),
             initialERC20PlayerBalance - erc20DepositAmount
         );
 
         address[] memory tokenAddresses = new address[](2);
         tokenAddresses[0] = address(0);
-        tokenAddresses[1] = address(erc20Contract);
+        tokenAddresses[1] = address(game);
 
         account.drain(tokenAddresses);
 
         vm.assertEq(accountAddress.balance, 0);
         vm.assertEq(player1.balance, initialNativePlayerBalance);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
-        vm.assertEq(
-            erc20Contract.balanceOf(player1),
-            initialERC20PlayerBalance
-        );
+        vm.assertEq(game.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(player1), initialERC20PlayerBalance);
 
         vm.stopPrank();
     }
@@ -604,15 +593,15 @@ contract TestableDegenGambitTest is Test {
 
         accountAddress.call{value: nativeDepositAmount}("");
 
-        erc20Contract.mintGambit(player2, startingBalance);
+        game.mintGambit(player2, startingBalance);
 
-        uint256 initialERC20PlayerBalance = erc20Contract.balanceOf(player2);
+        uint256 initialERC20PlayerBalance = game.balanceOf(player2);
 
-        vm.assertEq(erc20Contract.balanceOf(accountAddress), 0);
+        vm.assertEq(game.balanceOf(accountAddress), 0);
 
         uint256 erc20DepositAmount = startingBalance / 20;
 
-        erc20Contract.transfer(accountAddress, erc20DepositAmount);
+        game.transfer(accountAddress, erc20DepositAmount);
 
         vm.assertEq(accountAddress.balance, nativeDepositAmount);
         vm.assertEq(
@@ -620,18 +609,15 @@ contract TestableDegenGambitTest is Test {
             initialNativePlayerBalance - nativeDepositAmount
         );
 
+        vm.assertEq(game.balanceOf(accountAddress), erc20DepositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
-            erc20DepositAmount
-        );
-        vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialERC20PlayerBalance - erc20DepositAmount
         );
 
         address[] memory tokenAddresses = new address[](2);
         tokenAddresses[0] = address(0);
-        tokenAddresses[1] = address(erc20Contract);
+        tokenAddresses[1] = address(game);
 
         vm.expectRevert(DegenCasinoAccount.Unauthorized.selector);
         account.drain(tokenAddresses);
@@ -642,15 +628,171 @@ contract TestableDegenGambitTest is Test {
             initialNativePlayerBalance - nativeDepositAmount
         );
 
+        vm.assertEq(game.balanceOf(accountAddress), erc20DepositAmount);
         vm.assertEq(
-            erc20Contract.balanceOf(accountAddress),
-            erc20DepositAmount
-        );
-        vm.assertEq(
-            erc20Contract.balanceOf(player2),
+            game.balanceOf(player2),
             initialERC20PlayerBalance - erc20DepositAmount
         );
 
         vm.stopPrank();
+    }
+
+    function _signAction(
+        address accountAddress,
+        Action memory action,
+        uint256 signerKey
+    ) internal view returns (bytes memory) {
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+        bytes32 actionHash = account.actionHash(action);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerKey, actionHash);
+        return abi.encodePacked(r, s, v);
+    }
+
+    function _signTerms(
+        address accountAddress,
+        ExecutorTerms memory terms,
+        uint256 signerKey
+    ) internal view returns (bytes memory) {
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+        bytes32 termsHash = account.executorTermsHash(terms);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerKey, termsHash);
+        return abi.encodePacked(r, s, v);
+    }
+
+    function test_play_with_valid_signatures() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Set up the game action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature(
+                "mintGambit(address,uint256)",
+                accountAddress,
+                1 ether
+            ),
+            value: 0,
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(game);
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the action and terms
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // Execute play
+        vm.prank(player1); // player1 is the executor
+        account.play(action, terms, actionSig, termsSig);
+
+        // Verify results
+        assertEq(account.lastRequest(), 1);
+        assertEq(game.balanceOf(accountAddress), 0.9 ether); // 90% of minted amount
+        assertEq(game.balanceOf(player1), 0.1 ether); // 10% reward to executor
+    }
+
+    function test_play_with_jackpot_win() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account for playing
+        vm.deal(accountAddress, 100 * game.CostToSpin());
+        vm.deal(address(game), 100 ether); // Ensure game has enough balance
+
+        // First action: spin
+        Action memory spinAction = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms for native token rewards
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign and execute spin
+        bytes memory spinSig = _signAction(
+            accountAddress,
+            spinAction,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        vm.prank(player1);
+        account.play(spinAction, terms, spinSig, termsSig);
+
+        // Rig the game to win with three 2s
+        game.setEntropyFromOutcomes(2, 2, 2, accountAddress, false);
+
+        // Roll forward and accept
+        vm.roll(block.number + 1);
+
+        // Second action: accept
+        Action memory acceptAction = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("accept()"),
+            value: 0, // No value needed for accept
+            request: 2
+        });
+
+        // Sign and execute accept
+        bytes memory acceptSig = _signAction(
+            accountAddress,
+            acceptAction,
+            player2PrivateKey
+        );
+
+        // Record balances before accept
+        uint256 executorStartBalance = player1.balance;
+        uint256 accountStartBalance = accountAddress.balance;
+
+        vm.prank(player1);
+        account.play(acceptAction, terms, acceptSig, termsSig);
+
+        // Verify results
+        uint256 expectedPayout = 50 * game.CostToSpin(); // 50x the cost to spin
+        uint256 executorFee = expectedPayout / 10; // 10%
+        assertEq(
+            accountAddress.balance,
+            accountStartBalance + expectedPayout - executorFee
+        );
+        assertEq(player1.balance, executorStartBalance + executorFee);
     }
 }
