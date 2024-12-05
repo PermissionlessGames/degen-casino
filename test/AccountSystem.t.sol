@@ -1404,4 +1404,51 @@ contract AccountSystemTest is Test {
 
         vm.stopPrank();
     }
+
+    function test_play_fails_with_insufficient_balance() public {
+        // Create the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Explicitly set the account balance to zero
+        vm.deal(accountAddress, 0);
+
+        // Set up the action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the action and terms
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // Expect revert due to insufficient balance
+        vm.prank(player1);
+        vm.expectRevert(DegenCasinoAccount.ActionFailed.selector);
+        account.play(action, terms, actionSig, termsSig);
+    }
 }
