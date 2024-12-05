@@ -146,6 +146,31 @@ contract DegenCasinoAccount is EIP712 {
             );
     }
 
+    /// @notice Computes the EIP712 hash of a session
+    /// @param executor The executor authorized by the player
+    /// @param sessionID The session ID
+    /// @param expiration The expiration timestamp of the session
+    /// @return The EIP712 hash of the session
+    function sessionHash(
+        address executor,
+        uint256 sessionID,
+        uint256 expiration
+    ) public view returns (bytes32) {
+        return
+            _hashTypedDataV4(
+                keccak256(
+                    abi.encode(
+                        keccak256(
+                            "Session(address executor,uint256 sessionID,uint256 expiration)"
+                        ),
+                        executor,
+                        sessionID,
+                        expiration
+                    )
+                )
+            );
+    }
+
     /// @notice Executes a game action with executor compensation
     /// @dev Verifies signatures, executes the action, and pays the executor based on profit
     /// @param action The game action to execute
@@ -190,6 +215,14 @@ contract DegenCasinoAccount is EIP712 {
             revert InvalidPlayerTermsSignature();
         }
 
+        // Execute the game action and handle rewards
+        _play(action, terms);
+    }
+
+    /// @notice Internal function to execute the game action and pay executor rewards
+    /// @param action The game action to execute
+    /// @param terms The executor's compensation terms
+    function _play(Action memory action, ExecutorTerms memory terms) internal {
         // Record starting balances
         uint256[] memory startBalances = new uint256[](
             terms.rewardTokens.length
