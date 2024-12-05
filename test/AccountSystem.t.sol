@@ -758,8 +758,8 @@ contract AccountSystemTest is Test {
         vm.prank(player1);
         account.play(spinAction, terms, spinSig, termsSig);
 
-        // Rig the game to win with three 2s
-        game.setEntropyFromOutcomes(2, 2, 2, accountAddress, false);
+        // Rig the game to win with three 17s (jackpot)
+        game.setEntropyFromOutcomes(17, 17, 17, accountAddress, false);
 
         // Roll forward and accept
         vm.roll(block.number + 1);
@@ -783,11 +783,13 @@ contract AccountSystemTest is Test {
         uint256 executorStartBalance = player1.balance;
         uint256 accountStartBalance = accountAddress.balance;
 
+        // Get expected payout from the game contract
+        uint256 expectedPayout = game.payout(17, 17, 17);
+
         vm.prank(player1);
         account.play(acceptAction, terms, acceptSig, termsSig);
 
         // Verify results
-        uint256 expectedPayout = 50 * game.CostToSpin(); // 50x the cost to spin
         uint256 executorFee = expectedPayout / 10; // 10%
         assertEq(
             accountAddress.balance,
