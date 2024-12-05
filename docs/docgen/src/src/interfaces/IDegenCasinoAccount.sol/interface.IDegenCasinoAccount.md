@@ -1,5 +1,5 @@
 # IDegenCasinoAccount
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/8f57908c9fa7257d5b12b8ce17569a15ef42890a/src/interfaces/IDegenCasinoAccount.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/71373977d9155d3dd305aa87a7dd4ee332546c37/src/interfaces/IDegenCasinoAccount.sol)
 
 
 ## Functions
