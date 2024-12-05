@@ -3,6 +3,8 @@
 # src
   - [❱ interfaces](src/interfaces/README.md)
     - [IAccountSystem](src/interfaces/IAccountSystem.sol/interface.IAccountSystem.md)
+    - [IDegenCasinoAccount](src/interfaces/IDegenCasinoAccount.sol/interface.IDegenCasinoAccount.md)
+    - [IDegenGambit](src/interfaces/IDegenGambit.sol/interface.IDegenGambit.md)
   - [❱ testable](src/testable/README.md)
     - [TestableDegenGambit](src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md)
   - [ExecutorTerms](src/AccountSystem.sol/struct.ExecutorTerms.md)
