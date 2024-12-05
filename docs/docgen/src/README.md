@@ -16,3 +16,13 @@ It is a permissionless, autonomous, fully on-chain game.
 
 More details are available in:
 - [The *Degen's Gambit* integration guide](docs/DegenGambitIntegrationGuide.md).
+
+
+## Account system
+
+The Degen Casino features fully on-chain casino games. This means that every game interaction requires a Degen Casino player to submit an on-chain transaction.
+This means that, if the player were playing directly through a wallet like MetaMask, they would have to confirm every move through a transaction confirmation dialogue.
+These transaction confirmations disrupt the flow of the game and break player absorption. The Degen Casino account system is a decentralized means through which players
+can play games in the Degen Casino without having to confirm a transaction on every move.
+
+More details are available in [The Degen Casino account system](docs/AccountSystem.md).
