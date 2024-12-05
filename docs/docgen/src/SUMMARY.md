@@ -5,6 +5,8 @@
     - [IAccountSystem](src/interfaces/IAccountSystem.sol/interface.IAccountSystem.md)
   - [❱ testable](src/testable/README.md)
     - [TestableDegenGambit](src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md)
+  - [ExecutorTerms](src/AccountSystem.sol/struct.ExecutorTerms.md)
+  - [Action](src/AccountSystem.sol/struct.Action.md)
   - [DegenCasinoAccount](src/AccountSystem.sol/contract.DegenCasinoAccount.md)
   - [AccountSystem](src/AccountSystem.sol/contract.AccountSystem.md)
   - [AccountSystem constants](src/AccountSystem.sol/constants.AccountSystem.md)

@@ -1,5 +1,8 @@
 # DegenCasinoAccount
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/747a9f879e52c48fe525c83a0a51a637e87ccd6e/src/AccountSystem.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/a21af4259bb7b6bd065bac891f7074555dc03d5f/src/AccountSystem.sol)
+
+**Inherits:**
+EIP712
 
 Player smart accounts for The Degen Casino.
 
@@ -19,12 +22,19 @@ string public constant accountVersion = AccountVersion;
 ```
 
 
+### lastRequest
+
+```solidity
+uint256 public lastRequest;
+```
+
+
 ## Functions
 ### constructor
 
 
 ```solidity
-constructor(address _player);
+constructor(address _player) EIP712("DegenCasinoAccount", AccountVersion);
 ```
 
 ### receive
@@ -54,6 +64,73 @@ Used to drain native tokens or ERC20 tokens from the DegenCasinoAccount.
 function drain(address[] memory tokenAddresses) public;
 ```
 
+### executorTermsHash
+
+Computes the EIP712 hash of executor terms
+
+
+```solidity
+function executorTermsHash(ExecutorTerms memory terms) public view returns (bytes32);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`terms`|`ExecutorTerms`|The executor terms to hash|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bytes32`|The EIP712 hash of the terms|
+
+
+### actionHash
+
+Computes the EIP712 hash of a game action
+
+
+```solidity
+function actionHash(Action memory action) public view returns (bytes32);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`action`|`Action`|The action to hash|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bytes32`|The EIP712 hash of the action|
+
+
+### play
+
+Executes a game action with executor compensation
+
+*Verifies signatures, executes the action, and pays the executor based on profit*
+
+
+```solidity
+function play(
+    Action memory action,
+    ExecutorTerms memory terms,
+    bytes memory playerActionSignature,
+    bytes memory playerTermsSignature
+) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`action`|`Action`|The game action to execute|
+|`terms`|`ExecutorTerms`|The executor's compensation terms|
+|`playerActionSignature`|`bytes`|The player's signature for the action|
+|`playerTermsSignature`|`bytes`|The player's signature for the executor terms|
+
+
 ## Errors
 ### Unauthorized
 
@@ -65,5 +142,41 @@ error Unauthorized();
 
 ```solidity
 error Unsuccessful();
+```
+
+### MismatchedArrayLengths
+
+```solidity
+error MismatchedArrayLengths();
+```
+
+### RequestTooLow
+
+```solidity
+error RequestTooLow();
+```
+
+### InvalidPlayerActionSignature
+
+```solidity
+error InvalidPlayerActionSignature();
+```
+
+### InvalidPlayerTermsSignature
+
+```solidity
+error InvalidPlayerTermsSignature();
+```
+
+### FailedToSendReward
+
+```solidity
+error FailedToSendReward();
+```
+
+### ActionFailed
+
+```solidity
+error ActionFailed();
 ```
 
