@@ -797,4 +797,611 @@ contract AccountSystemTest is Test {
         );
         assertEq(player1.balance, executorStartBalance + executorFee);
     }
+
+    function test_play_fails_with_invalid_action_signer() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account
+        vm.deal(accountAddress, 1 ether);
+
+        // Set up the action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign with wrong private key (player1's key instead of player2's)
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player1PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        vm.prank(player1);
+        vm.expectRevert(
+            DegenCasinoAccount.InvalidPlayerActionSignature.selector
+        );
+        account.play(action, terms, actionSig, termsSig);
+    }
+
+    function test_play_fails_with_invalid_action_signature() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account
+        vm.deal(accountAddress, 1 ether);
+
+        // Set up the action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the original action
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // Modify the action after signing (change value)
+        action.value = game.CostToSpin() * 2; // Double the value
+
+        vm.prank(player1);
+        vm.expectRevert(
+            DegenCasinoAccount.InvalidPlayerActionSignature.selector
+        );
+        account.play(action, terms, actionSig, termsSig);
+    }
+
+    function test_play_fails_with_invalid_terms_signer() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account
+        vm.deal(accountAddress, 1 ether);
+
+        // Set up the action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign with correct action signature but wrong terms signature
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player1PrivateKey
+        );
+
+        vm.prank(player1);
+        vm.expectRevert(
+            DegenCasinoAccount.InvalidPlayerTermsSignature.selector
+        );
+        account.play(action, terms, actionSig, termsSig);
+    }
+
+    function test_play_fails_with_invalid_terms_signature() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account
+        vm.deal(accountAddress, 1 ether);
+
+        // Set up the action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the original terms
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // Modify the terms after signing
+        terms.basisPoints[0] = 2000; // Change from 10% to 20%
+
+        vm.prank(player1);
+        vm.expectRevert(
+            DegenCasinoAccount.InvalidPlayerTermsSignature.selector
+        );
+        account.play(action, terms, actionSig, termsSig);
+    }
+
+    function test_play_fails_with_replay_attack() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account
+        vm.deal(accountAddress, 1 ether);
+
+        // Set up the action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the action and terms
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        // First execution should succeed
+        vm.prank(player1);
+        account.play(action, terms, actionSig, termsSig);
+
+        // Second execution with same request ID should fail
+        vm.prank(player1);
+        vm.expectRevert(DegenCasinoAccount.RequestTooLow.selector);
+        account.play(action, terms, actionSig, termsSig);
+    }
+
+    function test_play_fails_with_lower_request_number() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account
+        vm.deal(accountAddress, 1 ether);
+
+        uint256 initialRequest = account.lastRequest();
+
+        // First action with higher request number
+        Action memory action1 = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: initialRequest + 5
+        });
+
+        // Set up executor terms
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 1000; // 10%
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign and execute first action
+        bytes memory actionSig1 = _signAction(
+            accountAddress,
+            action1,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        vm.prank(player1);
+        account.play(action1, terms, actionSig1, termsSig);
+
+        // Try to execute a new action with lower request number
+        Action memory action2 = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: initialRequest + 3 // Lower than initialRequest + 5
+        });
+
+        bytes memory actionSig2 = _signAction(
+            accountAddress,
+            action2,
+            player2PrivateKey
+        );
+
+        vm.prank(player1);
+        vm.expectRevert(DegenCasinoAccount.RequestTooLow.selector);
+        account.play(action2, terms, actionSig2, termsSig);
+    }
+
+    function test_play_succeeds_with_nonsequential_requests_and_zero_fee()
+        public
+    {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account for playing
+        vm.deal(accountAddress, 100 * game.CostToSpin());
+        vm.deal(address(game), 100 ether);
+
+        uint256 initialRequest = account.lastRequest();
+
+        // First action: spin with request number 5
+        Action memory spinAction = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: initialRequest + 5
+        });
+
+        // Set up executor terms with 0% fee
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 0; // 0% fee
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign and execute spin
+        bytes memory spinSig = _signAction(
+            accountAddress,
+            spinAction,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        vm.prank(player1);
+        account.play(spinAction, terms, spinSig, termsSig);
+
+        // Rig the game to win with three 17s (jackpot)
+        game.setEntropyFromOutcomes(17, 17, 17, accountAddress, false);
+
+        // Roll forward and accept with request number 10
+        vm.roll(block.number + 1);
+
+        Action memory acceptAction = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("accept()"),
+            value: 0,
+            request: initialRequest + 10
+        });
+
+        bytes memory acceptSig = _signAction(
+            accountAddress,
+            acceptAction,
+            player2PrivateKey
+        );
+
+        // Record balances before accept
+        uint256 executorStartBalance = player1.balance;
+        uint256 accountStartBalance = accountAddress.balance;
+
+        uint256 expectedPayout = game.payout(17, 17, 17);
+
+        vm.prank(player1);
+        account.play(acceptAction, terms, acceptSig, termsSig);
+
+        // Verify results - executor should get nothing (0% fee)
+        assertEq(accountAddress.balance, accountStartBalance + expectedPayout);
+        assertEq(player1.balance, executorStartBalance); // No change
+        assertEq(account.lastRequest(), initialRequest + 10);
+    }
+
+    function test_play_fails_with_mismatched_array_lengths() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account
+        vm.deal(accountAddress, 1 ether);
+
+        // Set up the action
+        Action memory action = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms with mismatched array lengths
+        address[] memory rewardTokens = new address[](2);
+        rewardTokens[0] = address(0); // native token
+        rewardTokens[1] = address(game); // ERC20 token
+
+        uint16[] memory basisPoints = new uint16[](1); // Only one basis point
+        basisPoints[0] = 1000; // 10%
+
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Sign the action and terms
+        bytes memory actionSig = _signAction(
+            accountAddress,
+            action,
+            player2PrivateKey
+        );
+        bytes memory termsSig = _signTerms(
+            accountAddress,
+            terms,
+            player2PrivateKey
+        );
+
+        vm.prank(player1);
+        vm.expectRevert(DegenCasinoAccount.MismatchedArrayLengths.selector);
+        account.play(action, terms, actionSig, termsSig);
+    }
+
+    function test_play_with_multiple_token_rewards() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account and game
+        vm.deal(accountAddress, 100 * game.CostToSpin());
+        vm.deal(address(game), 100 ether);
+        game.mintGambit(accountAddress, 100 ether);
+
+        // Set up the spin action
+        Action memory move = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms with both native and ERC20 rewards
+        address[] memory rewardTokens = new address[](2);
+        rewardTokens[0] = address(0); // native token
+        rewardTokens[1] = address(game); // ERC20 token
+        uint16[] memory basisPoints = new uint16[](2);
+        basisPoints[0] = 1000; // 10% for native token
+        basisPoints[1] = 500; // 5% for ERC20 token
+
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Record balances before spin
+        uint256 executorStartBalance = player1.balance;
+        uint256 accountStartBalance = accountAddress.balance;
+        uint256 accountStartERC20 = game.balanceOf(accountAddress);
+
+        // Sign and execute spin
+        vm.startPrank(player1);
+        account.play(
+            move,
+            terms,
+            _signAction(accountAddress, move, player2PrivateKey),
+            _signTerms(accountAddress, terms, player2PrivateKey)
+        );
+
+        // Rig the game to win with three 17s (jackpot)
+        game.setEntropyFromOutcomes(17, 17, 17, accountAddress, false);
+
+        // Roll forward and accept
+        vm.roll(block.number + 1);
+
+        move.data = abi.encodeWithSignature("accept()");
+        move.value = 0;
+        move.request = 2;
+
+        uint256 expectedPayout = game.payout(17, 17, 17);
+
+        // Execute accept
+        account.play(
+            move,
+            terms,
+            _signAction(accountAddress, move, player2PrivateKey),
+            _signTerms(accountAddress, terms, player2PrivateKey)
+        );
+        vm.stopPrank();
+
+        // Verify rewards
+        assertEq(
+            accountAddress.balance,
+            accountStartBalance -
+                game.CostToSpin() +
+                expectedPayout -
+                (expectedPayout * 1000) /
+                10000,
+            "Incorrect native token balance on DegenCasinoAccount"
+        );
+        assertEq(
+            player1.balance,
+            executorStartBalance + ((expectedPayout * 1000) / 10000),
+            "Incorrect native token balance on executor"
+        );
+        assertEq(
+            game.balanceOf(accountAddress),
+            accountStartERC20,
+            "Incorrect ERC20 balance on DegenCasinoAccount"
+        );
+        assertEq(
+            game.balanceOf(player1),
+            0,
+            "Incorrect ERC20 balance on executor"
+        );
+    }
+
+    function test_play_with_max_basis_points() public {
+        // Create and fund the account
+        (address accountAddress, ) = accountSystem.createAccount(player2);
+        DegenCasinoAccount account = DegenCasinoAccount(
+            payable(accountAddress)
+        );
+
+        // Fund the account and game
+        vm.deal(accountAddress, 100 * game.CostToSpin());
+        vm.deal(address(game), 100 ether);
+
+        // Set up the spin action
+        Action memory spinAction = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("spin(bool)", false),
+            value: game.CostToSpin(),
+            request: 1
+        });
+
+        // Set up executor terms with 100% fee
+        address[] memory rewardTokens = new address[](1);
+        rewardTokens[0] = address(0); // native token
+        uint16[] memory basisPoints = new uint16[](1);
+        basisPoints[0] = 10000; // 100%
+
+        ExecutorTerms memory terms = ExecutorTerms({
+            rewardTokens: rewardTokens,
+            basisPoints: basisPoints
+        });
+
+        // Record balances
+        uint256 executorStartBalance = player1.balance;
+
+        // Sign and execute spin
+        vm.startPrank(player1);
+        account.play(
+            spinAction,
+            terms,
+            _signAction(accountAddress, spinAction, player2PrivateKey),
+            _signTerms(accountAddress, terms, player2PrivateKey)
+        );
+
+        // Rig the game to win with three 17s (jackpot)
+        game.setEntropyFromOutcomes(17, 17, 17, accountAddress, false);
+
+        // Roll forward and accept
+        vm.roll(block.number + 1);
+
+        Action memory acceptAction = Action({
+            game: address(game),
+            data: abi.encodeWithSignature("accept()"),
+            value: 0,
+            request: 2
+        });
+
+        uint256 expectedPayout = game.payout(17, 17, 17);
+
+        // Execute accept - executor should get 100% of winnings
+        account.play(
+            acceptAction,
+            terms,
+            _signAction(accountAddress, acceptAction, player2PrivateKey),
+            _signTerms(accountAddress, terms, player2PrivateKey)
+        );
+
+        assertEq(
+            player1.balance,
+            executorStartBalance + expectedPayout,
+            "Executor should receive full payout"
+        );
+
+        vm.stopPrank();
+    }
 }
