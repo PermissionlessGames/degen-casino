@@ -24,19 +24,25 @@ The pot for a *Degen's Gambit* smart contract is denominated in the native token
 read the balance of the *Degen's Gambit* smart contract.
 
 For example, if you are interested in the size of the pot for the *Degen's Gambit* contract deployed at
-[`0x5C462aBedc9d33C78d07650C5Da041e247DD1348`](https://testnet.game7.io/address/0x5C462aBedc9d33C78d07650C5Da041e247DD1348?tab=contract)
+[`0xCE75cd656b2C4114aD9fb3c82E188658E6fc6a4C`](https://testnet.game7.io/address/0xCE75cd656b2C4114aD9fb3c82E188658E6fc6a4C?tab=contract)
 on the Game7 testnet, you could make an RPC call as follows:
 
 ```solidity
-function prizes() external view returns(uint256[5] memory prizesAmount)
+	// Selector: 11cceaf6
+	function prizes() external view returns (uint256[] memory prizesAmount, uint256[] memory typeOfPrize);
 ```
 
 The return values, in order:
-1. Index 0: prize for spinning all matching minor symbols
-2. Index 1: prize for spinning matching minor symbol left and right, with a major symbol center
-3. Index 2: prize for spinning matching major symbol left and right, with a different major symbol center
-4. Index 3: prize for spinning 3 different major symbols
-5. index 4: prize for spinning all matching major symbol
+1. Index 0: prize for spinning matching minor left and right, with a different minor symbol
+2. Index 1: prize for spinning all matching minor symbols
+3. Index 2: prize for spinning matching minor symbol left and right, with a major symbol center
+4. Index 3: prize for spinning matching major symbol left and right, with a different major symbol center
+5. Index 4: prize for spinning 3 different major symbols
+6. index 5: prize for spinning all matching major symbol
+
+The return values for `typeOfPrize`
+1. 1 `native Token`
+2. 20 `Gambit Token`
 
 
 The `"result"` key is the hexadecimal representation of the balance. In this case, the pot size is `0x3a99e = 240030`.
@@ -52,8 +58,10 @@ decode the result. Please consult the relevant library documentation to see how 
 These methods have the following signature:
 
 ```solidity
-function spin(bool boost) external payable;
-function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable;
+	// Selector: 6499572f
+	function spin(bool boost) external payable;
+	// Selector: 2b10c68b
+	function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable;
 ```
 
 Each spin/spinFor costs the player/caller native tokens to execute. If `boost = true`, the spin will be boosted. This is something we cover in greater detail in the next section,
@@ -180,7 +188,9 @@ Each boost costs a single `GAMBIT` token and a player can indicate that they wou
 
 ```solidity
 	// Selector: 6499572f
-	function spin(bool boost) external ;
+	function spin(bool boost) external payable;
+	// Selector: 2b10c68b
+	function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable;
 ```
 
 If a player makes a boosted spin, a single `GAMBIT` token is burned from their account.
@@ -245,8 +255,12 @@ A more simple way for game clients to detect when a player begins a streak or ex
 ```solidity
 	// Selector: fcb13e26
 	function LastStreakDay(address ) external view returns (uint256);
+	// Selector: cf71aae2
+	function CurrentDailyStreakLength(address ) external view returns (uint256);
 	// Selector: 21c58fba
 	function LastStreakWeek(address ) external view returns (uint256);
+	// Selector: 215a57c1
+	function CurrentWeeklyStreakLength(address ) external view returns (uint256);
 ```
 
 In reality, these are public mappings on [`DegenGambit`](./docgen/src/src/DegenGambit.sol/contract.DegenGambit.md#laststreakday). Every time a player begins or continues a streak, a client can use the change in `LastStreakDay` or `LastStreakWeek` to determine what happened.
@@ -254,12 +268,12 @@ In reality, these are public mappings on [`DegenGambit`](./docgen/src/src/DegenG
 For daily streaks:
 1. If `LastStreakDay` did not change on a `spin`, then there has been no change to the player's streaks.
 2. If `LastStreakDay` increased by 1, the player has extended a streak and received `DailyStreakReward()` `GAMBIT` tokens.
-3. If `LastStreakDay` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `DailyStreakReward()` `GAMBIT` tokens if they `spin` again tomorrow.
+3. If `LastStreakDay` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `DailyStreakReward()` `GAMBIT` tokens if they `spin` again tomorrow and their `CurrentDailyStreakLength` will increase by 1. 
 
 For weekly streaks:
 1. If `LastStreakWeek` did not change on a `spin`, then there has been no change to the player's streaks.
 2. If `LastStreakWeek` increased by 1, the player has extended a streak and received `WeeklyStreakReward()` `GAMBIT` tokens.
-3. If `LastStreakWeek` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `WeeklyStreakReward()` `GAMBIT` tokens if they `spin` again next week.
+3. If `LastStreakWeek` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `WeeklyStreakReward()` `GAMBIT` tokens if they `spin` again next weekand their `CurrentWeeklyStreakLength` will increase by 1.
 
 ## Debugging with TestableDegenGambit
 
@@ -268,7 +282,7 @@ Interacting with a `TestableDegenGambit` smart contract:
 
 The `TestableDegenGambit` debugging uses a testable contract to improve and test functions and condintions on and off chain.
 
-Current `TestableDegenGambit` launched [`0xdfac471c67788e290aC81eD07F69878439d673a3`](https://testnet.game7.io/address/0xdfac471c67788e290aC81eD07F69878439d673a3?tab=contract)
+Current `TestableDegenGambit` launched [`0x02BF55866d7F2226D4998dfC8D8c4D48B87358c1`](https://testnet.game7.io/address/0x02BF55866d7F2226D4998dfC8D8c4D48B87358c1?tab=contract)
 
 Developers can use the debugger to check for the version of the testable smart contract. This allows front-end developers to easily test on-chain events that will trigger on-screen events i.e. reels spinning, jackpots hit etc.. This allows for front-end development to determine between a testable and non-testable based on contract versions string [`version` method](./docgen/src/src/TestableDegenGambit.sol/contract.TestableDegenGambit.md#version):
 
@@ -280,18 +294,20 @@ Testing specfic outcomes on `TestableDegenGambit` make sure [`EntropyIsHash` met
 
 
 ```solidity
-	// bool public EntropyIsHash
-	// function setEntropySource(bool isFromHash) external;
-	// function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost) public;
+	bool public EntropyIsHash
+	function setEntropySource(bool isFromHash) external;
+	function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost) public;
 ```
 
-Testing daily and weekly streaks using [`setDailyStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setDailyStreak) and [`setWeekltStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setWeeklyStreak)
+Testing daily and weekly streaks using [`setDailyStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setDailyStreak), [`setDailyStreakLength` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setDailyStreakLength), [`setWeekltStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setWeeklyStreak), and [`setWeeklyStreakLength` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setWeeklyStreakLength)
 
 
 ```solidity
 function setDailyStreak(uint256 dailyStreak, address player) public;
+function setDailyStreakLength(uint256 dailyStreakLength, address player) public;
 
 function setWeeklyStreak(uint256 weeklyStreak, address player) public;
+function setWeeklyStreakLength(uint256 weeklyStreakLength, address player) public;
 ```
 
 Testing spin's LastSpinBoosted and LastSpinBlock streaks using [`setLastSpinBoosted` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setLastSpinBoosted) and [`setLastSpinBlock` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setLastSpinBlock). Setting LastSpinBlock can activate a spin without calling spin or spinFor and setting LastSpinBoosted allows for quick reponses(without events emit) and allows for accept and acceptFor to be called.

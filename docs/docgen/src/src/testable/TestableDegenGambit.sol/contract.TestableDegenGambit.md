@@ -64,11 +64,25 @@ function mintGambit(address to, uint256 amount) public;
 function setDailyStreak(uint256 dailyStreak, address player) public;
 ```
 
+### setDailyStreakLength
+
+
+```solidity
+function setDailyStreakLength(uint256 dailyStreakLength, address player) public;
+```
+
 ### setWeeklyStreak
 
 
 ```solidity
 function setWeeklyStreak(uint256 weeklyStreak, address player) public;
+```
+
+### setWeeklyStreakLength
+
+
+```solidity
+function setWeeklyStreakLength(uint256 weeklyStreakLength, address player) public;
 ```
 
 ### version
