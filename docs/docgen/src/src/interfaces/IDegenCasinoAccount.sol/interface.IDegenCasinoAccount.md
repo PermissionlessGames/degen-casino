@@ -1,5 +1,5 @@
 # IDegenCasinoAccount
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/b551bd78d47f8c60790f2eee2730aa5d11ca2648/src/interfaces/IDegenCasinoAccount.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/0b1acdafdf1039b0e8a22186342f9884ce98fdc9/src/interfaces/IDegenCasinoAccount.sol)
 
 
 ## Functions
@@ -68,11 +68,32 @@ function play(
 ) external;
 ```
 
+### playInSession
+
+
+```solidity
+function playInSession(
+    Action4 memory action,
+    ExecutorTerms5 memory terms,
+    uint256 sessionID,
+    uint256 expiration,
+    bytes memory playerSessionSignature,
+    bytes memory playerTermsSignature
+) external;
+```
+
 ### player
 
 
 ```solidity
 function player() external view returns (address);
+```
+
+### sessionHash
+
+
+```solidity
+function sessionHash(address executor, uint256 sessionID, uint256 expiration) external view returns (bytes32);
 ```
 
 ### withdraw
@@ -114,6 +135,12 @@ error InvalidPlayerActionSignature();
 error InvalidPlayerTermsSignature();
 ```
 
+### InvalidSessionSignature
+
+```solidity
+error InvalidSessionSignature();
+```
+
 ### InvalidShortString
 
 ```solidity
@@ -130,6 +157,12 @@ error MismatchedArrayLengths();
 
 ```solidity
 error RequestTooLow();
+```
+
+### SessionExpired
+
+```solidity
+error SessionExpired();
 ```
 
 ### StringTooLong
@@ -186,6 +219,26 @@ struct Action2 {
 
 ```solidity
 struct ExecutorTerms3 {
+    address[] rewardTokens;
+    uint16[] basisPoints;
+}
+```
+
+### Action4
+
+```solidity
+struct Action4 {
+    address game;
+    bytes data;
+    uint256 value;
+    uint256 request;
+}
+```
+
+### ExecutorTerms5
+
+```solidity
+struct ExecutorTerms5 {
     address[] rewardTokens;
     uint16[] basisPoints;
 }
