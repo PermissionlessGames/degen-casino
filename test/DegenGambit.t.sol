@@ -340,7 +340,7 @@ contract DegenGambitTest is Test {
         {
             uint256 typeOfPrize;
             (expectedPayout, typeOfPrize) = degenGambit.payout(2, 3, 2);
-            assertEq(expectedPayout, degenGambit.GambitPrize());
+            assertEq(expectedPayout, degenGambit.MinorGambitPrize());
             assertEq(typeOfPrize, 20);
         }
         assertEq(degenGambit.LastSpinBoosted(player1), false);
@@ -364,11 +364,11 @@ contract DegenGambitTest is Test {
         assertEq(address(degenGambit).balance, gameBalanceBefore + costToSpin);
         assertEq(
             gambitSupplyFinal,
-            gambitSupplyBefore + degenGambit.GambitPrize()
+            gambitSupplyBefore + degenGambit.MinorGambitPrize()
         );
         assertEq(
             playerGambitBalanceFinal,
-            playerGambitBalanceBefore + degenGambit.GambitPrize()
+            playerGambitBalanceBefore + degenGambit.MinorGambitPrize()
         );
 
         assertEq(degenGambit.LastSpinBoosted(player1), false);
