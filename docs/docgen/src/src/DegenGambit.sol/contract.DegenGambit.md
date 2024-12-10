@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8fec4917c6ee7e52990777afdd07be3cfc37cf72/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b46f397d022c133d865a4e5695879ff25af3fff7/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -51,7 +51,7 @@ The Gambit Prize for case same minor left, right different minor center
 
 
 ```solidity
-uint256 public constant MinorGambitPrize = 1e18;
+uint256 public constant MinorGambitPrize = 3e18;
 ```
 
 
