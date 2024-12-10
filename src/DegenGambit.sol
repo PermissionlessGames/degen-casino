@@ -23,7 +23,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     uint256 public constant WeeklyStreakReward = 5e18;
 
     /// The Gambit Prize for case same minor left, right different minor center
-    uint256 public constant MinorGambitPrize = 1e18;
+    uint256 public constant MinorGambitPrize = 3e18;
 
     /// The Gambit Prize for having at least 1 major symbol and nothing else
     uint256 public constant MajorGambitPrize = 1e18;
