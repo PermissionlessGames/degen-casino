@@ -13,7 +13,7 @@ export KEY='<keyfile path>'
 
 ## Deploy
 ```bash
-bin/technician testable-gambit deploy \
+bin/technician dev-gambit deploy \
     --blocks-to-act $BLOCKSTOACT \
     --cost-to-respin $COSTTORESPIN \
     --cost-to-spin $COSTTOSPIN \
@@ -28,6 +28,6 @@ forge verify-contract \
   --rpc-url https://testnet-rpc.game7.io \
   --verifier blockscout \
   --verifier-url 'https://testnet.game7.io/api/' \
-  0x02BF55866d7F2226D4998dfC8D8c4D48B87358c1 \
-  src/testable/TestableDegenGambit.sol:TestableDegenGambit 
+  0x05D18caC901879a9bD295ADbA54eBAaD56c43559 \
+  src/dev/DevDegenGambit.sol:DevDegenGambit 
 ```

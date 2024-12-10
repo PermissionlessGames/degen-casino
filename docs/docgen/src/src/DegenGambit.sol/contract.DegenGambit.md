@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/826964e7c93cd23441266d14cb83dbd7e5a43955/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b46f397d022c133d865a4e5695879ff25af3fff7/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -46,12 +46,21 @@ uint256 public constant WeeklyStreakReward = 5e18;
 ```
 
 
-### GambitPrize
-The Gambit Prize for case 1
+### MinorGambitPrize
+The Gambit Prize for case same minor left, right different minor center
 
 
 ```solidity
-uint256 public constant GambitPrize = 1e18;
+uint256 public constant MinorGambitPrize = 3e18;
+```
+
+
+### MajorGambitPrize
+The Gambit Prize for having at least 1 major symbol and nothing else
+
+
+```solidity
+uint256 public constant MajorGambitPrize = 1e18;
 ```
 
 

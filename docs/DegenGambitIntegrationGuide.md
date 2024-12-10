@@ -24,7 +24,7 @@ The pot for a *Degen's Gambit* smart contract is denominated in the native token
 read the balance of the *Degen's Gambit* smart contract.
 
 For example, if you are interested in the size of the pot for the *Degen's Gambit* contract deployed at
-[`0xCE75cd656b2C4114aD9fb3c82E188658E6fc6a4C`](https://testnet.game7.io/address/0xCE75cd656b2C4114aD9fb3c82E188658E6fc6a4C?tab=contract)
+[`0xf3BE777A6096E0ff568296aD3BA76811b5b1Fc40`](https://testnet.game7.io/address/0xf3BE777A6096E0ff568296aD3BA76811b5b1Fc40?tab=contract)
 on the Game7 testnet, you could make an RPC call as follows:
 
 ```solidity
@@ -33,12 +33,13 @@ on the Game7 testnet, you could make an RPC call as follows:
 ```
 
 The return values, in order:
-1. Index 0: prize for spinning matching minor left and right, with a different minor symbol
-2. Index 1: prize for spinning all matching minor symbols
-3. Index 2: prize for spinning matching minor symbol left and right, with a major symbol center
-4. Index 3: prize for spinning matching major symbol left and right, with a different major symbol center
-5. Index 4: prize for spinning 3 different major symbols
-6. index 5: prize for spinning all matching major symbol
+1. Index 0: prize for spinning at least 1 major symbol with no other prize option 
+2. Index 1: prize for spinning matching minor left and right, with a different minor symbol
+3. Index 2: prize for spinning all matching minor symbols
+4. Index 3: prize for spinning matching minor symbol left and right, with a major symbol center
+5. Index 4: prize for spinning matching major symbol left and right, with a different major symbol center
+6. Index 5: prize for spinning 3 different major symbols
+7. index 6: prize for spinning all matching major symbol
 
 The return values for `typeOfPrize`
 1. 1 `native Token`
@@ -275,22 +276,22 @@ For weekly streaks:
 2. If `LastStreakWeek` increased by 1, the player has extended a streak and received `WeeklyStreakReward()` `GAMBIT` tokens.
 3. If `LastStreakWeek` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `WeeklyStreakReward()` `GAMBIT` tokens if they `spin` again next weekand their `CurrentWeeklyStreakLength` will increase by 1.
 
-## Debugging with TestableDegenGambit
+## Debugging with DevDegenGambit
 
-Interacting with a `TestableDegenGambit` smart contract:
-- Use the [`TestableDegenGambit` ABI](./abis/testable/TestableDegenGambit.abi.json) if you want to interact with a game contract from outside the blockchain.
+Interacting with a `DevDegenGambit` smart contract:
+- Use the [`DevDegenGambit` ABI](./abis/dev/DevDegenGambit.abi.json) if you want to interact with a game contract from outside the blockchain.
 
-The `TestableDegenGambit` debugging uses a testable contract to improve and test functions and condintions on and off chain.
+The `DevDegenGambit` debugging uses a dev contract to improve and test functions and condintions on and off chain.
 
-Current `TestableDegenGambit` launched [`0x02BF55866d7F2226D4998dfC8D8c4D48B87358c1`](https://testnet.game7.io/address/0x02BF55866d7F2226D4998dfC8D8c4D48B87358c1?tab=contract)
+Current `DevDegenGambit` launched [`0x05D18caC901879a9bD295ADbA54eBAaD56c43559`](https://testnet.game7.io/address/0x05D18caC901879a9bD295ADbA54eBAaD56c43559?tab=contract)
 
-Developers can use the debugger to check for the version of the testable smart contract. This allows front-end developers to easily test on-chain events that will trigger on-screen events i.e. reels spinning, jackpots hit etc.. This allows for front-end development to determine between a testable and non-testable based on contract versions string [`version` method](./docgen/src/src/TestableDegenGambit.sol/contract.TestableDegenGambit.md#version):
+Developers can use the debugger to check for the version of the dev smart contract. This allows front-end developers to easily test on-chain events that will trigger on-screen events i.e. reels spinning, jackpots hit etc.. This allows for front-end development to determine between a dev and non-dev based on contract versions string [`version` method](./docgen/src/src/DevDegenGambit.sol/contract.DevDegenGambit.md#version):
 
 ```solidity
 	function version() external pure virtual returns (string memory);
 ```
 
-Testing specfic outcomes on `TestableDegenGambit` make sure [`EntropyIsHash` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#EntropyIsHash) is set to `false` with [`setEntropySource` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setEntropySource) if `true` pulls hash from `ArbSys`. Then use [`setEntropyFromOutcomes` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setEntropyFromOutcomes) to set the desired outcome:
+Testing specfic outcomes on `DevDegenGambit` make sure [`EntropyIsHash` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#EntropyIsHash) is set to `false` with [`setEntropySource` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setEntropySource) if `true` pulls hash from `ArbSys`. Then use [`setEntropyFromOutcomes` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setEntropyFromOutcomes) to set the desired outcome:
 
 
 ```solidity
@@ -299,7 +300,7 @@ Testing specfic outcomes on `TestableDegenGambit` make sure [`EntropyIsHash` met
 	function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost) public;
 ```
 
-Testing daily and weekly streaks using [`setDailyStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setDailyStreak), [`setDailyStreakLength` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setDailyStreakLength), [`setWeekltStreak` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setWeeklyStreak), and [`setWeeklyStreakLength` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setWeeklyStreakLength)
+Testing daily and weekly streaks using [`setDailyStreak` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setDailyStreak), [`setDailyStreakLength` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setDailyStreakLength), [`setWeekltStreak` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setWeeklyStreak), and [`setWeeklyStreakLength` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setWeeklyStreakLength)
 
 
 ```solidity
@@ -310,7 +311,7 @@ function setWeeklyStreak(uint256 weeklyStreak, address player) public;
 function setWeeklyStreakLength(uint256 weeklyStreakLength, address player) public;
 ```
 
-Testing spin's LastSpinBoosted and LastSpinBlock streaks using [`setLastSpinBoosted` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setLastSpinBoosted) and [`setLastSpinBlock` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setLastSpinBlock). Setting LastSpinBlock can activate a spin without calling spin or spinFor and setting LastSpinBoosted allows for quick reponses(without events emit) and allows for accept and acceptFor to be called.
+Testing spin's LastSpinBoosted and LastSpinBlock streaks using [`setLastSpinBoosted` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setLastSpinBoosted) and [`setLastSpinBlock` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setLastSpinBlock). Setting LastSpinBlock can activate a spin without calling spin or spinFor and setting LastSpinBoosted allows for quick reponses(without events emit) and allows for accept and acceptFor to be called.
 
 ```solidity
     function setLastSpinBoosted(address player, bool boost) external;
@@ -318,7 +319,7 @@ Testing spin's LastSpinBoosted and LastSpinBlock streaks using [`setLastSpinBoos
     function setLastSpinBlock(address player, uint256 blockNumber) external;
 ```
 
-Testing Gambit fixed variables CostToSpin, CostToRespin, BlocksToAct using [`setBlocksToAct` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setBlocksToAct), [`setCostToSpin` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setCostToSpin), [`setCostToRespin` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#setCostToRespin). Allows for adjusting constructor parameters during debugging.
+Testing Gambit fixed variables CostToSpin, CostToRespin, BlocksToAct using [`setBlocksToAct` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setBlocksToAct), [`setCostToSpin` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setCostToSpin), [`setCostToRespin` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#setCostToRespin). Allows for adjusting constructor parameters during debugging.
 
 ```solidity
     function setBlocksToAct(uint256 newBlocksToAct) external;
@@ -328,7 +329,7 @@ Testing Gambit fixed variables CostToSpin, CostToRespin, BlocksToAct using [`set
     function setCostToRespin(uint256 newCostToRespin) external;
 ```
 
-Testing Gambit transfers for boosted spins use [`mintGambit` method](./docgen/src/src/testable/TestableDegenGambit.sol/contract.TestableDegenGambit.md#mintGambit). This will mint gambit for the desinated address. 
+Testing Gambit transfers for boosted spins use [`mintGambit` method](./docgen/src/src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md#mintGambit). This will mint gambit for the desinated address. 
 
 ```solidity
 	function mintGambit(address to, uint256 amount) public;
