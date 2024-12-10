@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/PermissionlessGames/degen-casino/bindings/BlockInspector"
-	"github.com/PermissionlessGames/degen-casino/bindings/TestableDegenGambit"
+	"github.com/PermissionlessGames/degen-casino/bindings/DevDegenGambit"
 	"github.com/PermissionlessGames/degen-casino/version"
 )
 
@@ -27,10 +27,10 @@ func CreateRootCommand() *cobra.Command {
 	blockInspectorCmd := BlockInspector.CreateBlockInspectorCommand()
 	blockInspectorCmd.Use = "block-inspector"
 
-	testableGambitCmd := TestableDegenGambit.CreateTestableDegenGambitCommand()
-	testableGambitCmd.Use = "testable-gambit"
+	devGambitCmd := DevDegenGambit.CreateDevDegenGambitCommand()
+	devGambitCmd.Use = "dev-gambit"
 
-	rootCmd.AddCommand(blockInspectorCmd, testableGambitCmd)
+	rootCmd.AddCommand(blockInspectorCmd, devGambitCmd)
 
 	// By default, cobra Command objects write to stderr. We have to forcibly set them to output to
 	// stdout.
