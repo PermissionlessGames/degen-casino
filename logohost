@@ -1,0 +1,42 @@
+figma.showUI(`<html>
+  <body>
+    <button id="addImage">Add Image</button>
+    <script>
+      const imageUrl = 'https://imgur.com/a/FghfaNt'; // Image URL
+      document.getElementById('addImage').onclick = async () => {
+        const response = await fetch(imageUrl);
+        const imageData = await response.arrayBuffer();
+        parent.postMessage({ pluginMessage: { type: 'insert-image', imageData } }, '*');
+      };
+    </script>
+  </body>
+</html>`, { width: 300, height: 100 });
+
+figma.ui.onmessage = async (msg) => {
+  if (msg.type === 'insert-image') {
+    const { imageData } = msg;
+
+    // Create a new Figma image using the fetched data
+    const image = figma.createImage(new Uint8Array(imageData));
+
+    // Create a rectangle to place the image in
+    const rect = figma.createRectangle();
+    rect.resize(400, 300); // Adjust dimensions as needed
+    rect.fills = [
+      {
+        type: 'IMAGE',
+        scaleMode: 'FILL',
+        imageHash: image.hash,
+      },
+    ];
+
+    // Add the rectangle to the current page
+    figma.currentPage.appendChild(rect);
+
+    // Center the rectangle in the viewport
+    figma.viewport.scrollAndZoomIntoView([rect]);
+  }
+
+  // Close the plugin UI
+  figma.closePlugin();
+};
