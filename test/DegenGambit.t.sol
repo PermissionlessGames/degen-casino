@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
 import {ArbSys} from "../src/ArbSys.sol";
-import {TestableDegenGambit} from "../src/testable/TestableDegenGambit.sol";
+import {DevDegenGambit} from "../src/dev/DevDegenGambit.sol";
 
 contract ArbSysMock is ArbSys {
     function arbBlockNumber() external view returns (uint) {
@@ -20,7 +20,7 @@ contract DegenGambitTest is Test {
     uint256 private constant SECONDS_PER_DAY = 60 * 60 * 24;
     uint256 private constant SECONDS_PER_WEEK = 60 * 60 * 24 * 7;
 
-    TestableDegenGambit public degenGambit;
+    DevDegenGambit public degenGambit;
 
     uint256 blocksToAct = 20;
     uint256 costToSpin = 0.1 ether;
@@ -37,11 +37,7 @@ contract DegenGambitTest is Test {
     event WeeklyStreak(address indexed player, uint256 week);
 
     function setUp() public {
-        degenGambit = new TestableDegenGambit(
-            blocksToAct,
-            costToSpin,
-            costToRespin
-        );
+        degenGambit = new DevDegenGambit(blocksToAct, costToSpin, costToRespin);
 
         vm.deal(address(degenGambit), costToSpin << 30);
         vm.deal(player1, 10 * costToSpin);
