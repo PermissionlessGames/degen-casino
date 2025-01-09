@@ -1,7 +1,7 @@
 # ArbSys
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b46f397d022c133d865a4e5695879ff25af3fff7/src/ArbSys.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/fe17d0a13c5a7eda578cb77bcdae367d568a3083/src/ArbSys.sol)
 
-This code was adapted from the OffchainLabs/nitor-contracts repository: https://github.com/OffchainLabs/nitro-contracts.
+This code was adapted from the OffchainLabs/nitro-contracts repository: https://github.com/OffchainLabs/nitro-contracts.
 Specifically, the ArbSys contract at commit 2ba206505edd15ad1e177392c454e89479959ca5:
 https://github.com/OffchainLabs/nitro-contracts/blob/7396313311ab17cb30e2eef27cccf96f0a9e8f7f/src/precompiles/ArbSys.sol
 Installing it as a foundry dependency had two issues:
