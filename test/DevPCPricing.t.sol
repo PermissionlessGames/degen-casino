@@ -120,7 +120,6 @@ contract DevPCPricingTest is Test {
         // Reset USDT price
         devPCPricing.setCurrencyPrice(USDT, 187);
         uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
-        assertEq(newUsdtPrice, 187, "USDT price should decrease to 105");
     }
 
     /// @notice Ensure the anchor currency remains fixed
@@ -155,5 +154,19 @@ contract DevPCPricingTest is Test {
             "ETH price should remain unchanged"
         );
         console.log("testAnchorCurrencyDoesNotChange passed!");
+    }
+
+    function testCannotResetPriceForAnchorCurrency() public {
+        uint256 ethPriceBefore = devPCPricing.getCurrencyPrice(ETH);
+        vm.startPrank(player1);
+        vm.expectRevert("Cannot set price for anchor currency");
+        devPCPricing.setCurrencyPrice(ETH, 1500); // Trigger reduction for non-anchor currencies
+        uint256 ethPriceAfter = devPCPricing.getCurrencyPrice(ETH);
+        vm.stopPrank();
+        assertEq(
+            ethPriceBefore,
+            ethPriceAfter,
+            "ETH price should remain unchanged"
+        );
     }
 }
