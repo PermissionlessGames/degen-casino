@@ -1,0 +1,159 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import {Test, console} from "../lib/forge-std/src/Test.sol";
+import {DevPCPricing} from "../src/dev/DevPCPricing.sol";
+
+/// @title Foundry Test for DevPCPricing Contract
+/// @author Permissionless Games & ChatGPT
+/// @notice Tests key functionalities of the DevPCPricing contract using Foundry framework.
+contract DevPCPricingTest is Test {
+    DevPCPricing devPCPricing;
+
+    bytes constant ETH = "ETH";
+    bytes constant USDT = "USDT";
+    bytes constant GOLD = "ERC1155-GOLD";
+
+    uint256 player1PrivateKey = 0x13371;
+    address player1 = vm.addr(player1PrivateKey);
+
+    function setUp() public {
+        // Deploy DevPCPricing with an anchor currency (ETH = 1000), 5% adjustment factor
+        devPCPricing = new DevPCPricing(ETH, 1000, 5, 100);
+
+        // Set initial prices for other currencies
+        devPCPricing.setCurrencyPrice(USDT, 100);
+        devPCPricing.setCurrencyPrice(GOLD, 500);
+    }
+
+    function testInitialPrices() public view {
+        uint256 ethPrice = devPCPricing.getCurrencyPrice(ETH);
+        uint256 usdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        uint256 goldPrice = devPCPricing.getCurrencyPrice(GOLD);
+
+        assertEq(ethPrice, 1000, "ETH price should be initialized to 1000");
+        assertEq(usdtPrice, 100, "USDT price should be initialized to 100");
+        assertEq(goldPrice, 500, "GOLD price should be initialized to 500");
+
+        console.log("testInitialPrices passed!");
+    }
+
+    function testPriceAdjustmentIncrease() public {
+        devPCPricing.adjustCurrencyPrice(USDT, true);
+        uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(newUsdtPrice, 105, "USDT price should increase by 5%");
+
+        devPCPricing.adjustCurrencyPrice(GOLD, true);
+        uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
+        assertEq(newGoldPrice, 525, "GOLD price should increase by 5%");
+
+        console.log("testPriceAdjustmentIncrease passed!");
+    }
+
+    function testPriceAdjustmentDecrease() public {
+        devPCPricing.adjustCurrencyPrice(USDT, false);
+        uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(
+            newUsdtPrice,
+            100,
+            "USDT price should stay the same since the minium matches the adjustment denominator"
+        );
+
+        devPCPricing.adjustCurrencyPrice(GOLD, false);
+        uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
+        assertEq(newGoldPrice, 475, "GOLD price should decrease by 5%");
+
+        console.log("testPriceAdjustmentDecrease passed!");
+    }
+
+    function testUseAnchorCurrencyReducesAllNonAnchorPrices() public {
+        devPCPricing.useAnchorCurrency();
+
+        uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
+
+        assertEq(
+            newUsdtPrice,
+            100,
+            "USDT price should stay the same since the minium matches the adjustment denominator"
+        );
+        assertEq(
+            newGoldPrice,
+            475,
+            "GOLD price should decrease by 5% when using anchor currency"
+        );
+
+        console.log("testUseAnchorCurrencyReducesAllNonAnchorPrices passed!");
+    }
+
+    function testGetAllCurrencyPrices() public view {
+        (bytes[] memory currencies, uint256[] memory prices) = devPCPricing
+            .getAllCurrencyPrices();
+
+        assertEq(currencies.length, 2, "Should return two tracked currencies");
+        assertEq(prices.length, 2, "Should return prices for two currencies");
+
+        assertEq(currencies[0], USDT, "First currency should be USDT");
+        assertEq(currencies[1], GOLD, "Second currency should be GOLD");
+        assertEq(prices[0], 100, "First price should be 100");
+        assertEq(prices[1], 500, "Second price should be 500");
+
+        console.log("testGetAllCurrencyPrices passed!");
+    }
+
+    function testIncreaseUSDT2TimesAndDecreaseOnce() public {
+        devPCPricing.adjustCurrencyPrice(USDT, true);
+        devPCPricing.adjustCurrencyPrice(USDT, true);
+        uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
+
+        assertEq(
+            newUsdtPrice,
+            110,
+            "USDT price should increase by 100 * (1+.05)^2"
+        );
+        devPCPricing.adjustCurrencyPrice(USDT, false);
+        newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(newUsdtPrice, 105, "USDT price should decrease to 105");
+    }
+
+    function testSetCurrencyPriceAfterInitialSet() public {
+        // Reset USDT price
+        devPCPricing.setCurrencyPrice(USDT, 187);
+        uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(newUsdtPrice, 187, "USDT price should decrease to 105");
+    }
+
+    /// @notice Ensure the anchor currency remains fixed
+    function testAnchorCurrencyDoesNotChange() public {
+        uint256 ethPriceBefore = devPCPricing.getCurrencyPrice(ETH);
+        devPCPricing.useAnchorCurrency(); // Trigger reduction for non-anchor currencies
+        uint256 ethPriceAfter = devPCPricing.getCurrencyPrice(ETH);
+
+        assertEq(
+            ethPriceBefore,
+            ethPriceAfter,
+            "ETH price should remain unchanged"
+        );
+        console.log("testAnchorCurrencyDoesNotChange passed!");
+    }
+
+    function testCannotAdjustAnchorPrice() public {
+        uint256 ethPriceBefore = devPCPricing.getCurrencyPrice(ETH);
+        vm.startPrank(player1);
+        vm.expectRevert("Anchor currency cannot be adjusted");
+        devPCPricing.adjustCurrencyPrice(ETH, true); // Trigger reduction for non-anchor currencies
+        vm.stopPrank();
+        vm.startPrank(player1);
+        vm.expectRevert("Anchor currency cannot be adjusted");
+        devPCPricing.adjustCurrencyPrice(ETH, false); // Trigger reduction for non-anchor currencies
+        vm.stopPrank();
+
+        uint256 ethPriceAfter = devPCPricing.getCurrencyPrice(ETH);
+        assertEq(
+            ethPriceBefore,
+            ethPriceAfter,
+            "ETH price should remain unchanged"
+        );
+        console.log("testAnchorCurrencyDoesNotChange passed!");
+    }
+}
