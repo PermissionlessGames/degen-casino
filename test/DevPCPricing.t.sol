@@ -180,5 +180,13 @@ contract DevPCPricingTest is Test {
         devPCPricing.adjustCurrencyPrice(USDT, true);
         usdtPrice = devPCPricing.getCurrencyPrice(USDT);
         assertEq(usdtPrice, 2, "USDT price should increase by 1 to 2");
+
+        devPCPricing.setCurrencyPrice(USDT, 39);
+        devPCPricing.adjustCurrencyPrice(USDT, true);
+        usdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(usdtPrice, 40, "USDT price should increase by 1 to 40");
+        devPCPricing.adjustCurrencyPrice(USDT, true);
+        usdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(usdtPrice, 42, "USDT price should increase by 2 to 42");
     }
 }
