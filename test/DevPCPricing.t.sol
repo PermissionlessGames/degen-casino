@@ -53,11 +53,7 @@ contract DevPCPricingTest is Test {
     function testPriceAdjustmentDecrease() public {
         devPCPricing.adjustCurrencyPrice(USDT, false);
         uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
-        assertEq(
-            newUsdtPrice,
-            100,
-            "USDT price should stay the same since the minium matches the adjustment denominator"
-        );
+        assertEq(newUsdtPrice, 95, "USDT price should decrease by 5%");
 
         devPCPricing.adjustCurrencyPrice(GOLD, false);
         uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
@@ -72,11 +68,7 @@ contract DevPCPricingTest is Test {
         uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
         uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
 
-        assertEq(
-            newUsdtPrice,
-            100,
-            "USDT price should stay the same since the minium matches the adjustment denominator"
-        );
+        assertEq(newUsdtPrice, 95, "USDT price should decrease by 5%");
         assertEq(
             newGoldPrice,
             475,
@@ -120,6 +112,7 @@ contract DevPCPricingTest is Test {
         // Reset USDT price
         devPCPricing.setCurrencyPrice(USDT, 187);
         uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(newUsdtPrice, 187, "USDT price should decrease to 187");
     }
 
     /// @notice Ensure the anchor currency remains fixed
@@ -168,5 +161,24 @@ contract DevPCPricingTest is Test {
             ethPriceAfter,
             "ETH price should remain unchanged"
         );
+    }
+
+    function testNonAnchorCurrencyBottomLimit() public {
+        devPCPricing.setCurrencyPrice(USDT, 10);
+        devPCPricing.adjustCurrencyPrice(USDT, false);
+        uint256 usdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(
+            usdtPrice,
+            9,
+            "USDT price should decrease to 9 from 10, minium decrease is by 1"
+        );
+        devPCPricing.setCurrencyPrice(USDT, 1);
+        devPCPricing.adjustCurrencyPrice(USDT, false);
+        usdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(usdtPrice, 1, "USDT price should stay at 1");
+
+        devPCPricing.adjustCurrencyPrice(USDT, true);
+        usdtPrice = devPCPricing.getCurrencyPrice(USDT);
+        assertEq(usdtPrice, 2, "USDT price should increase by 1 to 2");
     }
 }

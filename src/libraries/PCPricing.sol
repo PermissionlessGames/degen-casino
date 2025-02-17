@@ -75,16 +75,17 @@ library PCPricing {
 
         uint256 adjustmentAmount = (self.currencyPrice[currency] *
             self.adjustmentNumerator) / self.adjustmentDenominator;
-        uint256 newPrice = self.currencyPrice[currency] - adjustmentAmount;
+        //set adjustmentAmount to a min of 1
+        adjustmentAmount = adjustmentAmount > 0 ? adjustmentAmount : 1;
 
         if (increase) {
             self.currencyPrice[currency] += adjustmentAmount; // Increase price
         } else {
-            // Ensure price never drops below `adjustmentDenominator`
-            self.currencyPrice[currency] = newPrice >=
-                self.adjustmentDenominator
-                ? newPrice
-                : self.adjustmentDenominator;
+            // Ensure price can decrease, if price can't decrease do to underflow set value to 1
+            self.currencyPrice[currency] = self.currencyPrice[currency] >
+                adjustmentAmount
+                ? self.currencyPrice[currency] - adjustmentAmount
+                : 1;
         }
     }
 
