@@ -1,5 +1,13 @@
 # Combinatorics
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8f564bd894e4d8b7918fd7e00e2ed41e964e7980/src/libraries/Combinatorics.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b86cdb67fe9e72c2877f8d6bb1087caaf4830da3/src/libraries/Combinatorics.sol)
+
+**Author:**
+Permissionless Games
+
+This library provides efficient implementations of combinatorial functions such as factorial,
+permutations, and combinations for use in smart contracts.
+
+*Optimized for gas efficiency, with algebraic simplifications and sequential product calculations.*
 
 
 ## Functions
@@ -8,5 +16,26 @@
 
 ```solidity
 function factorial(uint256 n) internal pure returns (uint256 nFactorial);
+```
+
+### _sequentialProduct
+
+
+```solidity
+function _sequentialProduct(uint256 from, uint256 to) internal pure returns (uint256 nFactorial);
+```
+
+### combination
+
+
+```solidity
+function combination(uint256 n, uint256 r) internal pure returns (uint256 odds);
+```
+
+### permutation
+
+
+```solidity
+function permutation(uint256 n, uint256 r) internal pure returns (uint256 odds);
 ```
 
