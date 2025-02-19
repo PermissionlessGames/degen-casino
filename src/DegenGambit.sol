@@ -721,11 +721,12 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             LastSpinBoosted[player]
         );
         (prize, typeOfPrize) = payout(left, center, right);
-        _transferPrize(prize, player, typeOfPrize);
-        emit Award(player, prize);
 
         delete LastSpinBoosted[player];
         delete LastSpinBlock[player];
+
+        _transferPrize(prize, player, typeOfPrize);
+        emit Award(player, prize);
     }
 
     /// This is the function a player calls to accept the outcome of a spin.

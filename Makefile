@@ -12,7 +12,7 @@ bindings/DegenGambit/DegenGambit.go:
 
 bindings/BlockInspector/BlockInspector.go:
 	mkdir -p bindings/BlockInspector
-	seer evm generate --package BlockInspector --output bindings/BlockInspector/BlockInspector.go --foundry out/BlockInspector.sol/BlockInspector.json --cli --struct BlockInspector
+	seer evm generate --package BlockInspector --output bindings/BlockInspector/BlockInspector.go --foundry out/src/BlockInspector.sol/BlockInspector.json --cli --struct BlockInspector
 
 bindings/DevDegenGambit/DevDegenGambit.go:
 	mkdir -p bindings/DevDegenGambit
