@@ -3,7 +3,7 @@ module github.com/PermissionlessGames/degen-casino
 go 1.22.5
 
 require (
-	github.com/G7DAO/seer v0.3.5
+	github.com/G7DAO/seer v0.3.15
 	github.com/ethereum/go-ethereum v1.14.10
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/term v0.23.0
