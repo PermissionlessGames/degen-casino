@@ -11,10 +11,10 @@ pragma solidity ^0.8.19;
 
 library Combinatorics {
     function factorial(uint256 n) internal pure returns (uint256 nFactorial) {
-        nFactorial = _sequentialProduct(1, n);
+        nFactorial = sequentialProduct(1, n);
     }
 
-    function _sequentialProduct(
+    function sequentialProduct(
         uint256 from,
         uint256 to
     ) internal pure returns (uint256 nFactorial) {
@@ -35,9 +35,9 @@ library Combinatorics {
         uint256 p = (n - r) + 1;
         //n!/(n-r)! saves minor gas through algebra it'll calculate from (n-r+1) -> n
         //C(10,5) = 10!/5!5! = (6*7*8*9*10)/5! = 30240/120 = 252
-        odds = _sequentialProduct(p, n);
+        odds = sequentialProduct(p, n);
         //if r is 1 then it'll still return 1!
-        odds = odds / _sequentialProduct(2, r);
+        odds = odds / sequentialProduct(2, r);
     }
 
     function permutation(
@@ -46,6 +46,6 @@ library Combinatorics {
     ) internal pure returns (uint256 odds) {
         require(n > r, "COMBINATORICS: n must be greater than r");
         require(r > 0, "COMBINATORICS: r must be greater than 0");
-        odds = _sequentialProduct(n - r + 1, n);
+        odds = sequentialProduct(n - r + 1, n);
     }
 }

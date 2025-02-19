@@ -1,5 +1,5 @@
 # Combinatorics
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b86cdb67fe9e72c2877f8d6bb1087caaf4830da3/src/libraries/Combinatorics.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b437b3f04a3d41a5542982413209a5db38bd1fd9/src/libraries/Combinatorics.sol)
 
 **Author:**
 Permissionless Games
@@ -18,11 +18,11 @@ permutations, and combinations for use in smart contracts.
 function factorial(uint256 n) internal pure returns (uint256 nFactorial);
 ```
 
-### _sequentialProduct
+### sequentialProduct
 
 
 ```solidity
-function _sequentialProduct(uint256 from, uint256 to) internal pure returns (uint256 nFactorial);
+function sequentialProduct(uint256 from, uint256 to) internal pure returns (uint256 nFactorial);
 ```
 
 ### combination
