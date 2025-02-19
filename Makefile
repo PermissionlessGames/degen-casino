@@ -8,7 +8,7 @@ generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/Bloc
 
 bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
-	seer evm generate --package DegenGambit --output bindings/DegenGambit/DegenGambit.go --foundry out/src/DegenGambit.sol/DegenGambit.json --cli --struct DegenGambit
+	seer evm generate --package DegenGambit --output bindings/DegenGambit/DegenGambit.go --foundry out/DegenGambit.sol/DegenGambit.json --cli --struct DegenGambit
 
 bindings/BlockInspector/BlockInspector.go:
 	mkdir -p bindings/BlockInspector
@@ -16,7 +16,7 @@ bindings/BlockInspector/BlockInspector.go:
 
 bindings/DevDegenGambit/DevDegenGambit.go:
 	mkdir -p bindings/DevDegenGambit
-	seer evm generate --package DevDegenGambit --output bindings/DevDegenGambit/DevDegenGambit.go --foundry out/dev/DevDegenGambit.sol/DevDegenGambit.json --cli --struct DevDegenGambit
+	seer evm generate --package DevDegenGambit --output bindings/DevDegenGambit/DevDegenGambit.go --foundry out/DevDegenGambit.sol/DevDegenGambit.json --cli --struct DevDegenGambit
 
 bin/casino: bindings/DegenGambit/DegenGambit.go
 	go mod tidy
@@ -40,8 +40,8 @@ docs:
 	mkdir -p docs/abis
 	mkdir -p docs/interfaces
 	mkdir -p docs/abis/dev
-	jq .abi out/src/DegenGambit.sol/DegenGambit.json >docs/abis/DegenGambit.abi.json
-	jq .abi out/dev/DevDegenGambit.sol/DevDegenGambit.json >docs/abis/dev/DevDegenGambit.abi.json
+	jq .abi out/DegenGambit.sol/DegenGambit.json >docs/abis/DegenGambit.abi.json
+	jq .abi out/DevDegenGambit.sol/DevDegenGambit.json >docs/abis/dev/DevDegenGambit.abi.json
 	jq . docs/abis/DegenGambit.abi.json | solface -annotations -license MIT -name IDegenGambit -pragma "^0.8.13" >docs/interfaces/IDegenGambit.sol
 
 redocs: clean docs
