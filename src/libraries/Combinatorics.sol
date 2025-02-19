@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
 library Combinatorics {
     function factorial(uint256 n) internal pure returns (uint256 nFactorial) {
         nFactorial = _factorial(1, n);
