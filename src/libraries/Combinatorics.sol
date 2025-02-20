@@ -48,4 +48,15 @@ library Combinatorics {
         require(r > 0, "COMBINATORICS: r must be greater than 0");
         odds = sequentialProduct(n - r + 1, n);
     }
+
+    function oddsOfMatching(
+        uint256 n,
+        uint256 r,
+        uint256 k
+    ) internal pure returns (uint256 odds) {
+        require(0 < k && k < r && r < n, "COMBINATORICS: Improper arguments");
+        uint256 crk = combination(r, k);
+        uint256 cn_rr_k = combination(n - r, r - k);
+        odds = crk * cn_rr_k;
+    }
 }

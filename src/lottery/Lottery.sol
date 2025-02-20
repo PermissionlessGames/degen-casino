@@ -44,8 +44,7 @@ contract Lottery {
     event PrizeClaimed(
         address indexed player,
         uint256 indexed lotteryId,
-        uint256 ticketId,
-        uint256 matchingCount
+        uint256 ticketId
     );
 
     modifier lotteryActive(uint256 lotteryId) {
@@ -61,18 +60,16 @@ contract Lottery {
     function hasMatching(
         uint256 lotteryId,
         address player,
-        uint256 ticketId
+        uint256 playerTicketId
     ) external view returns (uint256 matchingCount) {
         require(
-            !lotteries[lotteryId].isActive,
-            "Winning numbers must be set first"
-        );
-        require(
-            playerTickets[player][lotteryId].length > ticketId,
-            "Invalid ticket ID"
+            playerTickets[player][lotteryId].length > playerTicketId,
+            "Lottery: Invalid ticket ID"
         );
 
-        uint256 ticketBitmask = playerTickets[player][lotteryId][ticketId];
+        uint256 ticketBitmask = playerTickets[player][lotteryId][
+            playerTicketId
+        ];
         uint256 winningMask = lotteries[lotteryId].winningBitmask;
 
         // Calculate matching numbers
@@ -83,18 +80,14 @@ contract Lottery {
      * @notice Internal function to mark a ticket as claimed.
      * @dev Ensures the same ticket cannot be claimed multiple times.
      */
-    function _claimedPrize(
+    function setClaimedPrize(
         uint256 lotteryId,
         address player,
         uint256 ticketId
     ) internal {
         require(
-            !lotteries[lotteryId].isActive,
-            "Winning numbers must be set first"
-        );
-        require(
             playerTickets[player][lotteryId].length > ticketId,
-            "Invalid ticket ID"
+            "Lottery: Invalid ticket ID"
         );
 
         uint256 ticketBitmask = playerTickets[player][lotteryId][ticketId];
@@ -105,18 +98,11 @@ contract Lottery {
         );
         require(
             !lotteries[lotteryId].claimedTickets[ticketHash],
-            "Prize already claimed"
+            "Lottery: Prize already claimed"
         );
 
         lotteries[lotteryId].claimedTickets[ticketHash] = true;
-
-        uint256 matchingCount = Bitmask.countMatchingBits(
-            ticketBitmask,
-            lotteries[lotteryId].winningBitmask
-        );
-        require(matchingCount >= 3, "Ticket did not win");
-
-        emit PrizeClaimed(player, lotteryId, ticketId, matchingCount);
+        emit PrizeClaimed(player, lotteryId, ticketId);
     }
 
     /**
@@ -144,18 +130,23 @@ contract Lottery {
      * @notice Internal function that processes ticket purchases.
      * @dev Called by `buyTicket()` and `buyMultipleTickets()` to reduce redundant code.
      */
-    function _processTicketPurchase(
+    function processTicketPurchase(
         uint256 lotteryId,
-        uint256[] calldata numbers
-    ) internal {
-        uint256 bitmask = Bitmask.encode(numbers);
+        uint256[] calldata numbers,
+        address player
+    ) internal returns (bool added) {
         LotteryGame storage lottery = lotteries[lotteryId];
-
+        require(
+            numbers.length == lottery.numbersToPick,
+            "Lottery: Need to pick the correct amount of Numbers."
+        );
+        uint256 bitmask = Bitmask.encode(numbers);
         // Store player under the bitmask mapping
-        lottery.ticketOwners[bitmask].push(msg.sender);
+        lottery.ticketOwners[bitmask].push(player);
 
         // Store player's numbers for this lottery
-        playerTickets[msg.sender][lotteryId].push(bitmask);
+        playerTickets[player][lotteryId].push(bitmask);
+        added = true;
     }
 
     /**
@@ -188,20 +179,19 @@ contract Lottery {
      * @notice Internal function to create a lottery.
      * @dev Must be called within derived contracts or automated systems.
      */
-    function _createLottery(
-        uint256 _maxNumber,
-        uint256 _numbersToPick
-    ) internal {
-        require(_numbersToPick > 0, "Must pick at least one number");
-        require(_maxNumber < 256, "Number range too large for bitmask");
+    function createLottery(uint256 maxNumber, uint256 numbersToPick) internal {
+        require(
+            0 < numbersToPick && numbersToPick < maxNumber && maxNumber < 256,
+            "Lottery: Creation parameters Out of range"
+        );
 
         LotteryGame storage newLottery = lotteries[nextLotteryId];
         newLottery.lotteryId = nextLotteryId;
-        newLottery.maxNumber = _maxNumber;
-        newLottery.numbersToPick = _numbersToPick;
+        newLottery.maxNumber = maxNumber;
+        newLottery.numbersToPick = numbersToPick;
         newLottery.isActive = true;
 
-        emit LotteryCreated(nextLotteryId, _maxNumber, _numbersToPick);
+        emit LotteryCreated(nextLotteryId, maxNumber, numbersToPick);
         nextLotteryId++;
     }
 
@@ -209,14 +199,15 @@ contract Lottery {
      * @notice Internal function to set the winning numbers.
      * @dev Must be called within derived contracts or automated systems.
      */
-    function _setWinningNumbers(
+    function setWinningNumbers(
         uint256 lotteryId,
         uint256[] calldata numbers
     ) internal {
         require(
             numbers.length == lotteries[lotteryId].numbersToPick,
-            "Invalid winning numbers"
+            "Lottery: Invalid winning numbers"
         );
+        require(lotteries[lotteryId].isActive, "Lottery: Lottery not active.");
 
         lotteries[lotteryId].winningBitmask = Bitmask.encode(numbers);
         lotteries[lotteryId].isActive = false;

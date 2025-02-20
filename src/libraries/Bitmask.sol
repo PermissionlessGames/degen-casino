@@ -41,11 +41,11 @@ library Bitmask {
      * @notice Counts the number of matching bits between two bitmasks.
      */
     function countMatchingBits(
-        uint256 playerMask,
-        uint256 winningMask
+        uint256 bitmask1,
+        uint256 bitmask2
     ) internal pure returns (uint256) {
         uint256 count = 0;
-        uint256 diff = playerMask & winningMask;
+        uint256 diff = bitmask1 & bitmask2;
         while (diff > 0) {
             count += diff & 1;
             diff >>= 1;
