@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b437b3f04a3d41a5542982413209a5db38bd1fd9/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/611282bb679741918d25b2d11b7ff264f22837af/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard

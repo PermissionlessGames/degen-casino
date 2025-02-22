@@ -1,5 +1,5 @@
 # Combinatorics
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/b437b3f04a3d41a5542982413209a5db38bd1fd9/src/libraries/Combinatorics.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/611282bb679741918d25b2d11b7ff264f22837af/src/libraries/Combinatorics.sol)
 
 **Author:**
 Permissionless Games
@@ -37,5 +37,12 @@ function combination(uint256 n, uint256 r) internal pure returns (uint256 odds);
 
 ```solidity
 function permutation(uint256 n, uint256 r) internal pure returns (uint256 odds);
+```
+
+### oddsOfMatching
+
+
+```solidity
+function oddsOfMatching(uint256 n, uint256 r, uint256 k) internal pure returns (uint256 odds);
 ```
 

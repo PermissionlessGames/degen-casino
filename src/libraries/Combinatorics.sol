@@ -54,7 +54,10 @@ library Combinatorics {
         uint256 r,
         uint256 k
     ) internal pure returns (uint256 odds) {
-        require(0 < k && k < r && r < n, "COMBINATORICS: Improper arguments");
+        require(
+            n - r >= r - k,
+            "COMBINATORICS: Improper arguments for matching"
+        );
         uint256 crk = combination(r, k);
         uint256 cn_rr_k = combination(n - r, r - k);
         odds = crk * cn_rr_k;

@@ -54,4 +54,22 @@ contract CombinatoricsTest is Test {
         vm.expectRevert("COMBINATORICS: r must be greater than 0");
         Combinatorics.permutation(3, 0);
     }
+
+    function testValidOddsOfMatching() public pure {
+        uint256 result = Combinatorics.oddsOfMatching(10, 4, 2);
+        assertEq(result, 90, "Odds of match (10, 4, 2) should be 90");
+    }
+
+    function testInvalidOddsOfMatching() public {
+        // This call should revert. In your test framework, you would capture the revert.
+        vm.expectRevert("COMBINATORICS: r must be greater than 0");
+        Combinatorics.oddsOfMatching(10, 5, 0);
+        vm.expectRevert("COMBINATORICS: Improper arguments for matching");
+        Combinatorics.oddsOfMatching(10, 6, 0);
+    }
+
+    function testKGreaterThanR() public {
+        vm.expectRevert();
+        Combinatorics.oddsOfMatching(10, 4, 5);
+    }
 }

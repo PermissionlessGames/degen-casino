@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./Bitmask.sol"; // Assuming Bitmask is a separate library
+import "../libraries/Bitmask.sol"; // Assuming Bitmask is a separate library
 
 /**
  * @title Lottery (Optimized Ticket Claiming & Checking)
