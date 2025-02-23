@@ -230,7 +230,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     function _blockNumber() internal view returns (uint256) {
-        return ArbSys(address(100)).arbBlockNumber();
+        // return ArbSys(address(100)).arbBlockNumber();
+        return block.number;
     }
 
     function _blockhash(uint256 number) internal view returns (bytes32) {

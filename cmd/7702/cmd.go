@@ -6,16 +6,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/PermissionlessGames/degen-casino/bindings/AccountSystem7702"
-	"github.com/PermissionlessGames/degen-casino/bindings/BlockInspector"
-	"github.com/PermissionlessGames/degen-casino/bindings/TestableDegenGambit"
 	"github.com/PermissionlessGames/degen-casino/version"
 )
 
 func CreateRootCommand() *cobra.Command {
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
-		Use:   "technician",
-		Short: "Tools used to debug Degen Casino games",
+		Use:   "7702",
+		Short: "Contract for 7702 account system",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
@@ -25,16 +23,13 @@ func CreateRootCommand() *cobra.Command {
 	versionCmd := CreateVersionCommand()
 	rootCmd.AddCommand(completionCmd, versionCmd)
 
-	blockInspectorCmd := BlockInspector.CreateBlockInspectorCommand()
-	blockInspectorCmd.Use = "block-inspector"
-
-	testableGambitCmd := TestableDegenGambit.CreateTestableDegenGambitCommand()
-	testableGambitCmd.Use = "testable-gambit"
-
 	accountSystem7702Cmd := AccountSystem7702.CreateAccountSystem7702Command()
-	accountSystem7702Cmd.Use = "account-system-7702"
+	accountSystem7702Cmd.Use = "account"
 
-	rootCmd.AddCommand(blockInspectorCmd, testableGambitCmd, accountSystem7702Cmd)
+	delegateCmd := CreateDelegateCommand()
+	spinCmd := CreateSpinCommand()
+
+	rootCmd.AddCommand(accountSystem7702Cmd, delegateCmd, spinCmd)
 
 	// By default, cobra Command objects write to stderr. We have to forcibly set them to output to
 	// stdout.
@@ -46,23 +41,23 @@ func CreateRootCommand() *cobra.Command {
 func CreateCompletionCommand(rootCmd *cobra.Command) *cobra.Command {
 	completionCmd := &cobra.Command{
 		Use:   "completion",
-		Short: "Generate shell completion scripts for technician",
-		Long: `Generate shell completion scripts for technician.
+		Short: "Generate shell completion scripts for 7702",
+		Long: `Generate shell completion scripts for 7702.
 
 The command for each shell will print a completion script to stdout. You can source this script to get
 completions in your current shell session. You can add this script to the completion directory for your
 shell to get completions for all future sessions.
 
 For example, to activate bash completions in your current shell:
-		$ . <(technician completion bash)
+		$ . <(7702 completion bash)
 
-To add technician completions for all bash sessions:
-		$ technician completion bash > /etc/bash_completion.d/technician_completions`,
+To add 7702 completions for all bash sessions:
+		$ 7702 completion bash > /etc/bash_completion.d/7702_completions`,
 	}
 
 	bashCompletionCmd := &cobra.Command{
 		Use:   "bash",
-		Short: "bash completions for technician",
+		Short: "bash completions for 7702",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenBashCompletion(cmd.OutOrStdout())
 		},
@@ -70,7 +65,7 @@ To add technician completions for all bash sessions:
 
 	zshCompletionCmd := &cobra.Command{
 		Use:   "zsh",
-		Short: "zsh completions for technician",
+		Short: "zsh completions for 7702",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenZshCompletion(cmd.OutOrStdout())
 		},
@@ -78,7 +73,7 @@ To add technician completions for all bash sessions:
 
 	fishCompletionCmd := &cobra.Command{
 		Use:   "fish",
-		Short: "fish completions for technician",
+		Short: "fish completions for 7702",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenFishCompletion(cmd.OutOrStdout(), true)
 		},
@@ -86,7 +81,7 @@ To add technician completions for all bash sessions:
 
 	powershellCompletionCmd := &cobra.Command{
 		Use:   "powershell",
-		Short: "powershell completions for technician",
+		Short: "powershell completions for 7702",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenPowerShellCompletion(cmd.OutOrStdout())
 		},
@@ -100,7 +95,7 @@ To add technician completions for all bash sessions:
 func CreateVersionCommand() *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
-		Short: "Print the version of technician that you are currently using",
+		Short: "Print the version of 7702 that you are currently using",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Println(version.DegenCasinoVersion)
 		},

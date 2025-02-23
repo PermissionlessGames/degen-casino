@@ -1,10 +1,10 @@
 .PHONY: clean generate docs test redocs forge interfaces
 
-build: forge generate docs bin/casino bin/technician interfaces
+build: forge generate docs bin/casino bin/technician bin/7702 interfaces
 
 rebuild: clean build
 
-generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/TestableDegenGambit/TestableDegenGambit.go bindings/AccountSystem/AccountSystem.go bindings/DegenCasinoAccount/DegenCasinoAccount.go
+generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/TestableDegenGambit/TestableDegenGambit.go bindings/AccountSystem/AccountSystem.go bindings/DegenCasinoAccount/DegenCasinoAccount.go bindings/AccountSystem7702/AccountSystem7702.go
 
 bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
@@ -22,6 +22,10 @@ bindings/AccountSystem/AccountSystem.go:
 	mkdir -p bindings/AccountSystem
 	seer evm generate --package AccountSystem --output bindings/AccountSystem/AccountSystem.go --foundry out/AccountSystem.sol/AccountSystem.json --cli --struct AccountSystem
 
+bindings/AccountSystem7702/AccountSystem7702.go:
+	mkdir -p bindings/AccountSystem7702
+	seer evm generate --package AccountSystem7702 --output bindings/AccountSystem7702/AccountSystem7702.go --foundry out/AccountSystem7702.sol/AccountSystem7702.json --cli --struct AccountSystem7702
+
 bindings/DegenCasinoAccount/DegenCasinoAccount.go:
 	mkdir -p bindings/DegenCasinoAccount
 	seer evm generate --package DegenCasinoAccount --output bindings/DegenCasinoAccount/DegenCasinoAccount.go --foundry out/AccountSystem.sol/DegenCasinoAccount.json --cli --struct DegenCasinoAccount
@@ -33,6 +37,10 @@ bin/casino: bindings/DegenGambit/DegenGambit.go
 bin/technician: bindings/BlockInspector/BlockInspector.go
 	go mod tidy
 	go build -o bin/technician ./cmd/technician
+
+bin/7702: bindings/AccountSystem7702/AccountSystem7702.go
+	go mod tidy
+	go build -o bin/7702 ./cmd/7702/
 
 test:
 	forge test -vvv
@@ -68,6 +76,10 @@ src/interfaces/IDegenGambit.sol: out/DegenGambit.sol/DegenGambit.json
 	mkdir -p src/interfaces
 	jq .abi out/DegenGambit.sol/DegenGambit.json | solface -annotations -license MIT -name IDegenGambit -pragma "^0.8.13" >src/interfaces/IDegenGambit.sol
 
+src/interfaces/IAccountSystem7702.sol: out/AccountSystem7702.sol/AccountSystem7702.json
+	mkdir -p src/interfaces
+	jq .abi out/AccountSystem7702.sol/AccountSystem7702.json | solface -annotations -license MIT -name IAccountSystem7702 -pragma "^0.8.13" >src/interfaces/IAccountSystem7702.sol
+
 out/AccountSystem.sol/AccountSystem.json:
 	forge
 
@@ -75,4 +87,7 @@ out/AccountSystem.sol/DegenCasinoAccount.json:
 	forge
 
 out/DegenGambit.sol/DegenGambit.json:
+	forge
+
+out/AccountSystem7702.sol/AccountSystem7702.json:
 	forge
