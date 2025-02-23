@@ -55,20 +55,21 @@ func HashTypedDataV4(domainSeparator, structHash []byte) []byte {
 }
 
 func GetDomainSeparator(chainId *big.Int, verifyingContract common.Address) [32]byte {
-	// EIP-712 domain type hash
+	// EIP712Domain type hash
 	domainTypeHash := crypto.Keccak256([]byte("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"))
 
-	// Pack domain parameters
-	name := "AccountSystem7702" // Must match the contract's domain name
-	version := "1"              // Must match the contract's domain version
+	// Hash the name and version
+	nameHash := crypto.Keccak256([]byte("AccountSystem7702"))
+	versionHash := crypto.Keccak256([]byte("1"))
 
-	// Encode the domain separator
+	// Encode and hash all components
 	domainSeparator := crypto.Keccak256(
-		domainTypeHash,
-		crypto.Keccak256([]byte(name)),
-		crypto.Keccak256([]byte(version)),
-		common.LeftPadBytes(chainId.Bytes(), 32),
-		verifyingContract.Bytes(),
+		append(append(append(append(
+			domainTypeHash,
+			nameHash...),
+			versionHash...),
+			common.LeftPadBytes(chainId.Bytes(), 32)...),
+			common.LeftPadBytes(verifyingContract.Bytes(), 32)...),
 	)
 
 	return [32]byte(domainSeparator)
@@ -86,55 +87,52 @@ type Action struct {
 	IsBasisPoints bool
 }
 
-// HashAction computes the EIP712 hash of a game action
-func HashAction(action Action, chainId *big.Int, verifyingContract common.Address) ([32]byte, error) {
-	domainSeparator := GetDomainSeparator(chainId, verifyingContract)
+// HashAction computes the hash of a game action
+func HashAction(action Action) ([32]byte, error) {
+	// First get the type hash - ensure we use the exact same string
+	typeString := "Action(address target,bytes data,uint256 value,uint256 nonce,uint256 expiration,address feeToken,uint256 feeValue,bool isBasisPoints)"
 
-	// Define the type hash
-	typeHash := crypto.Keccak256([]byte("Action(address target,bytes data,uint256 value,uint256 nonce,uint256 expiration,ExecutorTerms[] executorTerms)ExecutorTerms(address feeToken,uint256 value,bool isBasisPoints)"))
+	// Hash the type string first
+	typeHash := crypto.Keccak256([]byte(typeString))
 
-	// Ensure all big.Int fields are initialized
-	if action.Value == nil {
-		action.Value = big.NewInt(0)
-	}
-	if action.Expiration == nil {
-		action.Expiration = big.NewInt(0)
-	}
+	// Pack the data exactly like abi.encode
+	encodedData := make([]byte, 0, 32*9) // Pre-allocate space for 9 32-byte values
 
-	// Create the struct hash
-	structHash := crypto.Keccak256(
-		typeHash,
-		action.Target.Bytes(),
-		crypto.Keccak256(action.Data),
-		common.LeftPadBytes(action.Value.Bytes(), 32),
-		common.LeftPadBytes(action.Nonce.Bytes(), 32),
-		common.LeftPadBytes(action.Expiration.Bytes(), 32),
-		common.LeftPadBytes(action.FeeToken.Bytes(), 32),
-		common.LeftPadBytes(action.FeeValue.Bytes(), 32),
-		common.LeftPadBytes(big.NewInt(map[bool]int64{true: 1, false: 0}[action.IsBasisPoints]).Bytes(), 32),
-	)
+	// Pack in exact order as Solidity's abi.encode
+	encodedData = append(encodedData, typeHash...)                                                                                             // type hash
+	encodedData = append(encodedData, common.LeftPadBytes(action.Target.Bytes(), 32)...)                                                       // target address
+	encodedData = append(encodedData, crypto.Keccak256(action.Data)...)                                                                        // keccak256(data)
+	encodedData = append(encodedData, common.LeftPadBytes(action.Value.Bytes(), 32)...)                                                        // value
+	encodedData = append(encodedData, common.LeftPadBytes(action.Nonce.Bytes(), 32)...)                                                        // nonce
+	encodedData = append(encodedData, common.LeftPadBytes(action.Expiration.Bytes(), 32)...)                                                   // expiration
+	encodedData = append(encodedData, common.LeftPadBytes(action.FeeToken.Bytes(), 32)...)                                                     // fee token
+	encodedData = append(encodedData, common.LeftPadBytes(action.FeeValue.Bytes(), 32)...)                                                     // fee value
+	encodedData = append(encodedData, common.LeftPadBytes(big.NewInt(map[bool]int64{true: 1, false: 0}[action.IsBasisPoints]).Bytes(), 32)...) // is basis points
 
-	// Compute the final hash using EIP-712
-	final := crypto.Keccak256(
-		[]byte{0x19, 0x01},
-		domainSeparator[:],
-		structHash,
-	)
+	// Hash the encoded data
+	final := crypto.Keccak256(encodedData)
+
+	// Debug output
+	fmt.Printf("Components:\n")
+	fmt.Printf("Type String: %s\n", typeString)
+	fmt.Printf("Type Hash: %x\n", typeHash)
+	fmt.Printf("Data being hashed: %x\n", action.Data)
+	fmt.Printf("Data Hash: %x\n", crypto.Keccak256(action.Data))
+	fmt.Printf("Encoded Length: %d bytes\n", len(encodedData))
+	fmt.Printf("Final Hash: %x\n", final)
 
 	return [32]byte(final), nil
 }
 
-// Updated SignActionHash to take Action struct
-func SignAction(action Action, chainId *big.Int, contractAddress common.Address, privateKey *ecdsa.PrivateKey) ([]byte, error) {
-	structHash, err := HashAction(action, chainId, contractAddress)
+// SignAction signs an action with the given private key
+func SignAction(action Action, privateKey *ecdsa.PrivateKey) ([]byte, error) {
+	hash, err := HashAction(action)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get action hash: %w", err)
 	}
-	domainSeparator := GetDomainSeparator(chainId, contractAddress)
-	hashToSign := HashTypedDataV4(domainSeparator[:], structHash[:])
 
 	// Sign the hash
-	signature, err := crypto.Sign(hashToSign, privateKey)
+	signature, err := crypto.Sign(hash[:], privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign action hash: %w", err)
 	}

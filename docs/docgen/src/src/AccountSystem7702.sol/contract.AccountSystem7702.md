@@ -1,8 +1,5 @@
 # AccountSystem7702
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/a6696f00c13f9274ae713de85e5b1212b5977800/src/AccountSystem7702.sol)
-
-**Inherits:**
-EIP712
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/2e2fd4d9143ead039867402c667de237c347b832/src/AccountSystem7702.sol)
 
 
 ## State Variables
@@ -34,7 +31,7 @@ modifier nonReentrant();
 
 
 ```solidity
-constructor() EIP712("AccountSystem7702", "1");
+constructor();
 ```
 
 ### execute
@@ -165,7 +162,7 @@ Computes the EIP712 hash of a game action
 
 
 ```solidity
-function hashAction(Action memory action) public view returns (bytes32);
+function hashAction(Action memory action) public pure returns (bytes32);
 ```
 **Parameters**
 

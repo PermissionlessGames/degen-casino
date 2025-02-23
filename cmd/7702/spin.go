@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -124,12 +123,7 @@ func Spin(client *ethclient.Client, key *keystore.Key, accountAddress, targetAdd
 		return fmt.Errorf("failed to get AccountSystem7702 ABI: %w", err)
 	}
 
-	chainId, err := client.ChainID(context.Background())
-	if err != nil {
-		return fmt.Errorf("failed to get chain id: %w", err)
-	}
-
-	signedAction, err := SignAction(action, chainId, targetAddress, key.PrivateKey)
+	signedAction, err := SignAction(action, key.PrivateKey)
 	if err != nil {
 		return fmt.Errorf("failed to sign action: %w", err)
 	}

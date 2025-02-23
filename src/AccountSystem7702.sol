@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {EIP712} from "../lib/openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {SignatureChecker} from "../lib/openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import {IERC20} from "../lib/openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -21,7 +20,7 @@ struct Action {
     bool isBasisPoints;
 }
 
-contract AccountSystem7702 is EIP712 {
+contract AccountSystem7702 {
     uint256 public nonce;
     bool public locked;
 
@@ -44,7 +43,7 @@ contract AccountSystem7702 is EIP712 {
         locked = false;
     }
 
-    constructor() EIP712("AccountSystem7702", "1") {}
+    constructor() {}
 
     /// ================================ PUBLIC FUNCTIONS ================================
     /// @notice Execute a batch of actions
@@ -141,10 +140,8 @@ contract AccountSystem7702 is EIP712 {
     /// @notice Computes the EIP712 hash of a game action
     /// @param action The action to hash
     /// @return The EIP712 hash of the action
-    function hashAction(Action memory action) public view returns (bytes32) {
-        return
-            _hashTypedDataV4(
-                keccak256(
+    function hashAction(Action memory action) public pure returns (bytes32) {
+        return  keccak256(
                     abi.encode(
                         keccak256(
                             "Action(address target,bytes data,uint256 value,uint256 nonce,uint256 expiration,address feeToken,uint256 feeValue,bool isBasisPoints)"
@@ -158,7 +155,6 @@ contract AccountSystem7702 is EIP712 {
                         action.feeValue,
                         action.isBasisPoints
                     )
-                )
-            );
+                );
     }
 }
