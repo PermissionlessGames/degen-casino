@@ -28,8 +28,9 @@ func CreateRootCommand() *cobra.Command {
 
 	delegateCmd := CreateDelegateCommand()
 	spinCmd := CreateSpinCommand()
+	acceptCmd := CreateAcceptCommand()
 
-	rootCmd.AddCommand(accountSystem7702Cmd, delegateCmd, spinCmd)
+	rootCmd.AddCommand(accountSystem7702Cmd, delegateCmd, spinCmd, acceptCmd)
 
 	// By default, cobra Command objects write to stderr. We have to forcibly set them to output to
 	// stdout.
