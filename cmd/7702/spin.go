@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -14,9 +15,10 @@ import (
 )
 
 func CreateSpinCommand() *cobra.Command {
-	var keyfile, password, rpc, targetAddressRaw, accountAddressRaw, actionNonceRaw, valueRaw, feeTokenRaw, feeValueRaw string
+	var keyfile, password, rpc, targetAddressRaw, accountAddressRaw, actionNonceRaw, valueRaw, feeTokenRaw, feeValueRaw, authorization string
 	var targetAddress, accountAddress, feeToken common.Address
 	var actionNonce, value, feeValue *big.Int
+	var isBasisPoints bool
 
 	delegateCmd := &cobra.Command{
 		Use:   "spin",
@@ -68,6 +70,7 @@ func CreateSpinCommand() *cobra.Command {
 					return fmt.Errorf("--fee-value is not a valid big integer")
 				}
 			}
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -77,12 +80,13 @@ func CreateSpinCommand() *cobra.Command {
 				return fmt.Errorf("Failed to load key: %v", keyErr)
 			}
 
-			client, err := ethclient.Dial(rpc)
+			fmt.Printf("rpc: %s\n", rpc)
+			client, err := ethclient.DialContext(context.Background(), rpc)
 			if err != nil {
 				return fmt.Errorf("failed to connect to RPC: %w", err)
 			}
 
-			return Spin(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue)
+			return Spin(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue, isBasisPoints, authorization)
 		},
 	}
 
@@ -95,15 +99,31 @@ func CreateSpinCommand() *cobra.Command {
 	delegateCmd.Flags().StringVar(&valueRaw, "value", "0", "The value to use to sign the transaction")
 	delegateCmd.Flags().StringVar(&feeTokenRaw, "fee-token", "0x0000000000000000000000000000000000000000", "The fee token to use to sign the transaction")
 	delegateCmd.Flags().StringVar(&feeValueRaw, "fee-value", "0", "The fee value to use to sign the transaction")
+	delegateCmd.Flags().BoolVar(&isBasisPoints, "is-basis-points", false, "Whether the fee value is a basis point")
+	delegateCmd.Flags().StringVar(&authorization, "authorization", "", "The authorization to use to sign the transaction")
 
 	return delegateCmd
 }
 
-func Spin(client *ethclient.Client, key *keystore.Key, accountAddress, targetAddress common.Address, actionNonce *big.Int, value *big.Int, feeToken common.Address, feeValue *big.Int) error {
+func Spin(client *ethclient.Client, key *keystore.Key, accountAddress, targetAddress common.Address, actionNonce *big.Int, value *big.Int, feeToken common.Address, feeValue *big.Int, isBasisPoints bool, authorization string) error {
 	// Get the spin call data for DegenGambit contract
 	spinCallData, err := GetSpinCallData(true)
 	if err != nil {
 		return fmt.Errorf("failed to get spin call data: %w", err)
+	}
+
+	if actionNonce == nil {
+		accountSystem, err := AccountSystem7702.NewAccountSystem7702(accountAddress, client)
+		if err != nil {
+			return fmt.Errorf("failed to get AccountSystem7702 contract: %w", err)
+		}
+
+		actionNonce, err = accountSystem.Nonce(nil)
+		if err != nil {
+			return fmt.Errorf("failed to get nonce: %w", err)
+		}
+
+		actionNonce = actionNonce.Add(actionNonce, big.NewInt(1))
 	}
 
 	action := Action{
@@ -114,7 +134,7 @@ func Spin(client *ethclient.Client, key *keystore.Key, accountAddress, targetAdd
 		Expiration:    big.NewInt(0), // No expiration
 		FeeToken:      feeToken,
 		FeeValue:      feeValue,
-		IsBasisPoints: false,
+		IsBasisPoints: isBasisPoints,
 	}
 
 	// Get the ABI for AccountSystem7702
@@ -143,6 +163,11 @@ func Spin(client *ethclient.Client, key *keystore.Key, accountAddress, targetAdd
 	}
 
 	fmt.Printf("calldata: %s\n", hex.EncodeToString(calldata))
+
+	if authorization != "" {
+		fmt.Printf("sending tx with authorization: %s\n", authorization)
+		err = SendTxWithAuthorization(client, key, calldata, accountAddress, authorization)
+	}
 
 	return nil
 }

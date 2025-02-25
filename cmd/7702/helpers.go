@@ -1,14 +1,21 @@
 package main
 
 import (
+	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/term"
 )
 
@@ -143,19 +150,123 @@ func SignAction(action Action, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	return signature, nil
 }
 
-// Add these helper functions at the end of the file
-func encodeAddresses(addresses []common.Address) []byte {
-	encoded := make([]byte, len(addresses)*32)
-	for i, addr := range addresses {
-		copy(encoded[i*32:], common.LeftPadBytes(addr.Bytes(), 32))
+func SendTxWithAuthorization(client *ethclient.Client, key *keystore.Key, calldata []byte, targetAddress common.Address, authorization string) error {
+	fmt.Printf("sending tx with authorization: %s\n", authorization)
+	// Get chain ID
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get chain ID: %w", err)
 	}
-	return encoded
+	fmt.Printf("chain ID: %s\n", chainID)
+	// Get sender's nonce
+	nonce, err := client.NonceAt(context.Background(), key.Address, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get nonce: %w", err)
+	}
+	fmt.Printf("nonce: %d\n", nonce)
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get gas price: %w", err)
+	}
+	fmt.Printf("gas price: %s\n", gasPrice)
+
+	gasLimit := uint64(5000000)
+	fmt.Printf("gas limit: %d\n", gasLimit)
+
+	authorizationTuple, err := DecodeAuthorization(authorization)
+	if err != nil {
+		return fmt.Errorf("failed to decode authorization: %w", err)
+	}
+	fmt.Printf("authorization tuple: %+v\n", authorizationTuple)
+	// Create and send the 7702 transaction
+	tx := types.NewTx(&AATx{
+		AccessListTx: types.AccessListTx{
+			ChainID:  chainID,
+			Nonce:    nonce,
+			GasPrice: gasPrice,
+			Gas:      gasLimit,
+			To:       &targetAddress,
+			Value:    big.NewInt(0),
+			Data:     calldata,
+		},
+		AuthorizationList: []Authorization{authorizationTuple},
+	})
+	fmt.Printf("created tx %s\n", tx.Hash().Hex())
+
+	fmt.Printf("About to sign tx with chainID: %s\n", chainID)
+	fmt.Printf("Signer address: %s\n", key.Address.Hex())
+
+	signer := types.NewEIP2930Signer(chainID)
+	fmt.Printf("Created signer\n")
+
+	signedTx, err := types.SignTx(tx, signer, key.PrivateKey)
+	if err != nil {
+		return fmt.Errorf("failed to sign transaction: %w", err)
+	}
+
+	fmt.Printf("signed tx: %s\n", signedTx.Hash().Hex())
+	fmt.Printf("About to send transaction\n")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	fmt.Printf("sending tx\n")
+
+	err = client.SendTransaction(ctx, signedTx)
+	if err != nil {
+		fmt.Printf("error: %s\n", err)
+		return fmt.Errorf("failed to send transaction: %w", err)
+	}
+
+	fmt.Printf("Transaction sent: %s\n", signedTx.Hash().Hex())
+	return nil
 }
 
-func encodeBigInts(ints []*big.Int) []byte {
-	encoded := make([]byte, len(ints)*32)
-	for i, val := range ints {
-		copy(encoded[i*32:], common.LeftPadBytes(val.Bytes(), 32))
+// Authorization tuple as specified in EIP-7702
+type Authorization struct {
+	ChainID *big.Int
+	Address common.Address
+	Nonce   uint64
+	YParity uint8
+	R, S    *big.Int
+}
+
+// Convert hex string authorization to Authorization struct
+func DecodeAuthorization(hexAuth string) (Authorization, error) {
+	// Remove "0x" prefix if present
+	hexAuth = strings.TrimPrefix(hexAuth, "0x")
+
+	// Decode hex to bytes
+	authBytes, err := hex.DecodeString(hexAuth)
+	if err != nil {
+		return Authorization{}, fmt.Errorf("failed to decode hex: %w", err)
 	}
-	return encoded
+
+	// Define a struct that matches the RLP encoding format
+	var raw struct {
+		ChainID *big.Int
+		Address []byte
+		Nonce   uint64
+		YParity uint64
+		R       *big.Int
+		S       *big.Int
+	}
+
+	// Decode RLP into our raw struct
+	if err := rlp.DecodeBytes(authBytes, &raw); err != nil {
+		return Authorization{}, fmt.Errorf("failed to decode RLP: %w", err)
+	}
+
+	// Convert the raw format to our Authorization struct
+	auth := Authorization{
+		ChainID: raw.ChainID,
+		Address: common.BytesToAddress(raw.Address),
+		Nonce:   raw.Nonce,
+		YParity: uint8(raw.YParity),
+		R:       raw.R,
+		S:       raw.S,
+	}
+
+	return auth, nil
 }

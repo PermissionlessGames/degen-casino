@@ -1,5 +1,5 @@
 # Action
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9c6d5d70b9c8f85602727ed0d0bb7e05794c273b/src/AccountSystem7702.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9c6d5d70b9c8f85602727ed0d0bb7e05794c273b/src/AccountSystem7702Alt.sol)
 
 A game action to be executed
 
@@ -9,11 +9,8 @@ struct Action {
     address target;
     bytes data;
     uint256 value;
-    uint256 nonce;
-    uint256 expiration;
-    address feeToken;
-    uint256 feeValue;
-    bool isBasisPoints;
+    uint256 nonceOrExpiration;
+    ExecutionTerms[] executionTerms;
 }
 ```
 
@@ -24,9 +21,6 @@ struct Action {
 |`target`|`address`|The target contract to execute the action on|
 |`data`|`bytes`|The encoded function call data to send to the game contract|
 |`value`|`uint256`|The amount of native tokens to send with the call|
-|`nonce`|`uint256`|nonce to prevent replay attacks|
-|`expiration`|`uint256`||
-|`feeToken`|`address`||
-|`feeValue`|`uint256`||
-|`isBasisPoints`|`bool`||
+|`nonceOrExpiration`|`uint256`||
+|`executionTerms`|`ExecutionTerms[]`||
 

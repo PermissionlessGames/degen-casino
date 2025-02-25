@@ -17,7 +17,7 @@ func CreateAcceptCommand() *cobra.Command {
 	var keyfile, password, rpc, targetAddressRaw, accountAddressRaw, actionNonceRaw, valueRaw, feeTokenRaw, feeValueRaw string
 	var targetAddress, accountAddress, feeToken common.Address
 	var actionNonce, value, feeValue *big.Int
-
+	var isBasisPoints bool
 	delegateCmd := &cobra.Command{
 		Use:   "accept",
 		Short: "Accept a slot machine",
@@ -82,7 +82,7 @@ func CreateAcceptCommand() *cobra.Command {
 				return fmt.Errorf("failed to connect to RPC: %w", err)
 			}
 
-			return Accept(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue)
+			return Accept(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue, isBasisPoints)
 		},
 	}
 
@@ -95,15 +95,30 @@ func CreateAcceptCommand() *cobra.Command {
 	delegateCmd.Flags().StringVar(&valueRaw, "value", "0", "The value to use to sign the transaction")
 	delegateCmd.Flags().StringVar(&feeTokenRaw, "fee-token", "0x0000000000000000000000000000000000000000", "The fee token to use to sign the transaction")
 	delegateCmd.Flags().StringVar(&feeValueRaw, "fee-value", "0", "The fee value to use to sign the transaction")
+	delegateCmd.Flags().BoolVar(&isBasisPoints, "is-basis-points", false, "Whether the fee value is a basis point")
 
 	return delegateCmd
 }
 
-func Accept(client *ethclient.Client, key *keystore.Key, accountAddress, targetAddress common.Address, actionNonce *big.Int, value *big.Int, feeToken common.Address, feeValue *big.Int) error {
+func Accept(client *ethclient.Client, key *keystore.Key, accountAddress, targetAddress common.Address, actionNonce *big.Int, value *big.Int, feeToken common.Address, feeValue *big.Int, isBasisPoints bool) error {
 	// Get the accept call data for DegenGambit contract
 	acceptCallData, err := GetAcceptCallData(true)
 	if err != nil {
 		return fmt.Errorf("failed to get accept call data: %w", err)
+	}
+
+	if actionNonce == nil {
+		accountSystem, err := AccountSystem7702.NewAccountSystem7702(accountAddress, client)
+		if err != nil {
+			return fmt.Errorf("failed to get AccountSystem7702 contract: %w", err)
+		}
+
+		actionNonce, err = accountSystem.Nonce(nil)
+		if err != nil {
+			return fmt.Errorf("failed to get nonce: %w", err)
+		}
+
+		actionNonce = actionNonce.Add(actionNonce, big.NewInt(1))
 	}
 
 	action := Action{
@@ -114,7 +129,7 @@ func Accept(client *ethclient.Client, key *keystore.Key, accountAddress, targetA
 		Expiration:    big.NewInt(0), // No expiration
 		FeeToken:      feeToken,
 		FeeValue:      feeValue,
-		IsBasisPoints: false,
+		IsBasisPoints: isBasisPoints,
 	}
 
 	// Get the ABI for AccountSystem7702

@@ -1,5 +1,5 @@
-# AccountSystem7702
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9c6d5d70b9c8f85602727ed0d0bb7e05794c273b/src/AccountSystem7702.sol)
+# AccountSystem7702Alt
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9c6d5d70b9c8f85602727ed0d0bb7e05794c273b/src/AccountSystem7702Alt.sol)
 
 
 ## State Variables
@@ -60,14 +60,14 @@ Process the executor terms
 
 
 ```solidity
-function _processExecutorTerms(Action memory action, uint256 initialBalance) internal;
+function _processExecutorTerms(ExecutionTerms[] memory executionTerms, uint256[] memory initialBalances) internal;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`action`|`Action`|The action|
-|`initialBalance`|`uint256`|The initial balance of the token|
+|`executionTerms`|`ExecutionTerms[]`|The execution terms|
+|`initialBalances`|`uint256[]`|The initial balances of the tokens|
 
 
 ### _execute
@@ -92,13 +92,13 @@ Process the executor terms with basis points
 
 
 ```solidity
-function _processExecutorTermsWithBasisPoints(Action memory action, uint256 initialBalance) internal;
+function _processExecutorTermsWithBasisPoints(ExecutionTerms memory executionTerms, uint256 initialBalance) internal;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`action`|`Action`|The action|
+|`executionTerms`|`ExecutionTerms`|The execution terms|
 |`initialBalance`|`uint256`|The initial balance of the token|
 
 
@@ -108,13 +108,13 @@ Process the executor terms with amounts
 
 
 ```solidity
-function _processExecutorTermsWithAmounts(Action memory action) internal;
+function _processExecutorTermsWithAmounts(ExecutionTerms memory executionTerms) internal;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`action`|`Action`|The action|
+|`executionTerms`|`ExecutionTerms`|The execution terms|
 
 
 ### _transfer
@@ -175,6 +175,27 @@ function hashAction(Action memory action) public pure returns (bytes32);
 |Name|Type|Description|
 |----|----|-----------|
 |`<none>`|`bytes32`|The EIP712 hash of the action|
+
+
+### batchGetBalances
+
+Batch get the balances of multiple tokens
+
+
+```solidity
+function batchGetBalances(ExecutionTerms[] memory executionTerms) public view returns (uint256[] memory balances);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`executionTerms`|`ExecutionTerms[]`|The execution terms|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`balances`|`uint256[]`|The balances of the tokens|
 
 
 ## Events
