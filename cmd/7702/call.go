@@ -1,23 +1,26 @@
 package main
 
 import (
+	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
-	"github.com/PermissionlessGames/degen-casino/bindings/DegenGambit"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
 )
 
-func CreateAcceptCommand() *cobra.Command {
-	var keyfile, password, rpc, targetAddressRaw, accountAddressRaw, actionNonceRaw, valueRaw, feeTokenRaw, feeValueRaw, authorization string
+func CreateCallCommand() *cobra.Command {
+	var keyfile, password, rpc, targetAddressRaw, accountAddressRaw, actionNonceRaw, valueRaw, feeTokenRaw, feeValueRaw, authorization, calldataRaw string
 	var targetAddress, accountAddress, feeToken common.Address
 	var actionNonce, value, feeValue *big.Int
 	var isBasisPoints bool
+	var calldata []byte
+
 	delegateCmd := &cobra.Command{
-		Use:   "accept",
-		Short: "Accept a slot machine",
+		Use:   "spin",
+		Short: "Spin a slot machine",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if keyfile == "" {
 				return fmt.Errorf("--keyfile not specified (this should be a path to an Ethereum account keystore file)")
@@ -65,6 +68,17 @@ func CreateAcceptCommand() *cobra.Command {
 					return fmt.Errorf("--fee-value is not a valid big integer")
 				}
 			}
+
+			if calldataRaw != "" {
+				var err error
+				calldata, err = hex.DecodeString(calldataRaw)
+				if err != nil {
+					return fmt.Errorf("--calldata is not a valid hex string")
+				}
+			} else {
+				return fmt.Errorf("--calldata is not specified (this should be a hex string)")
+			}
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -74,18 +88,13 @@ func CreateAcceptCommand() *cobra.Command {
 				return fmt.Errorf("Failed to load key: %v", keyErr)
 			}
 
-			client, err := ethclient.Dial(rpc)
+			fmt.Printf("rpc: %s\n", rpc)
+			client, err := ethclient.DialContext(context.Background(), rpc)
 			if err != nil {
 				return fmt.Errorf("failed to connect to RPC: %w", err)
 			}
 
-			// Get the accept call data for DegenGambit contract
-			acceptCallData, err := GetAcceptCallData(true)
-			if err != nil {
-				return fmt.Errorf("failed to get accept call data: %w", err)
-			}
-
-			return SendAccountSystem7702Tx(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue, isBasisPoints, authorization, acceptCallData)
+			return SendAccountSystem7702Tx(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue, isBasisPoints, authorization, calldata)
 		},
 	}
 
@@ -98,27 +107,9 @@ func CreateAcceptCommand() *cobra.Command {
 	delegateCmd.Flags().StringVar(&valueRaw, "value", "0", "The value to use to sign the transaction")
 	delegateCmd.Flags().StringVar(&feeTokenRaw, "fee-token", "0x0000000000000000000000000000000000000000", "The fee token to use to sign the transaction")
 	delegateCmd.Flags().StringVar(&feeValueRaw, "fee-value", "0", "The fee value to use to sign the transaction")
-	delegateCmd.Flags().StringVar(&authorization, "authorization", "", "The authorization to use to sign the transaction")
 	delegateCmd.Flags().BoolVar(&isBasisPoints, "is-basis-points", false, "Whether the fee value is a basis point")
+	delegateCmd.Flags().StringVar(&authorization, "authorization", "", "The authorization to use to sign the transaction")
+	delegateCmd.Flags().StringVar(&calldataRaw, "calldata", "", "The calldata to use to sign the transaction")
 
 	return delegateCmd
-}
-
-func GetAcceptCallData(boost bool) ([]byte, error) {
-	abi, err := DegenGambit.DegenGambitMetaData.GetAbi()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get ABI: %v", err)
-	}
-
-	// Generate transaction data (override method name if safe function is specified)
-	methodName := "accept"
-	txCalldata, err := abi.Pack(
-		methodName,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return txCalldata, nil
 }

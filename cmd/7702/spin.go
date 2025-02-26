@@ -2,13 +2,10 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 
-	"github.com/PermissionlessGames/degen-casino/bindings/AccountSystem7702"
 	"github.com/PermissionlessGames/degen-casino/bindings/DegenGambit"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
@@ -86,7 +83,13 @@ func CreateSpinCommand() *cobra.Command {
 				return fmt.Errorf("failed to connect to RPC: %w", err)
 			}
 
-			return Spin(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue, isBasisPoints, authorization)
+			// Get the spin call data for DegenGambit contract
+			spinCallData, err := GetSpinCallData(true)
+			if err != nil {
+				return fmt.Errorf("failed to get spin call data: %w", err)
+			}
+
+			return SendAccountSystem7702Tx(client, key, accountAddress, targetAddress, actionNonce, value, feeToken, feeValue, isBasisPoints, authorization, spinCallData)
 		},
 	}
 
@@ -105,77 +108,10 @@ func CreateSpinCommand() *cobra.Command {
 	return delegateCmd
 }
 
-func Spin(client *ethclient.Client, key *keystore.Key, accountAddress, targetAddress common.Address, actionNonce *big.Int, value *big.Int, feeToken common.Address, feeValue *big.Int, isBasisPoints bool, authorization string) error {
-	// Get the spin call data for DegenGambit contract
-	spinCallData, err := GetSpinCallData(true)
-	if err != nil {
-		return fmt.Errorf("failed to get spin call data: %w", err)
-	}
-
-	if actionNonce == nil {
-		accountSystem, err := AccountSystem7702.NewAccountSystem7702(accountAddress, client)
-		if err != nil {
-			return fmt.Errorf("failed to get AccountSystem7702 contract: %w", err)
-		}
-
-		actionNonce, err = accountSystem.Nonce(nil)
-		if err != nil {
-			return fmt.Errorf("failed to get nonce: %w", err)
-		}
-
-		actionNonce = actionNonce.Add(actionNonce, big.NewInt(1))
-	}
-
-	action := Action{
-		Target:        targetAddress, // DegenGambit contract address
-		Data:          common.FromHex(spinCallData),
-		Value:         value,         // Amount to send for spinning
-		Nonce:         actionNonce,   // Nonce for the action
-		Expiration:    big.NewInt(0), // No expiration
-		FeeToken:      feeToken,
-		FeeValue:      feeValue,
-		IsBasisPoints: isBasisPoints,
-	}
-
-	// Get the ABI for AccountSystem7702
-	accountSystemAbi, err := AccountSystem7702.AccountSystem7702MetaData.GetAbi()
-	if err != nil {
-		return fmt.Errorf("failed to get AccountSystem7702 ABI: %w", err)
-	}
-
-	signedAction, err := SignAction(action, key.PrivateKey)
-	if err != nil {
-		return fmt.Errorf("failed to sign action: %w", err)
-	}
-
-	fmt.Printf("signedAction: %s\n", hex.EncodeToString(signedAction))
-
-	fmt.Printf("action: %+v\n", action)
-
-	// Pack the execute function call with the action and authorization
-	calldata, err := accountSystemAbi.Pack(
-		"execute",
-		[]Action{action},
-		[][]byte{signedAction},
-	)
-	if err != nil {
-		return fmt.Errorf("failed to pack input: %w", err)
-	}
-
-	fmt.Printf("calldata: %s\n", hex.EncodeToString(calldata))
-
-	if authorization != "" {
-		fmt.Printf("sending tx with authorization: %s\n", authorization)
-		err = SendTxWithAuthorization(client, key, calldata, accountAddress, authorization)
-	}
-
-	return nil
-}
-
-func GetSpinCallData(boost bool) (string, error) {
+func GetSpinCallData(boost bool) ([]byte, error) {
 	abi, err := DegenGambit.DegenGambitMetaData.GetAbi()
 	if err != nil {
-		return "", fmt.Errorf("failed to get ABI: %v", err)
+		return nil, fmt.Errorf("failed to get ABI: %v", err)
 	}
 
 	// Generate transaction data (override method name if safe function is specified)
@@ -186,8 +122,8 @@ func GetSpinCallData(boost bool) (string, error) {
 	)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return hex.EncodeToString(txCalldata), nil
+	return txCalldata, nil
 }

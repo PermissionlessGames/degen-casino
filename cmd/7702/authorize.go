@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CreateDelegateCommand() *cobra.Command {
+func CreateAuthorizeCommand() *cobra.Command {
 	var implementationAddressRaw, delegatorKeyfile, delegatorPassword, rpc string
 	var implementationAddress common.Address
 	var delegatorKey *keystore.Key

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PermissionlessGames/degen-casino/bindings/AccountSystem7702"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -269,4 +270,66 @@ func DecodeAuthorization(hexAuth string) (Authorization, error) {
 	}
 
 	return auth, nil
+}
+
+func SendAccountSystem7702Tx(client *ethclient.Client, key *keystore.Key, accountAddress, targetAddress common.Address, actionNonce *big.Int, value *big.Int, feeToken common.Address, feeValue *big.Int, isBasisPoints bool, authorization string, calldata []byte) error {
+	// Get the spin call data for DegenGambit contract
+	if actionNonce == nil {
+		accountSystem, err := AccountSystem7702.NewAccountSystem7702(accountAddress, client)
+		if err != nil {
+			return fmt.Errorf("failed to get AccountSystem7702 contract: %w", err)
+		}
+
+		actionNonce, err = accountSystem.Nonce(nil)
+		if err != nil {
+			return fmt.Errorf("failed to get nonce: %w", err)
+		}
+
+		actionNonce = actionNonce.Add(actionNonce, big.NewInt(1))
+	}
+
+	action := Action{
+		Target:        targetAddress, // DegenGambit contract address
+		Data:          calldata,
+		Value:         value,         // Amount to send for spinning
+		Nonce:         actionNonce,   // Nonce for the action
+		Expiration:    big.NewInt(0), // No expiration
+		FeeToken:      feeToken,
+		FeeValue:      feeValue,
+		IsBasisPoints: isBasisPoints,
+	}
+
+	// Get the ABI for AccountSystem7702
+	accountSystemAbi, err := AccountSystem7702.AccountSystem7702MetaData.GetAbi()
+	if err != nil {
+		return fmt.Errorf("failed to get AccountSystem7702 ABI: %w", err)
+	}
+
+	signedAction, err := SignAction(action, key.PrivateKey)
+	if err != nil {
+		return fmt.Errorf("failed to sign action: %w", err)
+	}
+
+	fmt.Printf("signedAction: %s\n", hex.EncodeToString(signedAction))
+
+	fmt.Printf("action: %+v\n", action)
+
+	// Pack the execute function call with the action and authorization
+	accountSystemCalldata, err := accountSystemAbi.Pack(
+		"execute",
+		[]Action{action},
+		[][]byte{signedAction},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to pack input: %w", err)
+	}
+
+	fmt.Printf("accountSystemCalldata: %s\n", hex.EncodeToString(accountSystemCalldata))
+
+	if authorization != "" {
+		fmt.Printf("sending tx with authorization: %s\n", authorization)
+		err = SendTxWithAuthorization(client, key, accountSystemCalldata, accountAddress, authorization)
+	}
+
+	return nil
 }
