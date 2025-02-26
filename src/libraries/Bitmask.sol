@@ -32,7 +32,7 @@ library Bitmask {
         uint256 index = 0;
         for (uint256 i = 0; i < maxNumber; i++) {
             if ((bitmask & (1 << i)) != 0) {
-                numbers[index++] = i + 1;
+                numbers[index++] = i;
             }
         }
     }
@@ -42,14 +42,19 @@ library Bitmask {
      */
     function countMatchingBits(
         uint256 bitmask1,
-        uint256 bitmask2
+        uint256 bitmask2,
+        uint256 maxRange
     ) internal pure returns (uint256) {
+        require(maxRange <= 255, "Range exceeds limit"); // Ensure max range is within 255
+
         uint256 count = 0;
-        uint256 diff = bitmask1 & bitmask2;
-        while (diff > 0) {
-            count += diff & 1;
-            diff >>= 1;
+        uint256 diff = bitmask1 & bitmask2; // Identify matching bits
+
+        for (uint8 i = 0; i < maxRange && diff > 0; i++) {
+            count += diff & 1; // Count the bit if it's set
+            diff >>= 1; // Shift right to check the next bit
         }
+
         return count;
     }
 }

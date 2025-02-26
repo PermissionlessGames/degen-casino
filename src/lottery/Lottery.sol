@@ -73,7 +73,11 @@ contract Lottery {
         uint256 winningMask = lotteries[lotteryId].winningBitmask;
 
         // Calculate matching numbers
-        matchingCount = Bitmask.countMatchingBits(ticketBitmask, winningMask);
+        matchingCount = Bitmask.countMatchingBits(
+            ticketBitmask,
+            winningMask,
+            lotteries[lotteryId].maxNumber
+        );
     }
 
     /**

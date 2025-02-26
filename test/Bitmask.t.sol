@@ -22,7 +22,7 @@ contract BitmaskTest is Test {
     }
 
     function testDecode() public pure {
-        uint256 bitmask = (1 << 1) | (1 << 3) | (1 << 5); // Expect [1, 3, 5]
+        uint256 bitmask = (1 << 1) | (1 << 3) | (1 << 4); // Expect [1, 3, 4]
         uint256 maxNumber = 5;
 
         uint256[] memory decodedNumbers = Bitmask.decode(bitmask, maxNumber);
@@ -30,7 +30,7 @@ contract BitmaskTest is Test {
         assertEq(decodedNumbers.length, 3, "Decoded array length is incorrect");
         assertEq(decodedNumbers[0], 1, "First decoded number is incorrect");
         assertEq(decodedNumbers[1], 3, "Second decoded number is incorrect");
-        assertEq(decodedNumbers[2], 5, "Third decoded number is incorrect");
+        assertEq(decodedNumbers[2], 4, "Third decoded number is incorrect");
     }
 
     function testCountMatchingBits() public pure {
@@ -38,7 +38,11 @@ contract BitmaskTest is Test {
         uint256 bitmask2 = (1 << 1) | (1 << 5) | (1 << 7); // [1, 5, 7]
 
         uint256 expectedMatches = 2; // Matches at positions 1 and 5
-        uint256 actualMatches = Bitmask.countMatchingBits(bitmask1, bitmask2);
+        uint256 actualMatches = Bitmask.countMatchingBits(
+            bitmask1,
+            bitmask2,
+            8
+        );
 
         assertEq(
             actualMatches,
