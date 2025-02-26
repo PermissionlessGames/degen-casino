@@ -6,7 +6,7 @@ library Bitmask {
      * @notice Encodes an array of numbers into a single bitmask.
      */
     function encode(
-        uint256[] calldata numbers
+        uint256[] memory numbers
     ) internal pure returns (uint256 bitmask) {
         for (uint256 i = 0; i < numbers.length; i++) {
             require(numbers[i] >= 1, "Number out of range");

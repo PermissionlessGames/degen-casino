@@ -1,5 +1,5 @@
 # Bitmask
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/611282bb679741918d25b2d11b7ff264f22837af/src/libraries/Bitmask.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f2eab2a75674d79a561b000ff929ef1093179c75/src/libraries/Bitmask.sol)
 
 
 ## Functions
@@ -9,7 +9,7 @@ Encodes an array of numbers into a single bitmask.
 
 
 ```solidity
-function encode(uint256[] calldata numbers) internal pure returns (uint256 bitmask);
+function encode(uint256[] memory numbers) internal pure returns (uint256 bitmask);
 ```
 
 ### decode
