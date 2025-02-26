@@ -1,5 +1,5 @@
 # RecurringClaimsDistribution
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5314e359045edc4f0b89c7c7f66c3323f00480f8/src/distribution/RecurringClaimsDistribution.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/a132d2a038139d2d91746b28f555d8474f835d18/src/distribution/RecurringClaimsDistribution.sol)
 
 **Inherits:**
 ReentrancyGuard
@@ -54,7 +54,7 @@ function startNewRound(
     uint256 minClaimInterval,
     uint256 totalTokens,
     uint256 numberOfClaimsRequired
-) external payable nonReentrant;
+) external payable nonReentrant returns (uint256 roundId);
 ```
 **Parameters**
 
@@ -95,23 +95,7 @@ function claimTokens(uint256 roundId, address recipeint) external nonReentrant r
 |Name|Type|Description|
 |----|----|-----------|
 |`roundId`|`uint256`|The round from which to claim tokens.|
-|`recipeint`|`address`|The individual who is claiming Todo: Add Non-reentrant|
-
-
-### setClaimInterval
-
-Updates the claim interval for a specific round (Only creator can call).
-
-
-```solidity
-function setClaimInterval(uint256 roundId, uint256 interval) external roundActive(roundId);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`roundId`|`uint256`|The round to update.|
-|`interval`|`uint256`|New claim interval in seconds.|
+|`recipeint`|`address`|The individual who is claiming|
 
 
 ### getRecipients
@@ -193,7 +177,6 @@ event ClaimIntervalUpdated(uint256 indexed roundId, uint256 interval);
 
 ```solidity
 struct DistributionRound {
-    address creator;
     address token;
     uint256 numberOfClaimsRequired;
     uint256 totalTokens;
