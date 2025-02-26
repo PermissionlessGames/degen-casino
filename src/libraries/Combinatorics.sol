@@ -10,7 +10,12 @@ pragma solidity ^0.8.19;
  */
 
 library Combinatorics {
+    // Largest Factorial possible with uint256 is 57, anything larger will revert
     function factorial(uint256 n) internal pure returns (uint256 nFactorial) {
+        require(
+            n < 58,
+            "Combinatorics: Factorial UpperBounds reached must be less then 57"
+        );
         nFactorial = sequentialProduct(1, n);
     }
 
