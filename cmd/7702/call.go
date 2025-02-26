@@ -19,8 +19,8 @@ func CreateCallCommand() *cobra.Command {
 	var calldata []byte
 
 	delegateCmd := &cobra.Command{
-		Use:   "spin",
-		Short: "Spin a slot machine",
+		Use:   "call",
+		Short: "Send arbitrary calldata",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if keyfile == "" {
 				return fmt.Errorf("--keyfile not specified (this should be a path to an Ethereum account keystore file)")

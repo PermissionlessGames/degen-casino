@@ -1,5 +1,5 @@
 # TestableDegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/41aaa20bb5d115d7f7f5144fd0b0f95fc755f416/src/testable/TestableDegenGambit.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/6045da79bcc780d5296b9e30abdb6b97559ac8ac/src/testable/TestableDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)
