@@ -12,6 +12,8 @@
   - [DegenCasinoAccount](src/AccountSystem.sol/contract.DegenCasinoAccount.md)
   - [AccountSystem](src/AccountSystem.sol/contract.AccountSystem.md)
   - [AccountSystem constants](src/AccountSystem.sol/constants.AccountSystem.md)
+  - [Action](src/AccountSystem7702.sol/struct.Action.md)
+  - [AccountSystem7702](src/AccountSystem7702.sol/contract.AccountSystem7702.md)
   - [ArbSys](src/ArbSys.sol/interface.ArbSys.md)
   - [BlockInspector](src/BlockInspector.sol/contract.BlockInspector.md)
   - [DegenGambit](src/DegenGambit.sol/contract.DegenGambit.md)

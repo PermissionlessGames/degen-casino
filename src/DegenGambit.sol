@@ -230,7 +230,8 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     function _blockNumber() internal view returns (uint256) {
-        return ArbSys(address(100)).arbBlockNumber();
+        // return ArbSys(address(100)).arbBlockNumber();
+        return block.number;
     }
 
     function _blockhash(uint256 number) internal view returns (bytes32) {
@@ -244,9 +245,9 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     function _enforceDeadline(address degenerate) internal view {
-        if (_blockNumber() > LastSpinBlock[degenerate] + BlocksToAct) {
+        /* if (_blockNumber() > LastSpinBlock[degenerate] + BlocksToAct) {
             revert DeadlineExceeded();
-        }
+        } */
     }
 
     function _entropy(
@@ -664,7 +665,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         )
     {
         _enforceTick(player);
-        _enforceDeadline(player);
+        //_enforceDeadline(player);
 
         (left, center, right, remainingEntropy) = outcome(
             _entropy(player),
