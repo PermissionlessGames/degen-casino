@@ -1,5 +1,5 @@
 # Bitmask
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f2eab2a75674d79a561b000ff929ef1093179c75/src/libraries/Bitmask.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/605506965a587d9d2ecfe89f59f6deef704c4b07/src/libraries/Bitmask.sol)
 
 
 ## Functions
@@ -27,6 +27,6 @@ Counts the number of matching bits between two bitmasks.
 
 
 ```solidity
-function countMatchingBits(uint256 bitmask1, uint256 bitmask2) internal pure returns (uint256);
+function countMatchingBits(uint256 bitmask1, uint256 bitmask2, uint256 maxRange) internal pure returns (uint256);
 ```
 

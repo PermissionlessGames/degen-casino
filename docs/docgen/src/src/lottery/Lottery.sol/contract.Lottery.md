@@ -1,5 +1,5 @@
 # Lottery
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f2eab2a75674d79a561b000ff929ef1093179c75/src/lottery/Lottery.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/605506965a587d9d2ecfe89f59f6deef704c4b07/src/lottery/Lottery.sol)
 
 **Author:**
 Your Name
@@ -10,10 +10,10 @@ Players can check if a ticket has matching numbers and claim prizes.
 
 
 ## State Variables
-### nextLotteryId
+### currentLotteryId
 
 ```solidity
-uint256 public nextLotteryId;
+uint256 public currentLotteryId;
 ```
 
 
@@ -48,7 +48,7 @@ Checks if a specific ticket has matching numbers.
 
 ```solidity
 function hasMatching(uint256 lotteryId, address player, uint256 playerTicketId)
-    external
+    public
     view
     returns (uint256 matchingCount);
 ```
@@ -78,7 +78,7 @@ Returns the player's ticket selections for a specific lottery.
 
 
 ```solidity
-function getPlayerTickets(address player, uint256 lotteryId) external view returns (uint256[][] memory);
+function getPlayerTickets(address player, uint256 lotteryId) public view returns (uint256[][] memory);
 ```
 
 ### processTicketPurchase
@@ -89,7 +89,7 @@ Internal function that processes ticket purchases.
 
 
 ```solidity
-function processTicketPurchase(uint256 lotteryId, uint256[] calldata numbers, address player)
+function processTicketPurchase(uint256 lotteryId, uint256[] memory numbers, address player)
     internal
     returns (bool added);
 ```
@@ -102,7 +102,7 @@ Returns the winning numbers for a specific lottery as an array.
 
 
 ```solidity
-function getWinningNumbers(uint256 lotteryId) external view returns (uint256[] memory);
+function getWinningNumbers(uint256 lotteryId) public view returns (uint256[] memory);
 ```
 
 ### getPlayersForNumbers
@@ -113,7 +113,11 @@ Returns the players who picked a given combination of numbers in a lottery.
 
 
 ```solidity
-function getPlayersForNumbers(uint256 lotteryId, uint256[] calldata numbers) external view returns (address[] memory);
+function getPlayersForNumbers(uint256 lotteryId, uint256[] memory numbers)
+    public
+    view
+    virtual
+    returns (address[] memory);
 ```
 
 ### createLottery
@@ -135,7 +139,7 @@ Internal function to set the winning numbers.
 
 
 ```solidity
-function setWinningNumbers(uint256 lotteryId, uint256[] calldata numbers) internal;
+function setWinningNumbers(uint256 lotteryId, uint256[] memory numbers) internal;
 ```
 
 ## Events
