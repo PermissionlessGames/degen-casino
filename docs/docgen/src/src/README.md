@@ -2,6 +2,7 @@
 
 # Contents
 - [dev](/src/dev)
+- [distribution](/src/distribution)
 - [libraries](/src/libraries)
 - [lottery](/src/lottery)
 - [ArbSys](ArbSys.sol/interface.ArbSys.md)

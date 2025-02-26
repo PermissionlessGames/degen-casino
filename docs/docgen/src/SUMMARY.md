@@ -4,6 +4,8 @@
   - [❱ dev](src/dev/README.md)
     - [DevDegenGambit](src/dev/DevDegenGambit.sol/contract.DevDegenGambit.md)
     - [DevPCPricing](src/dev/DevPCPricing.sol/contract.DevPCPricing.md)
+  - [❱ distribution](src/distribution/README.md)
+    - [RecurringClaimsDistribution](src/distribution/RecurringClaimsDistribution.sol/contract.RecurringClaimsDistribution.md)
   - [❱ libraries](src/libraries/README.md)
     - [Bitmask](src/libraries/Bitmask.sol/library.Bitmask.md)
     - [Combinatorics](src/libraries/Combinatorics.sol/library.Combinatorics.md)

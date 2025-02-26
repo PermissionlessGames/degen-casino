@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract RecurringClaimsDistribution  {
+contract RecurringClaimsDistribution {
     struct DistributionRound {
         address creator;
         address token; // ERC20 token address or zero for native asset
@@ -66,7 +66,7 @@ contract RecurringClaimsDistribution  {
                 (token != address(0) && totalTokens > 0),
             "Must provide native or ERC20 tokens"
         );
-        require(numberOfClaimsRequired > 0: "Must Be greater than 0");
+        require(numberOfClaimsRequired > 0, "Must Be greater than 0");
 
         // Pull ERC20 tokens immediately if a token is provided
         if (token != address(0)) {
@@ -87,7 +87,9 @@ contract RecurringClaimsDistribution  {
         round.totalTokens = totalTokens;
         round.remainingTokens = totalTokens;
         round.minClaimInterval = minClaimInterval;
-        round.totalPerEntryPerClaim = totalTokens / (recipients.length*numberOfClaimsRequired);
+        round.totalPerEntryPerClaim =
+            totalTokens /
+            (recipients.length * numberOfClaimsRequired);
         round.isActive = true;
         round.numberOfClaimsRequired = numberOfClaimsRequired;
 
@@ -123,14 +125,16 @@ contract RecurringClaimsDistribution  {
         }
     }
 
-
     /**
      * @notice Allows individual recipients to claim their allocated tokens or allows others to do it for them.
      * @param roundId The round from which to claim tokens.
      * @param recipeint The individual who is claiming
      * Todo: Add Non-reentrant
      */
-    function claimTokens(uint256 roundId, address recipeint) external roundActive(roundId) {
+    function claimTokens(
+        uint256 roundId,
+        address recipeint
+    ) external roundActive(roundId) {
         DistributionRound storage round = rounds[roundId];
 
         require(round.recipientEntries[recipeint] > 0, "Not a recipient");
@@ -140,7 +144,11 @@ contract RecurringClaimsDistribution  {
                 lastClaimed[roundId][recipeint] + round.minClaimInterval,
             "Claim interval not met"
         );
-        require(amountClaimed < round.totalPerEntryPerClaim * round.numberOfClaimsRequired, "Distribuition: No tokens left to claim");
+        require(
+            amountClaimed[roundId][recipeint] <
+                round.totalPerEntryPerClaim * round.numberOfClaimsRequired,
+            "Distribuition: No tokens left to claim"
+        );
 
         uint256 recipientEntries = round.recipientEntries[recipeint];
         uint256 amountToSend = round.totalPerEntryPerClaim * recipientEntries;
@@ -150,8 +158,13 @@ contract RecurringClaimsDistribution  {
             amountToSend = round.remainingTokens;
         }
         //Prevents over-distribution for the individual
-        if(amountToSend + amountClaimed[recipeint] > round.totalPerEntryPerClaim*round.numberOfClaimsRequired){
-            amountToSend = round.totalPerEntryPerClaim*round.numberOfClaimsRequired - amountClaimed[recipeint];
+        if (
+            amountToSend + amountClaimed[roundId][recipeint] >
+            round.totalPerEntryPerClaim * round.numberOfClaimsRequired
+        ) {
+            amountToSend =
+                (round.totalPerEntryPerClaim * round.numberOfClaimsRequired) -
+                amountClaimed[roundId][recipeint];
         }
         // **Update Claim Status & Remaining Tokens**
         lastClaimed[roundId][recipeint] = block.timestamp;
