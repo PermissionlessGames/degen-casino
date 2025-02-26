@@ -10,7 +10,7 @@ import "../libraries/Bitmask.sol"; // Assuming Bitmask is a separate library
  * @dev Uses an external Bitmask library for encoding, decoding & number matching.
  */
 contract Lottery {
-    uint256 public nextLotteryId;
+    uint256 public currentLotteryId;
 
     struct LotteryGame {
         uint256 lotteryId;
@@ -61,7 +61,7 @@ contract Lottery {
         uint256 lotteryId,
         address player,
         uint256 playerTicketId
-    ) external view returns (uint256 matchingCount) {
+    ) public view returns (uint256 matchingCount) {
         require(
             playerTickets[player][lotteryId].length > playerTicketId,
             "Lottery: Invalid ticket ID"
@@ -116,7 +116,7 @@ contract Lottery {
     function getPlayerTickets(
         address player,
         uint256 lotteryId
-    ) external view returns (uint256[][] memory) {
+    ) public view returns (uint256[][] memory) {
         uint256[] storage bitmasks = playerTickets[player][lotteryId];
         uint256[][] memory tickets = new uint256[][](bitmasks.length);
 
@@ -136,7 +136,7 @@ contract Lottery {
      */
     function processTicketPurchase(
         uint256 lotteryId,
-        uint256[] calldata numbers,
+        uint256[] memory numbers,
         address player
     ) internal returns (bool added) {
         LotteryGame storage lottery = lotteries[lotteryId];
@@ -159,7 +159,7 @@ contract Lottery {
      */
     function getWinningNumbers(
         uint256 lotteryId
-    ) external view returns (uint256[] memory) {
+    ) public view returns (uint256[] memory) {
         return
             Bitmask.decode(
                 lotteries[lotteryId].winningBitmask,
@@ -173,8 +173,8 @@ contract Lottery {
      */
     function getPlayersForNumbers(
         uint256 lotteryId,
-        uint256[] calldata numbers
-    ) external view returns (address[] memory) {
+        uint256[] memory numbers
+    ) public view virtual returns (address[] memory) {
         uint256 bitmask = Bitmask.encode(numbers);
         return lotteries[lotteryId].ticketOwners[bitmask];
     }
@@ -188,15 +188,14 @@ contract Lottery {
             0 < numbersToPick && numbersToPick < maxNumber && maxNumber < 256,
             "Lottery: Creation parameters Out of range"
         );
-
-        LotteryGame storage newLottery = lotteries[nextLotteryId];
-        newLottery.lotteryId = nextLotteryId;
+        currentLotteryId++;
+        LotteryGame storage newLottery = lotteries[currentLotteryId];
+        newLottery.lotteryId = currentLotteryId;
         newLottery.maxNumber = maxNumber;
         newLottery.numbersToPick = numbersToPick;
         newLottery.isActive = true;
 
-        emit LotteryCreated(nextLotteryId, maxNumber, numbersToPick);
-        nextLotteryId++;
+        emit LotteryCreated(currentLotteryId, maxNumber, numbersToPick);
     }
 
     /**
@@ -205,7 +204,7 @@ contract Lottery {
      */
     function setWinningNumbers(
         uint256 lotteryId,
-        uint256[] calldata numbers
+        uint256[] memory numbers
     ) internal {
         require(
             numbers.length == lotteries[lotteryId].numbersToPick,
