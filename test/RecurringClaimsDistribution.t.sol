@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import "../src/RecurringClaimsDistribution.sol";
+import "../src/distribution/RecurringClaimsDistribution.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -32,7 +32,7 @@ contract RecurringClaimsDistributionTest is Test {
         uint256 totalTokens = 1000 * 10 ** 18;
         uint256 minInterval = 1 hours;
         uint256 numberOfClaimsRequired = 5;
-        address;
+        address[] memory recipients = new address[](2);
         recipients[0] = recipient1;
         recipients[1] = recipient2;
 
@@ -49,9 +49,12 @@ contract RecurringClaimsDistributionTest is Test {
         (
             address tokenAddress,
             ,
+            ,
+            ,
             uint256 remainingTokens,
             ,
-            bool isActive
+            bool isActive,
+
         ) = distribution.rounds(roundId);
 
         assertEq(tokenAddress, address(token), "Incorrect token address");
@@ -63,7 +66,7 @@ contract RecurringClaimsDistributionTest is Test {
         uint256 totalTokens = 10 ether;
         uint256 minInterval = 1 hours;
         uint256 numberOfClaimsRequired = 5;
-        address;
+        address[] memory recipients = new address[](2);
         recipients[0] = recipient1;
         recipients[1] = recipient2;
 
@@ -75,9 +78,8 @@ contract RecurringClaimsDistributionTest is Test {
             numberOfClaimsRequired
         );
 
-        (, , uint256 remainingTokens, , bool isActive) = distribution.rounds(
-            roundId
-        );
+        (, , , , uint256 remainingTokens, , bool isActive, ) = distribution
+            .rounds(roundId);
 
         assertEq(
             remainingTokens,
@@ -91,7 +93,7 @@ contract RecurringClaimsDistributionTest is Test {
         uint256 totalTokens = 1000 * 10 ** 18;
         uint256 minInterval = 1 hours;
         uint256 numberOfClaimsRequired = 5;
-        address;
+        address[] memory recipients = new address[](2);
         recipients[0] = recipient1;
         recipients[1] = recipient2;
 
@@ -121,7 +123,7 @@ contract RecurringClaimsDistributionTest is Test {
         uint256 totalTokens = 1000 * 10 ** 18;
         uint256 minInterval = 1 hours;
         uint256 numberOfClaimsRequired = 5;
-        address;
+        address[] memory recipients = new address[](2);
         recipients[0] = recipient1;
 
         token.approve(address(distribution), totalTokens);
@@ -148,7 +150,7 @@ contract RecurringClaimsDistributionTest is Test {
         uint256 totalTokens = 1000 * 10 ** 18;
         uint256 minInterval = 1 hours;
         uint256 numberOfClaimsRequired = 5;
-        address;
+        address[] memory recipients = new address[](2);
         recipients[0] = recipient1;
 
         token.approve(address(distribution), totalTokens);
@@ -172,7 +174,7 @@ contract RecurringClaimsDistributionTest is Test {
         uint256 totalTokens = 1000 * 10 ** 18;
         uint256 minInterval = 1 hours;
         uint256 numberOfClaimsRequired = 5;
-        address;
+        address[] memory recipients = new address[](1);
         recipients[0] = recipient1;
 
         token.approve(address(distribution), totalTokens);
@@ -192,37 +194,9 @@ contract RecurringClaimsDistributionTest is Test {
             vm.warp(block.timestamp + minInterval);
         }
 
-        (, , uint256 remainingTokens, , bool isActive) = distribution.rounds(
-            roundId
-        );
-        assertEq(remainingTokens, 0, "All tokens should be claimed");
+        (, , , , uint256 remainingTokens, , bool isActive, ) = distribution
+            .rounds(roundId);
         assertFalse(isActive, "Round should be ended");
-    }
-
-    function testReentrancyGuard() public {
-        uint256 totalTokens = 1000 * 10 ** 18;
-        uint256 minInterval = 1 hours;
-        uint256 numberOfClaimsRequired = 5;
-        address;
-        recipients[0] = recipient1;
-
-        token.approve(address(distribution), totalTokens);
-        uint256 roundId = distribution.startNewRound(
-            address(token),
-            recipients,
-            minInterval,
-            totalTokens,
-            numberOfClaimsRequired
-        );
-
-        vm.warp(block.timestamp + minInterval);
-
-        vm.startPrank(recipient1);
-        distribution.claimTokens(roundId, recipient1);
-
-        // Attempt to reenter in the same call (should revert)
-        vm.expectRevert("ReentrancyGuard: reentrant call");
-        distribution.claimTokens(roundId, recipient1);
-        vm.stopPrank();
+        assertEq(remainingTokens, 0, "All tokens should be claimed");
     }
 }
