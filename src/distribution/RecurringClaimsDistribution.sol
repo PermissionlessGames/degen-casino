@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract RecurringClaimsDistribution is ReentrancyGuard {
     struct DistributionRound {
-        address creator;
         address token; // ERC20 token address or zero for native asset
         uint256 numberOfClaimsRequired;
         uint256 totalTokens; // Total amount of tokens available for the round
@@ -59,7 +58,7 @@ contract RecurringClaimsDistribution is ReentrancyGuard {
         uint256 minClaimInterval,
         uint256 totalTokens,
         uint256 numberOfClaimsRequired
-    ) external payable nonReentrant {
+    ) external payable nonReentrant returns (uint256 roundId) {
         require(recipients.length > 0, "Must provide recipients");
         require(minClaimInterval > 0, "Interval must be greater than zero");
         require(
@@ -80,10 +79,9 @@ contract RecurringClaimsDistribution is ReentrancyGuard {
             );
         }
 
-        uint256 roundId = nextRoundId++;
+        roundId = nextRoundId++;
         DistributionRound storage round = rounds[roundId];
 
-        round.creator = msg.sender;
         round.token = token;
         round.totalTokens = totalTokens;
         round.remainingTokens = totalTokens;
@@ -187,25 +185,6 @@ contract RecurringClaimsDistribution is ReentrancyGuard {
 
         // Check if the round should be ended
         _endRoundIfNeeded(roundId);
-    }
-
-    /**
-     * @notice Updates the claim interval for a specific round (Only creator can call).
-     * @param roundId The round to update.
-     * @param interval New claim interval in seconds.
-     */
-    function setClaimInterval(
-        uint256 roundId,
-        uint256 interval
-    ) external roundActive(roundId) {
-        require(
-            msg.sender == rounds[roundId].creator,
-            "Only creator can update"
-        );
-        require(interval > 0, "Interval must be greater than zero");
-
-        rounds[roundId].minClaimInterval = interval;
-        emit ClaimIntervalUpdated(roundId, interval);
     }
 
     /**
