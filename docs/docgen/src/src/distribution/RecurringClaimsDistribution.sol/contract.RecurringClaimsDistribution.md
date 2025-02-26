@@ -1,5 +1,8 @@
 # RecurringClaimsDistribution
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/d900c2ded2fe11299deb1cfd62fce82909897de2/src/distribution/RecurringClaimsDistribution.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5314e359045edc4f0b89c7c7f66c3323f00480f8/src/distribution/RecurringClaimsDistribution.sol)
+
+**Inherits:**
+ReentrancyGuard
 
 
 ## State Variables
@@ -51,7 +54,7 @@ function startNewRound(
     uint256 minClaimInterval,
     uint256 totalTokens,
     uint256 numberOfClaimsRequired
-) external payable;
+) external payable nonReentrant;
 ```
 **Parameters**
 
@@ -85,7 +88,7 @@ Allows individual recipients to claim their allocated tokens or allows others to
 
 
 ```solidity
-function claimTokens(uint256 roundId, address recipeint) external roundActive(roundId);
+function claimTokens(uint256 roundId, address recipeint) external nonReentrant roundActive(roundId);
 ```
 **Parameters**
 

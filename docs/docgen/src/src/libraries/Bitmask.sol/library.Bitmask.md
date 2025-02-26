@@ -1,5 +1,5 @@
 # Bitmask
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/d900c2ded2fe11299deb1cfd62fce82909897de2/src/libraries/Bitmask.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5314e359045edc4f0b89c7c7f66c3323f00480f8/src/libraries/Bitmask.sol)
 
 
 ## Functions

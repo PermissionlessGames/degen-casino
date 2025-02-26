@@ -2,8 +2,9 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract RecurringClaimsDistribution {
+contract RecurringClaimsDistribution is ReentrancyGuard {
     struct DistributionRound {
         address creator;
         address token; // ERC20 token address or zero for native asset
@@ -58,7 +59,7 @@ contract RecurringClaimsDistribution {
         uint256 minClaimInterval,
         uint256 totalTokens,
         uint256 numberOfClaimsRequired
-    ) external payable {
+    ) external payable nonReentrant {
         require(recipients.length > 0, "Must provide recipients");
         require(minClaimInterval > 0, "Interval must be greater than zero");
         require(
@@ -129,12 +130,11 @@ contract RecurringClaimsDistribution {
      * @notice Allows individual recipients to claim their allocated tokens or allows others to do it for them.
      * @param roundId The round from which to claim tokens.
      * @param recipeint The individual who is claiming
-     * Todo: Add Non-reentrant
      */
     function claimTokens(
         uint256 roundId,
         address recipeint
-    ) external roundActive(roundId) {
+    ) external nonReentrant roundActive(roundId) {
         DistributionRound storage round = rounds[roundId];
 
         require(round.recipientEntries[recipeint] > 0, "Not a recipient");
