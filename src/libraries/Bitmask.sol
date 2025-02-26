@@ -9,8 +9,8 @@ library Bitmask {
         uint256[] memory numbers
     ) internal pure returns (uint256 bitmask) {
         for (uint256 i = 0; i < numbers.length; i++) {
-            require(numbers[i] >= 1, "Number out of range");
-            bitmask |= (1 << (numbers[i] - 1));
+            require(numbers[i] >= 0, "Number out of range");
+            bitmask |= (1 << (numbers[i]));
         }
     }
 
