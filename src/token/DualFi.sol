@@ -93,10 +93,18 @@ contract DualFi is ERC20, ReentrancyGuard {
         } else {
             if (wantNative) {
                 amount = (address(this).balance * amountIn) / halfSupply;
+                //Ensure amount is not greater than balance
+                amount = amount > address(this).balance
+                    ? address(this).balance
+                    : amount;
             } else {
                 amount =
                     (IERC20(token).balanceOf(address(this)) * amountIn) /
                     halfSupply;
+                //ensure amount is not greater than balance
+                amount = amount > IERC20(token).balanceOf(address(this))
+                    ? IERC20(token).balanceOf(address(this))
+                    : amount;
             }
             amount = (amount / basis) * (basis - 1);
         }
