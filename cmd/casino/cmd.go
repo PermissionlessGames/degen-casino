@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/PermissionlessGames/degen-casino/bindings/DegenGambit"
+	"github.com/PermissionlessGames/degen-casino/bindings/DualFi"
 	"github.com/PermissionlessGames/degen-casino/version"
 )
 
@@ -26,7 +27,9 @@ func CreateRootCommand() *cobra.Command {
 	gambitCmd := DegenGambit.CreateDegenGambitCommand()
 	gambitCmd.Use = "gambit"
 
-	rootCmd.AddCommand(gambitCmd)
+	dualFiCmd := DualFi.CreateDualFiCommand()
+
+	rootCmd.AddCommand(gambitCmd, dualFiCmd)
 
 	// By default, cobra Command objects write to stderr. We have to forcibly set them to output to
 	// stdout.

@@ -4,7 +4,7 @@ build: forge generate docs bin/casino bin/technician
 
 rebuild: clean build
 
-generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/DevDegenGambit/DevDegenGambit.go
+generate: forge bindings/DegenGambit/DegenGambit.go bindings/BlockInspector/BlockInspector.go bindings/DevDegenGambit/DevDegenGambit.go bindings/DualFi/DualFi.go
 
 bindings/DegenGambit/DegenGambit.go:
 	mkdir -p bindings/DegenGambit
@@ -17,6 +17,11 @@ bindings/BlockInspector/BlockInspector.go:
 bindings/DevDegenGambit/DevDegenGambit.go:
 	mkdir -p bindings/DevDegenGambit
 	seer evm generate --package DevDegenGambit --output bindings/DevDegenGambit/DevDegenGambit.go --foundry out/DevDegenGambit.sol/DevDegenGambit.json --cli --struct DevDegenGambit
+
+bindings/DualFi/DualFi.go:
+	mkdir -p bindings/DualFi
+	cd ../seer && ./seer evm generate --package DualFi --output ../degen-casino/bindings/DualFi/DualFi.go --foundry ../degen-casino/out/DualFi.sol/DualFi.json --cli --struct DualFi --source-code ../degen-casino/src/token/DualFi.sol
+
 
 bin/casino: bindings/DegenGambit/DegenGambit.go
 	go mod tidy

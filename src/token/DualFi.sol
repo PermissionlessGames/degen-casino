@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "../../lib/openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../../lib/openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract DualFi is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
