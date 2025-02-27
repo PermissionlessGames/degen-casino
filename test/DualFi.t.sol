@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "../src/token/DualFi.sol";
-import "../src/token/IDualFi.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -74,6 +73,24 @@ contract DualFiTest is Test {
         IERC20(address(token)).approve(address(dualFi), 500e18);
         vm.prank(user1);
         uint256 receivedAmount = dualFi.deposit{value: 0}(500e18);
+        assertEq(
+            estimatedAmount,
+            receivedAmount,
+            "Estimated Amount should equal amount received"
+        );
+    }
+
+    function testDepositBoth() public {
+        vm.deal(user1, 10 ether);
+        uint256 estimatedAmount = dualFi.calculateDistributeAmount(
+            500e18,
+            1 ether
+        );
+        assertGt(token.balanceOf(user1), 0, "User1 should have a balance");
+        vm.prank(user1);
+        IERC20(address(token)).approve(address(dualFi), 500e18);
+        vm.prank(user1);
+        uint256 receivedAmount = dualFi.deposit{value: 1 ether}(500e18);
         assertEq(
             estimatedAmount,
             receivedAmount,
