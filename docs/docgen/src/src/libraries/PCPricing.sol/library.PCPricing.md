@@ -1,5 +1,5 @@
 # PCPricing
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/ad02e177c5773bccbcd1369e63be4ea1e9311fae/src/libraries/PCPricing.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/760b4fc276a589a76aa0e7708831424a0d0591e7/src/libraries/PCPricing.sol)
 
 **Author:**
 Permissionless Games & ChatGpt
@@ -47,13 +47,13 @@ Adjust the price dynamically based on usage (same adjustment for all non-anchor 
 function adjustCurrencyPrice(PricingData storage self, bytes memory currency, bool increase) internal;
 ```
 
-### reduceAllNonAnchorPrices
+### adjustAllNonAnchorPrices
 
-Reduce the price of all non-anchor currencies when the anchor currency is used
+adjust the price of all non-anchor currencies when the anchor currency is used
 
 
 ```solidity
-function reduceAllNonAnchorPrices(PricingData storage self) internal;
+function adjustAllNonAnchorPrices(PricingData storage self, bool increase) internal;
 ```
 
 ### getCurrencyPrice

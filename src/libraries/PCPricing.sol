@@ -89,12 +89,15 @@ library PCPricing {
         }
     }
 
-    /// @notice Reduce the price of all non-anchor currencies when the anchor currency is used
-    function reduceAllNonAnchorPrices(PricingData storage self) internal {
+    /// @notice adjust the price of all non-anchor currencies when the anchor currency is used
+    function adjustAllNonAnchorPrices(
+        PricingData storage self,
+        bool increase
+    ) internal {
         for (uint256 i = 0; i < self.trackedCurrencies.length; i++) {
             bytes memory currency = self.trackedCurrencies[i];
             if (keccak256(currency) != keccak256(self.anchorCurrency)) {
-                adjustCurrencyPrice(self, currency, false);
+                adjustCurrencyPrice(self, currency, increase);
             }
         }
     }

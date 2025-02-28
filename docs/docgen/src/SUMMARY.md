@@ -15,6 +15,7 @@
   - [❱ token](src/token/README.md)
     - [DualFi](src/token/DualFi.sol/contract.DualFi.md)
     - [IDualFi](src/token/IDualFi.sol/interface.IDualFi.md)
+    - [PCPricedToken](src/token/PCPToken.sol/contract.PCPricedToken.md)
   - [ArbSys](src/ArbSys.sol/interface.ArbSys.md)
   - [BlockInspector](src/BlockInspector.sol/contract.BlockInspector.md)
   - [DegenGambit](src/DegenGambit.sol/contract.DegenGambit.md)

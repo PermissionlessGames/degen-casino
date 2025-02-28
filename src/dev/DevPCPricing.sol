@@ -47,7 +47,7 @@ contract DevPCPricing {
 
     /// @notice Reduce all non-anchor currency prices when the anchor is used
     function useAnchorCurrency() external {
-        pricingData.reduceAllNonAnchorPrices();
+        pricingData.adjustAllNonAnchorPrices(false);
         emit AllPricesReduced();
     }
 
