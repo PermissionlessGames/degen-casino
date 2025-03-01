@@ -1,5 +1,5 @@
 # PCPricedToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/760b4fc276a589a76aa0e7708831424a0d0591e7/src/token/PCPToken.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/976546817c04b87e9fae9057c3882c01c319c29a/src/token/PCPToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -92,29 +92,6 @@ function withdraw(address currency, uint256 amountIn) external nonReentrant retu
 function estimateWithdrawAmount(address currency, uint256 amountIn) public view returns (uint256 amountOut);
 ```
 
-### getCurrencyPrice
-
-Returns the price of a currency
-
-
-```solidity
-function getCurrencyPrice(address currency) external view returns (uint256);
-```
-
-### getAnchorCurrency
-
-
-```solidity
-function getAnchorCurrency() external view returns (address);
-```
-
-### getAnchorPrice
-
-
-```solidity
-function getAnchorPrice() external view returns (uint256);
-```
-
 ### getTokens
 
 
@@ -122,17 +99,17 @@ function getAnchorPrice() external view returns (uint256);
 function getTokens() external view returns (address[] memory);
 ```
 
-### getTokenPrice
+### getTokenPriceRatio
 
 
 ```solidity
-function getTokenPrice(address token) external view returns (uint256);
+function getTokenPriceRatio(address token) external view returns (uint256);
 ```
 
-### getTokenPrices
+### getTokenPriceRatios
 
 
 ```solidity
-function getTokenPrices(address[] memory treasuryTokens) external view returns (uint256[] memory);
+function getTokenPriceRatios(address[] memory treasuryTokens) external view returns (uint256[] memory);
 ```
 

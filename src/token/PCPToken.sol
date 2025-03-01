@@ -110,7 +110,11 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
         require(amountIn > 0, "Invalid withdraw amount");
         require(balanceOf(msg.sender) >= amountIn, "Insufficient balance");
         amountOut = estimateWithdrawAmount(currency, amountIn);
-        pricingData.adjustCurrencyPrice(abi.encode(currency), false);
+        if (currency != tokens[0]) {
+            pricingData.adjustCurrencyPrice(abi.encode(currency), false);
+        } else {
+            pricingData.adjustAllNonAnchorPrices(true);
+        }
 
         _burn(msg.sender, amountIn);
 
@@ -129,38 +133,23 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
         amountOut = (amountIn * price) / 1e18;
     }
 
-    /// @notice Returns the price of a currency
-    function getCurrencyPrice(
-        address currency
-    ) external view returns (uint256) {
-        return pricingData.getCurrencyPrice(abi.encode(currency));
-    }
-
-    function getAnchorCurrency() external view returns (address) {
-        return tokens[0];
-    }
-
-    function getAnchorPrice() external view returns (uint256) {
-        return pricingData.getCurrencyPrice(abi.encode(tokens[0]));
-    }
-
     function getTokens() external view returns (address[] memory) {
         return tokens;
     }
 
-    function getTokenPrice(address token) external view returns (uint256) {
+    function getTokenPriceRatio(address token) external view returns (uint256) {
         return pricingData.getCurrencyPrice(abi.encode(token));
     }
 
-    function getTokenPrices(
+    function getTokenPriceRatios(
         address[] memory treasuryTokens
     ) external view returns (uint256[] memory) {
-        uint256[] memory prices = new uint256[](treasuryTokens.length);
+        uint256[] memory priceRatios = new uint256[](treasuryTokens.length);
         for (uint256 i = 0; i < treasuryTokens.length; i++) {
-            prices[i] = pricingData.getCurrencyPrice(
+            priceRatios[i] = pricingData.getCurrencyPrice(
                 abi.encode(treasuryTokens[i])
             );
         }
-        return prices;
+        return priceRatios;
     }
 }
