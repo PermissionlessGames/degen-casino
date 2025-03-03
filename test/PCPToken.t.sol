@@ -4,29 +4,8 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "../src/token/PCPToken.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-
-contract MockERC20 is ERC20 {
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) {
-        _mint(msg.sender, 1_000_000 ether);
-    }
-
-    function mint(address to, uint256 amount) external {
-        _mint(to, amount);
-    }
-}
-
-contract MockERC1155 is ERC1155 {
-    mapping(uint256 => uint256) public tokenSupply;
-
-    constructor(string memory uri_) ERC1155(uri_) {}
-
-    function mint(address to, uint256 tokenId, uint256 amount) external {
-        _mint(to, tokenId, amount, "");
-        tokenSupply[tokenId] += amount;
-    }
-}
+import "../src/dev/mock/MockERC20.sol";
+import "../src/dev/mock/MockERC1155.sol";
 
 contract PCPTokenTest is Test {
     PCPToken private pcToken;
@@ -187,7 +166,7 @@ contract PCPTokenTest is Test {
         vm.stopPrank();
     }
 
-    function testGetTokens() public {
+    function testGetTokens() public view {
         // Call getTokens()
         (
             address[] memory currencies,
@@ -209,7 +188,7 @@ contract PCPTokenTest is Test {
         assertEq(is1155[1], true);
     }
 
-    function testGetTokenPriceRatios() public {
+    function testGetTokenPriceRatios() public view {
         // Prepare input arrays
         address[] memory treasuryTokens = new address[](2);
         uint256[] memory tokenIds = new uint256[](2);
