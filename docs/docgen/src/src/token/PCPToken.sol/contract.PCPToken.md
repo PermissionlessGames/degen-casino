@@ -1,5 +1,5 @@
-# PCPricedToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5267dc482ea6e0862309fefb038ca0fcb441799e/src/token/PCPToken.sol)
+# PCPToken
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/e3978956993691a2aa8df5cda4077fb5e98ce9b9/src/token/PCPToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder
@@ -269,6 +269,13 @@ function getTokenPriceRatios(address[] memory treasuryTokens, uint256[] memory t
 |`<none>`|`uint256[]`|mintPriceRatios Array of mint price ratios|
 |`<none>`|`uint256[]`|redeemPriceRatios Array of redeem price ratios|
 
+
+### encodeCurrency
+
+
+```solidity
+function encodeCurrency(address currency, uint256 tokenId, bool is1155) internal pure returns (bytes memory);
+```
 
 ## Structs
 ### CreatePricingDataParams

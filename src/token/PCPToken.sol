@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../libraries/PCPricing.sol";
 
-contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
+contract PCPToken is ERC20, ReentrancyGuard, ERC1155Holder {
     using SafeERC20 for IERC20;
     using PCPricing for PCPricing.PricingData;
 
@@ -48,10 +48,17 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
         INATIVE = inative;
 
         uint256 anchorPrice = currencies[0].price;
-        bytes memory anchorCurrencyBytes = currencies[0].is1155
-            ? abi.encode(currencies[0].currency, currencies[0].tokenId)
-            : abi.encode(currencies[0].currency);
+        bytes memory anchorCurrencyBytes = encodeCurrency(
+            currencies[0].currency,
+            currencies[0].tokenId,
+            currencies[0].is1155
+        );
+        tokenIs1155[currencies[0].currency] = currencies[0].is1155;
+        tokens.push(currencies[0]);
+
+        mintPricingData.setAnchorCurrency(anchorCurrencyBytes, anchorPrice);
         redeemPricingData.setAnchorCurrency(anchorCurrencyBytes, anchorPrice);
+
         mintPricingData.setAdjustmentFactor(
             adjustmentNumerator,
             adjustmentDenominator
@@ -60,17 +67,13 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
             adjustmentNumerator,
             adjustmentDenominator
         );
-        tokens.push(currencies[0]);
+
         for (uint256 i = 1; i < currencies.length; i++) {
-            bytes memory currency;
-            if (currencies[i].is1155) {
-                currency = abi.encode(
-                    currencies[i].currency,
-                    currencies[i].tokenId
-                );
-            } else {
-                currency = abi.encode(currencies[i].currency);
-            }
+            bytes memory currency = encodeCurrency(
+                currencies[i].currency,
+                currencies[i].tokenId,
+                currencies[i].is1155
+            );
             mintPricingData.setCurrencyPrice(currency, currencies[i].price);
             redeemPricingData.setCurrencyPrice(currency, currencies[i].price);
             tokenIs1155[currencies[i].currency] = currencies[i].is1155;
@@ -100,8 +103,8 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
         );
 
         mintAmount = estimateDepositAmount(currencies, tokenIds, amounts);
-        depositTokens(currencies, tokenIds, amounts, msg.sender, msg.value);
         require(mintAmount > 0, "Mint amount too small");
+        depositTokens(currencies, tokenIds, amounts, msg.sender, msg.value);
 
         _mint(msg.sender, mintAmount);
     }
@@ -147,12 +150,12 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
             }
 
             if (currencies[i] != tokens[0].currency) {
-                mintPricingData.adjustCurrencyPrice(
-                    tokens[i].is1155
-                        ? abi.encode(tokens[i].currency, tokenIds[i])
-                        : abi.encode(tokens[i].currency),
-                    true
+                bytes memory currency = encodeCurrency(
+                    currencies[i],
+                    tokenIds[i],
+                    tokenIs1155[currencies[i]]
                 );
+                mintPricingData.adjustCurrencyPrice(currency, true);
             } else {
                 mintPricingData.adjustAllNonAnchorPrices(false);
             }
@@ -170,9 +173,11 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
         uint256[] memory deposits
     ) public view returns (uint256 amount) {
         for (uint256 i = 0; i < currencies.length; i++) {
-            bytes memory currency = tokens[i].is1155
-                ? abi.encode(tokens[i].currency, tokenIds[i])
-                : abi.encode(tokens[i].currency);
+            bytes memory currency = encodeCurrency(
+                currencies[i],
+                tokenIds[i],
+                tokenIs1155[currencies[i]]
+            );
             uint256 ratio = mintPricingData.getCurrencyPrice(currency);
             ratio = ratio > redeemPricingData.getCurrencyPrice(currency)
                 ? ratio
@@ -204,9 +209,7 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
         require(amountOut > 0, "Insufficient balance");
         if (currency != tokens[0].currency) {
             redeemPricingData.adjustCurrencyPrice(
-                tokenIs1155[currency]
-                    ? abi.encode(currency, tokenId)
-                    : abi.encode(currency),
+                encodeCurrency(currency, tokenId, tokenIs1155[currency]),
                 false
             );
         } else {
@@ -244,9 +247,11 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
         uint256 tokenId,
         uint256 amountIn
     ) public view returns (uint256 amountOut) {
-        bytes memory _currency = tokenIs1155[currency]
-            ? abi.encode(currency, tokenId)
-            : abi.encode(currency);
+        bytes memory _currency = encodeCurrency(
+            currency,
+            tokenId,
+            tokenIs1155[currency]
+        );
         uint256 price = redeemPricingData.getCurrencyPrice(_currency);
         price = price < mintPricingData.getCurrencyPrice(_currency)
             ? price
@@ -299,16 +304,32 @@ contract PCPricedToken is ERC20, ReentrancyGuard, ERC1155Holder {
         );
         for (uint256 i = 0; i < treasuryTokens.length; i++) {
             mintPriceRatios[i] = mintPricingData.getCurrencyPrice(
-                tokenIs1155[treasuryTokens[i]]
-                    ? abi.encode(treasuryTokens[i], tokenIds[i])
-                    : abi.encode(treasuryTokens[i])
+                encodeCurrency(
+                    treasuryTokens[i],
+                    tokenIds[i],
+                    tokenIs1155[treasuryTokens[i]]
+                )
             );
             redeemPriceRatios[i] = redeemPricingData.getCurrencyPrice(
-                tokenIs1155[treasuryTokens[i]]
-                    ? abi.encode(treasuryTokens[i], tokenIds[i])
-                    : abi.encode(treasuryTokens[i])
+                encodeCurrency(
+                    treasuryTokens[i],
+                    tokenIds[i],
+                    tokenIs1155[treasuryTokens[i]]
+                )
             );
         }
         return (mintPriceRatios, redeemPriceRatios);
+    }
+
+    function encodeCurrency(
+        address currency,
+        uint256 tokenId,
+        bool is1155
+    ) internal pure returns (bytes memory) {
+        if (is1155) {
+            return abi.encode(currency, tokenId);
+        } else {
+            return abi.encode(currency);
+        }
     }
 }
