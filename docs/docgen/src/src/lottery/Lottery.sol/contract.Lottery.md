@@ -1,5 +1,5 @@
 # Lottery
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/ef1d4f0f9ff01dcc397e9ddcaef29b2222eb408d/src/lottery/Lottery.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5267dc482ea6e0862309fefb038ca0fcb441799e/src/lottery/Lottery.sol)
 
 **Author:**
 Your Name
