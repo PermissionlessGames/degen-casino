@@ -10,7 +10,8 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using PCPricing for PCPricing.PricingData;
 
-    PCPricing.PricingData private pricingData;
+    PCPricing.PricingData private mintPricingData; // Pricing data for minting
+    PCPricing.PricingData private redeemPricingData; // Pricing data for redeeming
     address public immutable INATIVE; // Used to identify native deposits
     address[] public tokens; // Tokens that can be deposited
 
@@ -26,8 +27,19 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
         uint256[] memory prices
     ) ERC20(name_, symbol_) {
         INATIVE = inative;
-        pricingData.setAnchorCurrency(abi.encode(anchorCurrency), anchorPrice);
-        pricingData.setAdjustmentFactor(
+        mintPricingData.setAnchorCurrency(
+            abi.encode(anchorCurrency),
+            anchorPrice
+        );
+        redeemPricingData.setAnchorCurrency(
+            abi.encode(anchorCurrency),
+            anchorPrice
+        );
+        mintPricingData.setAdjustmentFactor(
+            adjustmentNumerator,
+            adjustmentDenominator
+        );
+        redeemPricingData.setAdjustmentFactor(
             adjustmentNumerator,
             adjustmentDenominator
         );
@@ -35,7 +47,14 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
         require(currencies.length == prices.length, "Mismatched array lengths");
         tokens.push(anchorCurrency);
         for (uint256 i = 0; i < currencies.length; i++) {
-            pricingData.setCurrencyPrice(abi.encode(currencies[i]), prices[i]);
+            mintPricingData.setCurrencyPrice(
+                abi.encode(currencies[i]),
+                prices[i]
+            );
+            redeemPricingData.setCurrencyPrice(
+                abi.encode(currencies[i]),
+                prices[i]
+            );
             tokens.push(currencies[i]);
         }
     }
@@ -80,12 +99,12 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
                 msgValue -= amounts[i];
             }
             if (currencies[i] != tokens[0]) {
-                pricingData.adjustCurrencyPrice(
+                mintPricingData.adjustCurrencyPrice(
                     abi.encode(currencies[i]),
                     true
                 );
             } else {
-                pricingData.adjustAllNonAnchorPrices(false);
+                mintPricingData.adjustAllNonAnchorPrices(false);
             }
         }
     }
@@ -95,7 +114,7 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
         uint256[] memory deposits
     ) public view returns (uint256 amount) {
         for (uint i = 0; i < currencies.length; i++) {
-            uint256 price = pricingData.getCurrencyPrice(
+            uint256 price = mintPricingData.getCurrencyPrice(
                 abi.encode(currencies[i])
             );
             amount += (deposits[i] * 1e18) / price;
@@ -110,10 +129,11 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
         require(amountIn > 0, "Invalid withdraw amount");
         require(balanceOf(msg.sender) >= amountIn, "Insufficient balance");
         amountOut = estimateWithdrawAmount(currency, amountIn);
+        require(amountOut > 0, "Insufficient balance");
         if (currency != tokens[0]) {
-            pricingData.adjustCurrencyPrice(abi.encode(currency), false);
+            redeemPricingData.adjustCurrencyPrice(abi.encode(currency), false);
         } else {
-            pricingData.adjustAllNonAnchorPrices(true);
+            redeemPricingData.adjustAllNonAnchorPrices(true);
         }
 
         _burn(msg.sender, amountIn);
@@ -129,27 +149,34 @@ contract PCPricedToken is ERC20, ReentrancyGuard {
         address currency,
         uint256 amountIn
     ) public view returns (uint256 amountOut) {
-        uint256 price = pricingData.getCurrencyPrice(abi.encode(currency));
+        uint256 price = redeemPricingData.getCurrencyPrice(
+            abi.encode(currency)
+        );
         amountOut = (amountIn * price) / 1e18;
+        amountOut = amountOut > IERC20(currency).balanceOf(address(this))
+            ? IERC20(currency).balanceOf(address(this))
+            : amountOut;
     }
 
     function getTokens() external view returns (address[] memory) {
         return tokens;
     }
 
-    function getTokenPriceRatio(address token) external view returns (uint256) {
-        return pricingData.getCurrencyPrice(abi.encode(token));
-    }
-
     function getTokenPriceRatios(
         address[] memory treasuryTokens
-    ) external view returns (uint256[] memory) {
-        uint256[] memory priceRatios = new uint256[](treasuryTokens.length);
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        uint256[] memory mintPriceRatios = new uint256[](treasuryTokens.length);
+        uint256[] memory redeemPriceRatios = new uint256[](
+            treasuryTokens.length
+        );
         for (uint256 i = 0; i < treasuryTokens.length; i++) {
-            priceRatios[i] = pricingData.getCurrencyPrice(
+            mintPriceRatios[i] = mintPricingData.getCurrencyPrice(
+                abi.encode(treasuryTokens[i])
+            );
+            redeemPriceRatios[i] = redeemPricingData.getCurrencyPrice(
                 abi.encode(treasuryTokens[i])
             );
         }
-        return priceRatios;
+        return (mintPriceRatios, redeemPriceRatios);
     }
 }

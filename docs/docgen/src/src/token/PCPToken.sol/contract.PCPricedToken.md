@@ -1,15 +1,22 @@
 # PCPricedToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/976546817c04b87e9fae9057c3882c01c319c29a/src/token/PCPToken.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/ef1d4f0f9ff01dcc397e9ddcaef29b2222eb408d/src/token/PCPToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
 
 
 ## State Variables
-### pricingData
+### mintPricingData
 
 ```solidity
-PCPricing.PricingData private pricingData;
+PCPricing.PricingData private mintPricingData;
+```
+
+
+### redeemPricingData
+
+```solidity
+PCPricing.PricingData private redeemPricingData;
 ```
 
 
@@ -99,17 +106,13 @@ function estimateWithdrawAmount(address currency, uint256 amountIn) public view 
 function getTokens() external view returns (address[] memory);
 ```
 
-### getTokenPriceRatio
-
-
-```solidity
-function getTokenPriceRatio(address token) external view returns (uint256);
-```
-
 ### getTokenPriceRatios
 
 
 ```solidity
-function getTokenPriceRatios(address[] memory treasuryTokens) external view returns (uint256[] memory);
+function getTokenPriceRatios(address[] memory treasuryTokens)
+    external
+    view
+    returns (uint256[] memory, uint256[] memory);
 ```
 
