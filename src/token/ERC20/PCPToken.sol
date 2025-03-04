@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "../libraries/PCPricing.sol";
+import "../../libraries/PCPricing.sol";
 
 contract PCPToken is ERC20, ReentrancyGuard, ERC1155Holder {
     using SafeERC20 for IERC20;
@@ -25,6 +25,8 @@ contract PCPToken is ERC20, ReentrancyGuard, ERC1155Holder {
         bool is1155;
         uint256 tokenId;
     }
+
+    event NewPricingDataAdded(CreatePricingDataParams pricingData);
 
     /// @notice Constructor for PCPricedToken
     /// @param name_ The name of the token
@@ -69,16 +71,31 @@ contract PCPToken is ERC20, ReentrancyGuard, ERC1155Holder {
         );
 
         for (uint256 i = 1; i < currencies.length; i++) {
-            bytes memory currency = encodeCurrency(
-                currencies[i].currency,
-                currencies[i].tokenId,
-                currencies[i].is1155
-            );
-            mintPricingData.setCurrencyPrice(currency, currencies[i].price);
-            redeemPricingData.setCurrencyPrice(currency, currencies[i].price);
-            tokenIs1155[currencies[i].currency] = currencies[i].is1155;
-            tokens.push(currencies[i]);
+            addNewPricingData(currencies[i]);
         }
+    }
+
+    function addNewPricingData(
+        CreatePricingDataParams memory _createPricingDataParams
+    ) internal {
+        bytes memory currency = encodeCurrency(
+            _createPricingDataParams.currency,
+            _createPricingDataParams.tokenId,
+            _createPricingDataParams.is1155
+        );
+        mintPricingData.setCurrencyPrice(
+            currency,
+            _createPricingDataParams.price
+        );
+        redeemPricingData.setCurrencyPrice(
+            currency,
+            _createPricingDataParams.price
+        );
+        tokenIs1155[
+            _createPricingDataParams.currency
+        ] = _createPricingDataParams.is1155;
+        tokens.push(_createPricingDataParams);
+        emit NewPricingDataAdded(_createPricingDataParams);
     }
 
     /// @notice Deposit tokens to mint PCPTokens

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../../lib/openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../../lib/openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "../../../lib/openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../../../lib/openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./IDualFi.sol";
 
-contract DualFi is ERC20, ReentrancyGuard {
+contract DualFi is ERC20, ReentrancyGuard, IDualFi {
     using SafeERC20 for IERC20;
     address public immutable token;
     uint256 public immutable basis;

@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "../src/token/PCPToken.sol";
+import "../src/token/ERC20/PCPToken.sol";
 import "../src/dev/mock/MockERC20.sol";
 import "../src/dev/mock/MockERC1155.sol";
 

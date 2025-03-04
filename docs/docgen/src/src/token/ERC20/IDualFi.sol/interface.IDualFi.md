@@ -1,5 +1,5 @@
 # IDualFi
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/802c543940ad29e6b5024793c831e376daa3fecd/src/token/IDualFi.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/401dce454c4456b355ac493469641afe0e9d992b/src/token/ERC20/IDualFi.sol)
 
 
 ## Functions

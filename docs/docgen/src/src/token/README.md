@@ -1,6 +1,4 @@
 
 
 # Contents
-- [DualFi](DualFi.sol/contract.DualFi.md)
-- [IDualFi](IDualFi.sol/interface.IDualFi.md)
-- [PCPToken](PCPToken.sol/contract.PCPToken.md)
+- [ERC20](/src/token/ERC20)

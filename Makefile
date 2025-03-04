@@ -20,7 +20,7 @@ bindings/DevDegenGambit/DevDegenGambit.go:
 
 bindings/DualFi/DualFi.go:
 	mkdir -p bindings/DualFi
-	cd ../seer && ./seer evm generate --package DualFi --output ../degen-casino/bindings/DualFi/DualFi.go --foundry ../degen-casino/out/DualFi.sol/DualFi.json --cli --struct DualFi --source-code ../degen-casino/src/token/DualFi.sol
+	cd ../seer && ./seer evm generate --package DualFi --output ../degen-casino/bindings/DualFi/DualFi.go --foundry ../degen-casino/out/DualFi.sol/DualFi.json --cli --struct DualFi --source-code ../degen-casino/src/token/ERC20/DualFi.sol
 
 
 bin/casino: bindings/DegenGambit/DegenGambit.go

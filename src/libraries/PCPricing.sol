@@ -15,6 +15,7 @@ library PCPricing {
         uint256 adjustmentNumerator; // The numerator of the universal adjustment percentage
         uint256 adjustmentDenominator; // The denominator of the universal adjustment percentage
         mapping(bytes => uint256) currencyPrice; // Mapping of currency prices
+        mapping(bytes => uint256) currencyIndex; // Mapping of currency index
         bytes[] trackedCurrencies; // List of tracked non-anchor currencies
     }
 
@@ -129,5 +130,30 @@ library PCPricing {
         }
 
         return (currencies, prices);
+    }
+
+    function currencyExists(
+        PricingData storage self,
+        bytes memory currency
+    ) internal view returns (bool) {
+        return self.currencyPrice[currency] > 0;
+    }
+
+    function removeCurrency(
+        PricingData storage self,
+        bytes memory currency
+    ) internal {
+        require(self.currencyPrice[currency] > 0, "Currency not found");
+
+        uint256 index = self.currencyIndex[currency];
+        if (index < self.trackedCurrencies.length - 1) {
+            self.trackedCurrencies[index] = self.trackedCurrencies[
+                self.trackedCurrencies.length - 1
+            ];
+            self.currencyIndex[self.trackedCurrencies[index]] = index;
+        }
+        self.trackedCurrencies.pop();
+        delete self.currencyIndex[currency];
+        delete self.currencyPrice[currency];
     }
 }
