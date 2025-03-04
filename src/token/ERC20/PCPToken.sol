@@ -12,8 +12,8 @@ contract PCPToken is ERC20, ReentrancyGuard, ERC1155Holder {
     using SafeERC20 for IERC20;
     using PCPricing for PCPricing.PricingData;
 
-    PCPricing.PricingData private mintPricingData; // Pricing data for minting
-    PCPricing.PricingData private redeemPricingData; // Pricing data for redeeming
+    PCPricing.PricingData mintPricingData; // Pricing data for minting
+    PCPricing.PricingData redeemPricingData; // Pricing data for redeeming
     address public immutable INATIVE; // Used to identify native deposits
     mapping(address => bool) public tokenIs1155;
     CreatePricingDataParams[] public tokens;

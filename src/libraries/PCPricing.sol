@@ -60,6 +60,7 @@ library PCPricing {
 
         if (self.currencyPrice[currency] == 0) {
             self.trackedCurrencies.push(currency);
+            self.currencyIndex[currency] = self.trackedCurrencies.length - 1;
         }
 
         self.currencyPrice[currency] = price;

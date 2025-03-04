@@ -5,9 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../PCPToken.sol";
 
 abstract contract PCPTOwnership is Ownable, PCPToken {
-    function setPCPToken(address _pcToken) external onlyOwner {
-        pcToken = PCPToken(_pcToken);
-    }
+    using PCPricing for PCPricing.PricingData;
 
     event PricingDataRemoved(
         address indexed currency,
@@ -23,6 +21,34 @@ abstract contract PCPTOwnership is Ownable, PCPToken {
     );
 
     event AdjustmentFactorAdjusted(uint256 numerator, uint256 denominator);
+
+    function adjustPricingData(
+        uint256 _pricingDataIndex,
+        uint256 _newPrice
+    ) external onlyOwner {
+        bytes memory currency = encodeCurrency(
+            tokens[_pricingDataIndex].currency,
+            tokens[_pricingDataIndex].tokenId,
+            tokens[_pricingDataIndex].is1155
+        );
+        mintPricingData.setCurrencyPrice(currency, _newPrice);
+        redeemPricingData.setCurrencyPrice(currency, _newPrice);
+        emit PricingDataAdjusted(
+            tokens[_pricingDataIndex].currency,
+            tokens[_pricingDataIndex].tokenId,
+            tokens[_pricingDataIndex].is1155,
+            _newPrice
+        );
+    }
+
+    function adjustAdjustmentFactor(
+        uint256 _numerator,
+        uint256 _denominator
+    ) external onlyOwner {
+        mintPricingData.setAdjustmentFactor(_numerator, _denominator);
+        redeemPricingData.setAdjustmentFactor(_numerator, _denominator);
+        emit AdjustmentFactorAdjusted(_numerator, _denominator);
+    }
 
     function addNewPricingData(
         CreatePricingDataParams[] memory _createPricingDataParams
@@ -65,33 +91,5 @@ abstract contract PCPTOwnership is Ownable, PCPToken {
             tokens[_pricingDataIndex].tokenId,
             tokens[_pricingDataIndex].is1155
         );
-    }
-
-    function adjustPricingData(
-        uint256 _pricingDataIndex,
-        uint256 _newPrice
-    ) external onlyOwner {
-        bytes memory currency = encodeCurrency(
-            tokens[_pricingDataIndex].currency,
-            tokens[_pricingDataIndex].tokenId,
-            tokens[_pricingDataIndex].is1155
-        );
-        mintPricingData.adjustPrice(currency, _newPrice);
-        redeemPricingData.adjustPrice(currency, _newPrice);
-        emit PricingDataAdjusted(
-            tokens[_pricingDataIndex].currency,
-            tokens[_pricingDataIndex].tokenId,
-            tokens[_pricingDataIndex].is1155,
-            _newPrice
-        );
-    }
-
-    function adjustAdjustmentFactor(
-        uint256 _numerator,
-        uint256 _denominator
-    ) external onlyOwner {
-        mintPricingData.adjustAdjustmentFactor(_numerator, _denominator);
-        redeemPricingData.adjustAdjustmentFactor(_numerator, _denominator);
-        emit AdjustmentFactorAdjusted(_numerator, _denominator);
     }
 }
