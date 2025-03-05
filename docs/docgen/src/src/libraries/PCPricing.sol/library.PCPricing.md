@@ -1,5 +1,5 @@
 # PCPricing
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/359fb5ca068441be1393aafb66f2fb36347d9cd5/src/libraries/PCPricing.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/ed7de6df56124b1da2e23b44fff792361c129c30/src/libraries/PCPricing.sol)
 
 **Author:**
 Permissionless Games & ChatGpt
@@ -47,13 +47,13 @@ Adjust the price dynamically based on usage (same adjustment for all non-anchor 
 function adjustCurrencyPrice(PricingData storage self, bytes memory currency, bool increase) internal;
 ```
 
-### reduceAllNonAnchorPrices
+### adjustAllNonAnchorPrices
 
-Reduce the price of all non-anchor currencies when the anchor currency is used
+adjust the price of all non-anchor currencies when the anchor currency is used
 
 
 ```solidity
-function reduceAllNonAnchorPrices(PricingData storage self) internal;
+function adjustAllNonAnchorPrices(PricingData storage self, bool increase) internal;
 ```
 
 ### getCurrencyPrice
@@ -74,6 +74,69 @@ Get all tracked currency prices
 function getAllCurrencyPrices(PricingData storage self) internal view returns (bytes[] memory, uint256[] memory);
 ```
 
+### currencyExists
+
+
+```solidity
+function currencyExists(PricingData storage self, bytes memory currency) internal view returns (bool);
+```
+
+### removeCurrency
+
+
+```solidity
+function removeCurrency(PricingData storage self, bytes memory currency) internal;
+```
+
+## Events
+### AnchorCurrencySet
+Emitted when a new anchor currency is set
+
+
+```solidity
+event AnchorCurrencySet(bytes indexed currency, uint256 price);
+```
+
+### AdjustmentFactorSet
+Emitted when the adjustment factor is updated
+
+
+```solidity
+event AdjustmentFactorSet(uint256 numerator, uint256 denominator);
+```
+
+### CurrencyPriceSet
+Emitted when a new currency price is set
+
+
+```solidity
+event CurrencyPriceSet(bytes indexed currency, uint256 price);
+```
+
+### CurrencyPriceAdjusted
+Emitted when a currency price is adjusted
+
+
+```solidity
+event CurrencyPriceAdjusted(bytes indexed currency, uint256 newPrice, bool increased);
+```
+
+### CurrencyRemoved
+Emitted when a currency is removed
+
+
+```solidity
+event CurrencyRemoved(bytes indexed currency);
+```
+
+### NonAnchorPricesReduced
+Emitted when all non-anchor prices are reduced
+
+
+```solidity
+event NonAnchorPricesReduced();
+```
+
 ## Structs
 ### PricingData
 
@@ -83,6 +146,7 @@ struct PricingData {
     uint256 adjustmentNumerator;
     uint256 adjustmentDenominator;
     mapping(bytes => uint256) currencyPrice;
+    mapping(bytes => uint256) currencyIndex;
     bytes[] trackedCurrencies;
 }
 ```

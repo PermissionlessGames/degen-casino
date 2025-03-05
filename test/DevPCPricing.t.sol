@@ -63,7 +63,7 @@ contract DevPCPricingTest is Test {
     }
 
     function testUseAnchorCurrencyReducesAllNonAnchorPrices() public {
-        devPCPricing.useAnchorCurrency();
+        devPCPricing.useAnchorCurrency(false);
 
         uint256 newUsdtPrice = devPCPricing.getCurrencyPrice(USDT);
         uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
@@ -118,7 +118,7 @@ contract DevPCPricingTest is Test {
     /// @notice Ensure the anchor currency remains fixed
     function testAnchorCurrencyDoesNotChange() public {
         uint256 ethPriceBefore = devPCPricing.getCurrencyPrice(ETH);
-        devPCPricing.useAnchorCurrency(); // Trigger reduction for non-anchor currencies
+        devPCPricing.useAnchorCurrency(false); // Trigger reduction for non-anchor currencies
         uint256 ethPriceAfter = devPCPricing.getCurrencyPrice(ETH);
 
         assertEq(
@@ -188,5 +188,14 @@ contract DevPCPricingTest is Test {
         devPCPricing.adjustCurrencyPrice(USDT, true);
         usdtPrice = devPCPricing.getCurrencyPrice(USDT);
         assertEq(usdtPrice, 42, "USDT price should increase by 2 to 42");
+    }
+
+    function testRemoveCurrency() public {
+        devPCPricing.removeCurrency(USDT);
+        assertEq(
+            devPCPricing.currencyExists(USDT),
+            false,
+            "USDT should be removed"
+        );
     }
 }

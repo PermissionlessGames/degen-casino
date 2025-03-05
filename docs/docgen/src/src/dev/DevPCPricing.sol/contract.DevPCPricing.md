@@ -1,5 +1,5 @@
 # DevPCPricing
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/359fb5ca068441be1393aafb66f2fb36347d9cd5/src/dev/DevPCPricing.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/ed7de6df56124b1da2e23b44fff792361c129c30/src/dev/DevPCPricing.sol)
 
 **Author:**
 Permissionless Games & ChatGPT
@@ -60,7 +60,7 @@ Reduce all non-anchor currency prices when the anchor is used
 
 
 ```solidity
-function useAnchorCurrency() external;
+function useAnchorCurrency(bool increase) external;
 ```
 
 ### getCurrencyPrice
@@ -81,16 +81,55 @@ Retrieve all stored currency prices
 function getAllCurrencyPrices() external view returns (bytes[] memory, uint256[] memory);
 ```
 
-## Events
-### PriceUpdated
+### getAdjustmentFactor
+
 
 ```solidity
-event PriceUpdated(bytes indexed currency, uint256 newPrice);
+function getAdjustmentFactor() external view returns (uint256, uint256);
 ```
 
-### AllPricesReduced
+### getAnchorCurrency
+
+Get the anchor currency
+
 
 ```solidity
-event AllPricesReduced();
+function getAnchorCurrency() external view returns (bytes memory);
+```
+
+### getTrackedCurrencies
+
+Get all tracked non-anchor currencies
+
+
+```solidity
+function getTrackedCurrencies() external view returns (bytes[] memory);
+```
+
+### getCurrencyIndex
+
+Get the index of a specific currency
+
+
+```solidity
+function getCurrencyIndex(bytes memory currency) external view returns (uint256);
+```
+
+### currencyExists
+
+Check if a currency exists in the system
+
+
+```solidity
+function currencyExists(bytes memory currency) external view returns (bool);
+```
+
+### removeCurrency
+
+Remove a currency from the system
+
+
+```solidity
+function removeCurrency(bytes memory currency) external;
 ```
 

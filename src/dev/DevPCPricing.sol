@@ -12,8 +12,6 @@ contract DevPCPricing {
     using PCPricing for PCPricing.PricingData;
 
     PCPricing.PricingData private pricingData;
-    event PriceUpdated(bytes indexed currency, uint256 newPrice);
-    event AllPricesReduced();
 
     /// @notice Constructor initializes the anchor currency and default adjustment factor
     /// @param anchorCurrency The anchor currency (e.g., ETH)
@@ -33,7 +31,6 @@ contract DevPCPricing {
     /// @notice Set a new currency price
     function setCurrencyPrice(bytes memory currency, uint256 price) external {
         pricingData.setCurrencyPrice(currency, price);
-        emit PriceUpdated(currency, price);
     }
 
     /// @notice Manually adjust a currency price
@@ -42,13 +39,11 @@ contract DevPCPricing {
         bool increase
     ) external {
         pricingData.adjustCurrencyPrice(currency, increase);
-        emit PriceUpdated(currency, pricingData.getCurrencyPrice(currency));
     }
 
     /// @notice Reduce all non-anchor currency prices when the anchor is used
-    function useAnchorCurrency() external {
-        pricingData.reduceAllNonAnchorPrices();
-        emit AllPricesReduced();
+    function useAnchorCurrency(bool increase) external {
+        pricingData.adjustAllNonAnchorPrices(increase);
     }
 
     /// @notice Get a specific currency price
