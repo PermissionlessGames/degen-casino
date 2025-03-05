@@ -1,11 +1,27 @@
 # MCTOwnership
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/07e085d78604956185646dcea17b77558172ed4c/src/token/ERC20/extensions/MCTOwnership.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5e8f008a9d2e5903bd547eedaed31c3efcb6ca7b/src/token/ERC20/extensions/MCTOwnership.sol)
 
 **Inherits:**
 Ownable, [MultipleCurrencyToken](/src/token/ERC20/MultipleCurrencyToken.sol/contract.MultipleCurrencyToken.md)
 
 
 ## Functions
+### constructor
+
+
+```solidity
+constructor(
+    string memory name_,
+    string memory symbol_,
+    address inative,
+    uint256 adjustmentNumerator,
+    uint256 adjustmentDenominator,
+    CreatePricingDataParams[] memory currencies
+)
+    MultipleCurrencyToken(name_, symbol_, inative, adjustmentNumerator, adjustmentDenominator, currencies)
+    Ownable(msg.sender);
+```
+
 ### adjustPricingData
 
 
@@ -24,7 +40,9 @@ function adjustAdjustmentFactor(uint256 _numerator, uint256 _denominator) extern
 
 
 ```solidity
-function addNewPricingData(CreatePricingDataParams[] memory _createPricingDataParams) external onlyOwner;
+function addNewPricingData(IMultipleCurrencyToken.CreatePricingDataParams[] memory _createPricingDataParams)
+    external
+    onlyOwner;
 ```
 
 ### removePricingData

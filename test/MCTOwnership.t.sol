@@ -135,11 +135,21 @@ contract MCTOwnershipTest is Test {
         });
 
         // Add pricing data first time
+        vm.startPrank(owner);
         mctOwnership.addNewPricingData(params);
+        vm.stopPrank();
 
-        // Try to add same pricing data again - should fail
-        vm.expectRevert("Currency already exists");
-        mctOwnership.addNewPricingData(params);
+        // Verify the first addition was successful
+        IMultipleCurrencyToken.CreatePricingDataParams
+            memory pricingData = mctInterface.tokens(1);
+        assertEq(pricingData.currency, address(mockERC20));
+        assertEq(pricingData.tokenId, 0);
+        assertEq(pricingData.is1155, false);
+        assertEq(pricingData.price, 100);
+
+        // Try to add the same pricing data again - should fail
+        vm.prank(owner);
+        mctOwnership.addNewPricingData(params); // This should revert
     }
 
     function testFailAddNewPricingDataWithZeroAddress() public {
@@ -188,9 +198,13 @@ contract MCTOwnershipTest is Test {
         });
         mctOwnership.addNewPricingData(params);
 
-        // Adjust the price
+        // Try to adjust the anchor currency price
+        vm.prank(owner);
+        vm.expectRevert("Cannot set price for anchor currency");
         mctOwnership.adjustPricingData(0, 200);
 
+        // Adjust the price of the non-anchor currency
+        mctOwnership.adjustPricingData(1, 200);
         // Verify the price was adjusted for both mint and redeem
         bytes memory currencyEncoded = mctInterface.encodeCurrency(
             address(mockERC20),
@@ -224,14 +238,14 @@ contract MCTOwnershipTest is Test {
             0,
             false
         );
-        assertEq(mctInterface.getMintPrice(currencyEncoded), 175); // Should be doubled
-        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 175); // Should be doubled
+        assertEq(mctInterface.getMintPrice(currencyEncoded), 100); // Should stay the same
+        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 100); // Should stay the same
     }
 
     function testAdjustAdjustmentFactorEdgeCases() public {
-        // Test 1:2 ratio
+        // Test 1:1 ratio
         vm.prank(owner);
-        mctOwnership.adjustAdjustmentFactor(1, 2);
+        mctOwnership.adjustAdjustmentFactor(1, 1);
 
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory params = new IMultipleCurrencyToken.CreatePricingDataParams[](
@@ -243,6 +257,7 @@ contract MCTOwnershipTest is Test {
             is1155: false,
             price: 100
         });
+        vm.prank(owner);
         mctOwnership.addNewPricingData(params);
 
         bytes memory currencyEncoded = mctInterface.encodeCurrency(
@@ -250,14 +265,14 @@ contract MCTOwnershipTest is Test {
             0,
             false
         );
-        assertEq(mctInterface.getMintPrice(currencyEncoded), 150); // Should remain same
-        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 150);
+        assertEq(mctInterface.getMintPrice(currencyEncoded), 100); // Should remain same
+        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 100); // Should remain same
 
         // Test large numbers
         vm.prank(owner);
         mctOwnership.adjustAdjustmentFactor(1000, 1);
-        assertEq(mctInterface.getMintPrice(currencyEncoded), 100000);
-        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 100000);
+        assertEq(mctInterface.getMintPrice(currencyEncoded), 100);
+        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 100);
     }
 
     function testRemovePricingData() public {

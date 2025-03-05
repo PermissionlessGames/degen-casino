@@ -13,6 +13,8 @@
     - [❱ ERC20](src/token/ERC20/README.md)
       - [❱ extensions](src/token/ERC20/extensions/README.md)
         - [MCTOwnership](src/token/ERC20/extensions/MCTOwnership.sol/abstract.MCTOwnership.md)
+      - [❱ interfaces](src/token/ERC20/interfaces/README.md)
+        - [IMultipleCurrencyToken](src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
       - [MultipleCurrencyToken](src/token/ERC20/MultipleCurrencyToken.sol/contract.MultipleCurrencyToken.md)
   - [ArbSys](src/ArbSys.sol/interface.ArbSys.md)
   - [BlockInspector](src/BlockInspector.sol/contract.BlockInspector.md)

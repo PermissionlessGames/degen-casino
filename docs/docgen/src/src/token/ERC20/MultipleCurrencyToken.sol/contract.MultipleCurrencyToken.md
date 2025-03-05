@@ -1,8 +1,8 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/07e085d78604956185646dcea17b77558172ed4c/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5e8f008a9d2e5903bd547eedaed31c3efcb6ca7b/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
-ERC20, ReentrancyGuard, ERC1155Holder
+ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
 
 
 ## State Variables
@@ -34,14 +34,21 @@ mapping(address => bool) public tokenIs1155;
 ```
 
 
-### tokens
+### _tokens
 
 ```solidity
-CreatePricingDataParams[] public tokens;
+CreatePricingDataParams[] private _tokens;
 ```
 
 
 ## Functions
+### tokens
+
+
+```solidity
+function tokens(uint256 index) public view override returns (CreatePricingDataParams memory);
+```
+
 ### constructor
 
 Constructor for PCPricedToken
@@ -281,25 +288,20 @@ function getTokenPriceRatios(address[] memory treasuryTokens, uint256[] memory t
 
 
 ```solidity
-function encodeCurrency(address currency, uint256 tokenId, bool is1155) internal pure returns (bytes memory);
+function encodeCurrency(address currency, uint256 tokenId, bool is1155) public pure override returns (bytes memory);
 ```
 
-## Events
-### NewPricingDataAdded
+### getMintPrice
+
 
 ```solidity
-event NewPricingDataAdded(CreatePricingDataParams pricingData);
+function getMintPrice(bytes memory currency) public view override returns (uint256);
 ```
 
-## Structs
-### CreatePricingDataParams
+### getRedeemPrice
+
 
 ```solidity
-struct CreatePricingDataParams {
-    address currency;
-    uint256 price;
-    bool is1155;
-    uint256 tokenId;
-}
+function getRedeemPrice(bytes memory currency) public view override returns (uint256);
 ```
 

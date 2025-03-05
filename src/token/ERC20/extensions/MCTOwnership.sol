@@ -62,16 +62,13 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
                 _createPricingDataParams[i].price > 0,
                 "Price must be greater than 0"
             );
-            require(
-                !mintPricingData.currencyExists(
-                    encodeCurrency(
-                        _createPricingDataParams[i].currency,
-                        _createPricingDataParams[i].tokenId,
-                        _createPricingDataParams[i].is1155
-                    )
-                ),
-                "Currency already exists"
+            bytes memory currency = encodeCurrency(
+                _createPricingDataParams[i].currency,
+                _createPricingDataParams[i].tokenId,
+                _createPricingDataParams[i].is1155
             );
+            bool exists = mintPricingData.currencyExists(currency);
+            require(!exists, "Currency already exists");
 
             addNewPricingData(_createPricingDataParams[i]);
         }

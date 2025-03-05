@@ -60,11 +60,8 @@ library PCPricing {
         uint256 numerator,
         uint256 denominator
     ) internal {
-        require(denominator > 1, "Denominator must be greater than 1");
-        require(
-            numerator < denominator,
-            "Numerator must be less than denominator"
-        );
+        require(denominator > 0, "Denominator must be greater than 0");
+        require(numerator > 0, "Numerator must be greater than 0");
         self.adjustmentNumerator = numerator;
         self.adjustmentDenominator = denominator;
 
@@ -172,7 +169,8 @@ library PCPricing {
         PricingData storage self,
         bytes memory currency
     ) internal view returns (bool) {
-        return self.currencyPrice[currency] > 0;
+        bool exists = self.currencyPrice[currency] > 0;
+        return exists;
     }
 
     function removeCurrency(
