@@ -42,6 +42,8 @@ contract MultipleCurrencyTokenTest is Test {
             "MultipleCurrencyToken",
             "MCT",
             INATIVE,
+            1,
+            2,
             pricingData
         );
 

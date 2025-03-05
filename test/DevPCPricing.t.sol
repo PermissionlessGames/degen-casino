@@ -34,8 +34,6 @@ contract DevPCPricingTest is Test {
         assertEq(ethPrice, 1000, "ETH price should be initialized to 1000");
         assertEq(usdtPrice, 100, "USDT price should be initialized to 100");
         assertEq(goldPrice, 500, "GOLD price should be initialized to 500");
-
-        console.log("testInitialPrices passed!");
     }
 
     function testPriceAdjustmentIncrease() public {
@@ -46,8 +44,6 @@ contract DevPCPricingTest is Test {
         devPCPricing.adjustCurrencyPrice(GOLD, true);
         uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
         assertEq(newGoldPrice, 525, "GOLD price should increase by 5%");
-
-        console.log("testPriceAdjustmentIncrease passed!");
     }
 
     function testPriceAdjustmentDecrease() public {
@@ -58,8 +54,6 @@ contract DevPCPricingTest is Test {
         devPCPricing.adjustCurrencyPrice(GOLD, false);
         uint256 newGoldPrice = devPCPricing.getCurrencyPrice(GOLD);
         assertEq(newGoldPrice, 475, "GOLD price should decrease by 5%");
-
-        console.log("testPriceAdjustmentDecrease passed!");
     }
 
     function testUseAnchorCurrencyReducesAllNonAnchorPrices() public {
@@ -74,8 +68,6 @@ contract DevPCPricingTest is Test {
             475,
             "GOLD price should decrease by 5% when using anchor currency"
         );
-
-        console.log("testUseAnchorCurrencyReducesAllNonAnchorPrices passed!");
     }
 
     function testGetAllCurrencyPrices() public view {
@@ -89,8 +81,6 @@ contract DevPCPricingTest is Test {
         assertEq(currencies[1], GOLD, "Second currency should be GOLD");
         assertEq(prices[0], 100, "First price should be 100");
         assertEq(prices[1], 500, "Second price should be 500");
-
-        console.log("testGetAllCurrencyPrices passed!");
     }
 
     function testIncreaseUSDT2TimesAndDecreaseOnce() public {
@@ -126,7 +116,6 @@ contract DevPCPricingTest is Test {
             ethPriceAfter,
             "ETH price should remain unchanged"
         );
-        console.log("testAnchorCurrencyDoesNotChange passed!");
     }
 
     function testCannotAdjustAnchorPrice() public {
@@ -146,7 +135,6 @@ contract DevPCPricingTest is Test {
             ethPriceAfter,
             "ETH price should remain unchanged"
         );
-        console.log("testAnchorCurrencyDoesNotChange passed!");
     }
 
     function testCannotResetPriceForAnchorCurrency() public {

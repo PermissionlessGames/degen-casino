@@ -18,12 +18,6 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
         );
         mintPricingData.setCurrencyPrice(currency, _newPrice);
         redeemPricingData.setCurrencyPrice(currency, _newPrice);
-        emit PricingDataAdjusted(
-            tokens[_pricingDataIndex].currency,
-            tokens[_pricingDataIndex].tokenId,
-            tokens[_pricingDataIndex].is1155,
-            _newPrice
-        );
     }
 
     function adjustAdjustmentFactor(
@@ -32,7 +26,6 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
     ) external onlyOwner {
         mintPricingData.setAdjustmentFactor(_numerator, _denominator);
         redeemPricingData.setAdjustmentFactor(_numerator, _denominator);
-        emit AdjustmentFactorAdjusted(_numerator, _denominator);
     }
 
     function addNewPricingData(
