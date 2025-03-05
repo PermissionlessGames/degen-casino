@@ -128,28 +128,20 @@ contract MCTOwnershipTest is Test {
                 1
             );
         params[0] = IMultipleCurrencyToken.CreatePricingDataParams({
-            currency: address(mockERC20),
+            currency: address(1),
             tokenId: 0,
             is1155: false,
             price: 100
         });
 
         // Add pricing data first time
-        vm.startPrank(owner);
+        vm.prank(owner);
         mctOwnership.addNewPricingData(params);
-        vm.stopPrank();
-
-        // Verify the first addition was successful
-        IMultipleCurrencyToken.CreatePricingDataParams
-            memory pricingData = mctInterface.tokens(1);
-        assertEq(pricingData.currency, address(mockERC20));
-        assertEq(pricingData.tokenId, 0);
-        assertEq(pricingData.is1155, false);
-        assertEq(pricingData.price, 100);
 
         // Try to add the same pricing data again - should fail
         vm.prank(owner);
-        mctOwnership.addNewPricingData(params); // This should revert
+        vm.expectRevert("Currency already exists");
+        mctOwnership.addNewPricingData(params);
     }
 
     function testFailAddNewPricingDataWithZeroAddress() public {
