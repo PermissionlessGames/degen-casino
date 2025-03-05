@@ -61,10 +61,7 @@ library PCPricing {
         uint256 denominator
     ) internal {
         require(denominator > 1, "Denominator must be greater than 0");
-        require(
-            numerator < denominator,
-            "Numerator must be less than denominator"
-        );
+        require(numerator > 0, "Numerator must be greater than 0");
         self.adjustmentNumerator = numerator;
         self.adjustmentDenominator = denominator;
 
@@ -78,6 +75,10 @@ library PCPricing {
         uint256 price
     ) internal {
         require(price > 0, "Price must be greater than 0");
+        require(
+            keccak256(currency) != keccak256(bytes("")),
+            "Currency cannot be empty"
+        );
         require(
             keccak256(self.anchorCurrency) != keccak256(currency),
             "Cannot set price for anchor currency"
@@ -180,7 +181,14 @@ library PCPricing {
         bytes memory currency
     ) internal {
         require(self.currencyPrice[currency] > 0, "Currency not found");
-
+        require(
+            keccak256(currency) != keccak256(bytes("")),
+            "Currency cannot be empty"
+        );
+        require(
+            keccak256(self.anchorCurrency) != keccak256(currency),
+            "Cannot remove anchor currency"
+        );
         uint256 index = self.currencyIndex[currency];
         if (index < self.trackedCurrencies.length - 1) {
             self.trackedCurrencies[index] = self.trackedCurrencies[
