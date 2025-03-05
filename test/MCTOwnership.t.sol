@@ -89,17 +89,17 @@ contract MCTOwnershipTest is Test {
             is1155: true,
             price: 200
         });
-
+        vm.prank(owner);
         mctOwnership.addNewPricingData(params);
 
         // Verify the pricing data was added correctly
         IMultipleCurrencyToken.CreatePricingDataParams
-            memory pricingData = mctInterface.tokens(0);
+            memory pricingData = mctInterface.tokens(1);
         assertEq(pricingData.currency, address(mockERC20));
         assertEq(pricingData.tokenId, 0);
         assertEq(pricingData.is1155, false);
 
-        pricingData = mctInterface.tokens(1);
+        pricingData = mctInterface.tokens(2);
         assertEq(pricingData.currency, address(mockERC1155));
         assertEq(pricingData.tokenId, 1);
         assertEq(pricingData.is1155, true);
@@ -203,7 +203,8 @@ contract MCTOwnershipTest is Test {
 
     function testAdjustAdjustmentFactor() public {
         // Test various adjustment factors
-        mctOwnership.adjustAdjustmentFactor(2, 1); // 2:1 ratio
+        vm.prank(owner);
+        mctOwnership.adjustAdjustmentFactor(3, 4); // 3:4 ratio
 
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory params = new IMultipleCurrencyToken.CreatePricingDataParams[](
@@ -215,6 +216,7 @@ contract MCTOwnershipTest is Test {
             is1155: false,
             price: 100
         });
+        vm.prank(owner);
         mctOwnership.addNewPricingData(params);
 
         bytes memory currencyEncoded = mctInterface.encodeCurrency(
@@ -222,13 +224,14 @@ contract MCTOwnershipTest is Test {
             0,
             false
         );
-        assertEq(mctInterface.getMintPrice(currencyEncoded), 200); // Should be doubled
-        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 200); // Should be doubled
+        assertEq(mctInterface.getMintPrice(currencyEncoded), 175); // Should be doubled
+        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 175); // Should be doubled
     }
 
     function testAdjustAdjustmentFactorEdgeCases() public {
-        // Test 1:1 ratio
-        mctOwnership.adjustAdjustmentFactor(1, 1);
+        // Test 1:2 ratio
+        vm.prank(owner);
+        mctOwnership.adjustAdjustmentFactor(1, 2);
 
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory params = new IMultipleCurrencyToken.CreatePricingDataParams[](
@@ -247,10 +250,11 @@ contract MCTOwnershipTest is Test {
             0,
             false
         );
-        assertEq(mctInterface.getMintPrice(currencyEncoded), 100); // Should remain same
-        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 100);
+        assertEq(mctInterface.getMintPrice(currencyEncoded), 150); // Should remain same
+        assertEq(mctInterface.getRedeemPrice(currencyEncoded), 150);
 
         // Test large numbers
+        vm.prank(owner);
         mctOwnership.adjustAdjustmentFactor(1000, 1);
         assertEq(mctInterface.getMintPrice(currencyEncoded), 100000);
         assertEq(mctInterface.getRedeemPrice(currencyEncoded), 100000);
@@ -268,6 +272,7 @@ contract MCTOwnershipTest is Test {
             is1155: false,
             price: 100
         });
+        vm.prank(owner);
         mctOwnership.addNewPricingData(params);
 
         bytes memory currencyEncoded = mctInterface.encodeCurrency(

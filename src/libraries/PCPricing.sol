@@ -60,7 +60,7 @@ library PCPricing {
         uint256 numerator,
         uint256 denominator
     ) internal {
-        require(denominator > 1, "Denominator must be greater than 0");
+        require(denominator > 1, "Denominator must be greater than 1");
         require(
             numerator < denominator,
             "Numerator must be less than denominator"
