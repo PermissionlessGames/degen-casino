@@ -66,4 +66,40 @@ contract DevPCPricing {
     {
         return pricingData.getAllCurrencyPrices();
     }
+
+    function getAdjustmentFactor() external view returns (uint256, uint256) {
+        return (
+            pricingData.adjustmentNumerator,
+            pricingData.adjustmentDenominator
+        );
+    }
+
+    /// @notice Get the anchor currency
+    function getAnchorCurrency() external view returns (bytes memory) {
+        return pricingData.anchorCurrency;
+    }
+
+    /// @notice Get all tracked non-anchor currencies
+    function getTrackedCurrencies() external view returns (bytes[] memory) {
+        return pricingData.trackedCurrencies;
+    }
+
+    /// @notice Get the index of a specific currency
+    function getCurrencyIndex(
+        bytes memory currency
+    ) external view returns (uint256) {
+        return pricingData.currencyIndex[currency];
+    }
+
+    /// @notice Check if a currency exists in the system
+    function currencyExists(
+        bytes memory currency
+    ) external view returns (bool) {
+        return pricingData.currencyExists(currency);
+    }
+
+    /// @notice Remove a currency from the system
+    function removeCurrency(bytes memory currency) external {
+        pricingData.removeCurrency(currency);
+    }
 }
