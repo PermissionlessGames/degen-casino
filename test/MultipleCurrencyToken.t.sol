@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "../src/token/ERC20/MultipleCurrencyToken.sol";
+import "../src/token/ERC20/interfaces/IMultipleCurrencyToken.sol";
 import "../src/dev/mock/MockERC20.sol";
 import "../src/dev/mock/MockERC1155.sol";
 
@@ -20,17 +21,17 @@ contract MultipleCurrencyTokenTest is Test {
         tokenB = new MockERC1155("MockTokenB");
 
         // Configure pricing data
-        MultipleCurrencyToken.CreatePricingDataParams[]
-            memory pricingData = new MultipleCurrencyToken.CreatePricingDataParams[](
+        IMultipleCurrencyToken.CreatePricingDataParams[]
+            memory pricingData = new IMultipleCurrencyToken.CreatePricingDataParams[](
                 2
             );
-        pricingData[0] = MultipleCurrencyToken.CreatePricingDataParams({
+        pricingData[0] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: address(tokenA),
             price: 1 ether, // 1 TKA = 1 MCT Token
             is1155: false,
             tokenId: 0
         });
-        pricingData[1] = MultipleCurrencyToken.CreatePricingDataParams({
+        pricingData[1] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: address(tokenB),
             price: 2 ether, // 1 ERC1155 Token = 2 MCT Tokens
             is1155: true,

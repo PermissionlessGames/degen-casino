@@ -2,19 +2,40 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../interfaces/IMultipleCurrencyToken.sol";
 import "../MultipleCurrencyToken.sol";
 
 abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
     using PCPricing for PCPricing.PricingData;
 
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        address inative,
+        uint256 adjustmentNumerator,
+        uint256 adjustmentDenominator,
+        CreatePricingDataParams[] memory currencies
+    )
+        MultipleCurrencyToken(
+            name_,
+            symbol_,
+            inative,
+            adjustmentNumerator,
+            adjustmentDenominator,
+            currencies
+        )
+        Ownable(msg.sender)
+    {}
+
     function adjustPricingData(
         uint256 _pricingDataIndex,
         uint256 _newPrice
     ) external onlyOwner {
+        CreatePricingDataParams memory tokenData = tokens(_pricingDataIndex);
         bytes memory currency = encodeCurrency(
-            tokens[_pricingDataIndex].currency,
-            tokens[_pricingDataIndex].tokenId,
-            tokens[_pricingDataIndex].is1155
+            tokenData.currency,
+            tokenData.tokenId,
+            tokenData.is1155
         );
         mintPricingData.setCurrencyPrice(currency, _newPrice);
         redeemPricingData.setCurrencyPrice(currency, _newPrice);
@@ -29,7 +50,8 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
     }
 
     function addNewPricingData(
-        CreatePricingDataParams[] memory _createPricingDataParams
+        IMultipleCurrencyToken.CreatePricingDataParams[]
+            memory _createPricingDataParams
     ) external onlyOwner {
         for (uint256 i = 0; i < _createPricingDataParams.length; i++) {
             require(
@@ -56,10 +78,11 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
     }
 
     function removePricingData(uint256 _pricingDataIndex) external onlyOwner {
+        CreatePricingDataParams memory tokenData = tokens(_pricingDataIndex);
         bytes memory currency = encodeCurrency(
-            tokens[_pricingDataIndex].currency,
-            tokens[_pricingDataIndex].tokenId,
-            tokens[_pricingDataIndex].is1155
+            tokenData.currency,
+            tokenData.tokenId,
+            tokenData.is1155
         );
         mintPricingData.removeCurrency(currency);
         redeemPricingData.removeCurrency(currency);

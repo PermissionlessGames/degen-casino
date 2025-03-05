@@ -7,8 +7,14 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../../libraries/PCPricing.sol";
+import "./interfaces/IMultipleCurrencyToken.sol";
 
-contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
+contract MultipleCurrencyToken is
+    ERC20,
+    ReentrancyGuard,
+    ERC1155Holder,
+    IMultipleCurrencyToken
+{
     using SafeERC20 for IERC20;
     using PCPricing for PCPricing.PricingData;
 
@@ -16,17 +22,13 @@ contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
     PCPricing.PricingData redeemPricingData; // Pricing data for redeeming
     address public immutable INATIVE; // Used to identify native deposits
     mapping(address => bool) public tokenIs1155;
-    CreatePricingDataParams[] public tokens;
+    CreatePricingDataParams[] private _tokens;
 
-    struct CreatePricingDataParams {
-        // Used to create pricing data for tokens
-        address currency;
-        uint256 price;
-        bool is1155;
-        uint256 tokenId;
+    function tokens(
+        uint256 index
+    ) public view override returns (CreatePricingDataParams memory) {
+        return _tokens[index];
     }
-
-    event NewPricingDataAdded(CreatePricingDataParams pricingData);
 
     /// @notice Constructor for PCPricedToken
     /// @param name_ The name of the token
@@ -56,7 +58,7 @@ contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
             currencies[0].is1155
         );
         tokenIs1155[currencies[0].currency] = currencies[0].is1155;
-        tokens.push(currencies[0]);
+        _tokens.push(currencies[0]);
 
         mintPricingData.setAnchorCurrency(anchorCurrencyBytes, anchorPrice);
         redeemPricingData.setAnchorCurrency(anchorCurrencyBytes, anchorPrice);
@@ -94,7 +96,7 @@ contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
         tokenIs1155[
             _createPricingDataParams.currency
         ] = _createPricingDataParams.is1155;
-        tokens.push(_createPricingDataParams);
+        _tokens.push(_createPricingDataParams);
         emit NewPricingDataAdded(_createPricingDataParams);
     }
 
@@ -166,7 +168,7 @@ contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
                 msgValue -= amounts[i];
             }
 
-            if (currencies[i] != tokens[0].currency) {
+            if (currencies[i] != _tokens[0].currency) {
                 bytes memory currency = encodeCurrency(
                     currencies[i],
                     tokenIds[i],
@@ -224,7 +226,7 @@ contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
         require(balanceOf(msg.sender) >= amountIn, "Insufficient balance");
         amountOut = estimateWithdrawAmount(currency, tokenId, amountIn);
         require(amountOut > 0, "Insufficient balance");
-        if (currency != tokens[0].currency) {
+        if (currency != _tokens[0].currency) {
             redeemPricingData.adjustCurrencyPrice(
                 encodeCurrency(currency, tokenId, tokenIs1155[currency]),
                 false
@@ -295,13 +297,13 @@ contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
         view
         returns (address[] memory, uint256[] memory, bool[] memory)
     {
-        address[] memory currencies = new address[](tokens.length);
-        uint256[] memory tokenIds = new uint256[](tokens.length);
-        bool[] memory is1155 = new bool[](tokens.length);
-        for (uint256 i = 0; i < tokens.length; i++) {
-            currencies[i] = tokens[i].currency;
-            tokenIds[i] = tokens[i].tokenId;
-            is1155[i] = tokens[i].is1155;
+        address[] memory currencies = new address[](_tokens.length);
+        uint256[] memory tokenIds = new uint256[](_tokens.length);
+        bool[] memory is1155 = new bool[](_tokens.length);
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            currencies[i] = _tokens[i].currency;
+            tokenIds[i] = _tokens[i].tokenId;
+            is1155[i] = _tokens[i].is1155;
         }
         return (currencies, tokenIds, is1155);
     }
@@ -342,11 +344,19 @@ contract MultipleCurrencyToken is ERC20, ReentrancyGuard, ERC1155Holder {
         address currency,
         uint256 tokenId,
         bool is1155
-    ) internal pure returns (bytes memory) {
-        if (is1155) {
-            return abi.encode(currency, tokenId);
-        } else {
-            return abi.encode(currency);
-        }
+    ) public pure override returns (bytes memory) {
+        return abi.encodePacked(currency, tokenId, is1155);
+    }
+
+    function getMintPrice(
+        bytes memory currency
+    ) public view override returns (uint256) {
+        return mintPricingData.getCurrencyPrice(currency);
+    }
+
+    function getRedeemPrice(
+        bytes memory currency
+    ) public view override returns (uint256) {
+        return redeemPricingData.getCurrencyPrice(currency);
     }
 }
