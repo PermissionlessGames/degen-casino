@@ -123,7 +123,10 @@ contract MultipleCurrencyToken is
 
         mintAmount = estimateDepositAmount(currencies, tokenIds, amounts);
         require(mintAmount > 0, "Mint amount too small");
-        depositTokens(currencies, tokenIds, amounts, msg.sender, msg.value);
+        {
+            uint256 msgValue = msg.value;
+            depositTokens(currencies, tokenIds, amounts, msg.sender, msgValue);
+        }
 
         _mint(msg.sender, mintAmount);
     }
@@ -141,7 +144,7 @@ contract MultipleCurrencyToken is
         address caller,
         uint256 msgValue
     ) internal {
-        for (uint256 i; i < currencies.length; i++) {
+        for (uint256 i = 0; i < currencies.length; i++) {
             require(amounts[i] > 0, "Amount must be greater than 0");
             if (currencies[i] != INATIVE) {
                 if (tokenIs1155[currencies[i]]) {
@@ -160,12 +163,9 @@ contract MultipleCurrencyToken is
                     );
                 }
             } else {
-                require(
-                    amounts[i] == msgValue,
-                    "Native value does not match amount passed in"
-                );
+                require(amounts[i] == msgValue, "Insufficient native value");
                 //Incase of multiple cases of Native being passed in.
-                msgValue -= amounts[i];
+                msgValue = 0;
             }
 
             if (currencies[i] != _tokens[0].currency) {

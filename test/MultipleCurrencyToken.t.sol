@@ -141,6 +141,46 @@ contract MultipleCurrencyTokenTest is Test {
         );
     }
 
+    // Additional Constructor Tests
+    function testFailConstructorWithEmptyCurrencies() public {
+        IMultipleCurrencyToken.CreatePricingDataParams[]
+            memory emptyCurrencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
+                0
+            );
+        vm.expectRevert("Must provide at least one currency");
+        new MultipleCurrencyToken(
+            "Test Token",
+            "TEST",
+            INATIVE,
+            5,
+            100,
+            emptyCurrencies
+        );
+    }
+
+    function testFailConstructorWithZeroPrice() public {
+        IMultipleCurrencyToken.CreatePricingDataParams[]
+            memory currencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
+                1
+            );
+        currencies[0] = IMultipleCurrencyToken.CreatePricingDataParams({
+            currency: INATIVE,
+            price: 0,
+            is1155: false,
+            tokenId: 0
+        });
+
+        vm.expectRevert("Price must be greater than zero");
+        new MultipleCurrencyToken(
+            "Test Token",
+            "TEST",
+            INATIVE,
+            5,
+            100,
+            currencies
+        );
+    }
+
     // Deposit Tests
     function testDepositETH() public {
         vm.startPrank(user1);
@@ -272,6 +312,36 @@ contract MultipleCurrencyTokenTest is Test {
         vm.stopPrank();
     }
 
+    // Additional Deposit Tests
+    function testDepositWithMaxAmount() public {
+        vm.startPrank(user1);
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = INATIVE;
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = type(uint128).max; // Using uint128 to avoid overflow in calculations
+
+        vm.deal(user1, amounts[0]); // Give user enough ETH
+
+        uint256 expectedMintAmount = mct.estimateDepositAmount(
+            currencies,
+            tokenIds,
+            amounts
+        );
+        uint256 mintAmount = mct.deposit{value: amounts[0]}(
+            currencies,
+            tokenIds,
+            amounts
+        );
+
+        assertEq(mintAmount, expectedMintAmount);
+        vm.stopPrank();
+    }
+
     // Withdraw Tests
     function testWithdrawETH() public {
         // First deposit
@@ -374,6 +444,35 @@ contract MultipleCurrencyTokenTest is Test {
         vm.stopPrank();
     }
 
+    // Additional Withdraw Tests
+    function testPartialWithdraw() public {
+        // First deposit
+        vm.startPrank(user1);
+        mockUsdt.approve(address(mct), 1000e18);
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(mockUsdt);
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 100e18;
+
+        uint256 mintAmount = mct.deposit(currencies, tokenIds, amounts);
+
+        // Partial withdraw
+        uint256 withdrawAmount = mct.withdraw(
+            address(mockUsdt),
+            0,
+            mintAmount / 2
+        );
+        assertEq(mct.balanceOf(user1), mintAmount / 2);
+        assertEq(withdrawAmount, 50e18);
+
+        vm.stopPrank();
+    }
+
     // Price Adjustment Tests
     function testPriceAdjustmentOnDeposit() public {
         vm.startPrank(user1);
@@ -432,6 +531,31 @@ contract MultipleCurrencyTokenTest is Test {
         vm.stopPrank();
     }
 
+    // Price Estimation Tests
+    function testEstimateWithMultipleCurrencies() public view {
+        address[] memory currencies = new address[](3);
+        currencies[0] = INATIVE;
+        currencies[1] = address(mockUsdt);
+        currencies[2] = address(mockGold);
+
+        uint256[] memory tokenIds = new uint256[](3);
+        tokenIds[0] = 0;
+        tokenIds[1] = 0;
+        tokenIds[2] = GOLD_TOKEN_ID;
+
+        uint256[] memory amounts = new uint256[](3);
+        amounts[0] = 1 ether;
+        amounts[1] = 1000e18;
+        amounts[2] = 2;
+
+        uint256 estimate = mct.estimateDepositAmount(
+            currencies,
+            tokenIds,
+            amounts
+        );
+        assertGt(estimate, 0);
+    }
+
     // Failure Tests
     function testFailDepositZeroAmount() public {
         vm.startPrank(user1);
@@ -480,6 +604,47 @@ contract MultipleCurrencyTokenTest is Test {
         vm.stopPrank();
     }
 
+    // Additional Failure Tests
+    function testFailDepositWithInvalidCurrency() public {
+        vm.startPrank(user1);
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(0);
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        mct.deposit(currencies, tokenIds, amounts);
+        vm.stopPrank();
+    }
+
+    function testFailWithdrawToZeroAddress() public {
+        vm.startPrank(address(0));
+        mct.withdraw(INATIVE, 0, 1 ether);
+        vm.stopPrank();
+    }
+
+    function testFailDepositWithMismatchedValue() public {
+        vm.startPrank(user1);
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = INATIVE;
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 2 ether;
+
+        // This should fail because we're sending less ETH than specified in amounts
+        mct.deposit{value: 1 ether}(currencies, tokenIds, amounts);
+        assertEq(mct.balanceOf(user1), 0);
+        vm.stopPrank();
+    }
+
     // View Function Tests
     function testEncodeCurrency() public view {
         bytes memory encoded = mct.encodeCurrency(address(mockUsdt), 0, false);
@@ -513,6 +678,54 @@ contract MultipleCurrencyTokenTest is Test {
         assertEq(currencies[1], address(mockUsdt));
         assertEq(currencies[2], address(mockUsdc));
         assertEq(currencies[3], address(mockGold));
+    }
+
+    // Token Management Tests
+    function testGetTokenAtIndex() public view {
+        IMultipleCurrencyToken.CreatePricingDataParams memory token;
+
+        // Check each token
+        token = mct.tokens(0);
+        assertEq(token.currency, INATIVE);
+
+        token = mct.tokens(1);
+        assertEq(token.currency, address(mockUsdt));
+
+        token = mct.tokens(2);
+        assertEq(token.currency, address(mockUsdc));
+
+        token = mct.tokens(3);
+        assertEq(token.currency, address(mockGold));
+    }
+
+    function testFailGetTokenAtInvalidIndex() public view {
+        mct.tokens(4); // Should revert as we only have 4 tokens (0-3)
+    }
+
+    // Price Adjustment Edge Cases
+    function testPriceAdjustmentWithMinimumAmount() public {
+        vm.startPrank(user1);
+        mockUsdt.approve(address(mct), 1e6);
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(mockUsdt);
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1; // Minimum possible amount
+
+        uint256 initialPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+        mct.deposit(currencies, tokenIds, amounts);
+        uint256 newPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+
+        assertGt(newPrice, initialPrice);
+        vm.stopPrank();
     }
 
     receive() external payable {}
