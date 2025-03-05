@@ -276,7 +276,11 @@ contract MultipleCurrencyToken is
             ? price
             : mintPricingData.getCurrencyPrice(_currency);
         amountOut = (amountIn * price) / 1e18;
-        if (tokenIs1155[currency]) {
+        if (currency == INATIVE) {
+            amountOut = amountOut > address(this).balance
+                ? address(this).balance
+                : amountOut;
+        } else if (tokenIs1155[currency]) {
             amountOut = amountOut >
                 IERC1155(currency).balanceOf(address(this), tokenId)
                 ? IERC1155(currency).balanceOf(address(this), tokenId)
