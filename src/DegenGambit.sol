@@ -883,7 +883,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             _burn(msg.sender, 1);
         }
 
-        LastSpinBlock[spinPlayer] = _blockNumber();
+        LastSpinBlock[spinPlayer] = _blockNumber() + 1; // +1 to avoid gaming the system. Since entropy is based on blockhash, if the player spins at the same block, the outcome will be the same.
         LastSpinBoosted[spinPlayer] = boost;
 
         emit Spin(spinPlayer, boost);

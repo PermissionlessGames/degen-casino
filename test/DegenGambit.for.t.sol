@@ -164,7 +164,7 @@ contract DegenGambitTest is Test {
         emit Spin(player2, false);
         degenGambit.spinFor{value: costToSpin}(player2, player2, false);
 
-        vm.roll(block.number + blocksToAct + 1);
+        vm.roll(block.number + blocksToAct + 2);
         vm.expectRevert(DegenGambit.InsufficientValue.selector);
         degenGambit.spinFor{value: costToRespin}(player2, player2, false);
 
@@ -209,7 +209,7 @@ contract DegenGambitTest is Test {
         assertEq(typeOfPrize, 1);
         assertEq(prizeIndex, 2);
 
-        vm.roll(block.number + 1);
+        vm.roll(block.number + 2);
 
         vm.expectEmit();
         emit Award(player2, expectedPayout);
