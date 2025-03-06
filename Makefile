@@ -40,8 +40,8 @@ docs:
 	mkdir -p docs/abis
 	mkdir -p docs/interfaces
 	mkdir -p docs/abis/dev
-	jq .abi out/src/DegenGambit.sol/DegenGambit.json >docs/abis/DegenGambit.abi.json
-	jq .abi out/dev/DevDegenGambit.sol/DevDegenGambit.json >docs/abis/dev/DevDegenGambit.abi.json
+	jq .abi out/DegenGambit.sol/DegenGambit.json >docs/abis/DegenGambit.abi.json
+	jq .abi out/DevDegenGambit.sol/DevDegenGambit.json >docs/abis/dev/DevDegenGambit.abi.json
 	jq . docs/abis/DegenGambit.abi.json | solface -annotations -license MIT -name IDegenGambit -pragma "^0.8.13" >docs/interfaces/IDegenGambit.sol
 
 redocs: clean docs
