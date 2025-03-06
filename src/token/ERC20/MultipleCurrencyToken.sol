@@ -40,6 +40,8 @@ contract MultipleCurrencyToken is
         return _tokens[index];
     }
 
+    uint256 _decimals;
+
     /// @notice Constructor for PCPricedToken
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
@@ -85,6 +87,8 @@ contract MultipleCurrencyToken is
         for (uint256 i = 1; i < currencies.length; i++) {
             addNewPricingData(currencies[i]);
         }
+
+        _decimals = 10 ** decimals();
     }
 
     function addNewPricingData(
@@ -211,7 +215,7 @@ contract MultipleCurrencyToken is
             ratio = ratio > redeemPricingData.getCurrencyPrice(currency)
                 ? ratio
                 : redeemPricingData.getCurrencyPrice(currency);
-            uint256 price = (deposits[i] * 1e18) / ratio;
+            uint256 price = (deposits[i] * _decimals) / ratio;
             amount += price;
         }
     }
@@ -285,7 +289,7 @@ contract MultipleCurrencyToken is
         price = price < mintPricingData.getCurrencyPrice(_currency)
             ? price
             : mintPricingData.getCurrencyPrice(_currency);
-        amountOut = (amountIn * price) / 1e18;
+        amountOut = (amountIn * price) / _decimals;
         if (currency == INATIVE) {
             amountOut = amountOut > address(this).balance
                 ? address(this).balance
@@ -422,7 +426,7 @@ contract MultipleCurrencyToken is
             price = price > redeemPricingData.getCurrencyPrice(_currency)
                 ? price
                 : redeemPricingData.getCurrencyPrice(_currency);
-            return ((requestingAmount * price) / 1e18, true);
+            return ((requestingAmount * price) / _decimals, true);
         } else {
             return (0, false);
         }

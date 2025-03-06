@@ -1,5 +1,5 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/92c3c13d3e6a66ec5e6832bad4bf33e9ff24b4f2/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
@@ -52,6 +52,13 @@ Array of token configurations
 
 ```solidity
 CreatePricingDataParams[] private _tokens;
+```
+
+
+### _decimals
+
+```solidity
+uint256 _decimals;
 ```
 
 
