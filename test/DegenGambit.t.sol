@@ -1155,12 +1155,12 @@ contract DegenGambitTest is Test {
         (payout, prizeType, prizeIndex) = degenGambit.payout(17, 16, 18);
         assertEq(prizes[4], payout);
         assertEq(typeOfPrize[4], prizeType);
-        assertEq(5, prizeIndex);
+        assertEq(4, prizeIndex);
 
         (payout, prizeType, prizeIndex) = degenGambit.payout(16, 17, 16);
         assertEq(prizes[5], payout);
         assertEq(typeOfPrize[5], prizeType);
-        assertEq(4, prizeIndex);
+        assertEq(5, prizeIndex);
 
         (payout, prizeType, prizeIndex) = degenGambit.payout(16, 16, 16);
         assertEq(prizes[6], payout);
