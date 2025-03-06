@@ -6,6 +6,8 @@ import {ArbSys} from "./ArbSys.sol";
 /// @title BlockInspector
 /// @dev This contract is for debugging purposes related to blockhashes and block nunbers on Arbitrum chains.
 contract BlockInspector {
+    bytes32 public BlockhashStore;
+
     function blockNumbers() external view returns (uint256, uint256) {
         uint256 arbBlockNumber = ArbSys(address(100)).arbBlockNumber();
         return (block.number, arbBlockNumber);
@@ -17,5 +19,10 @@ contract BlockInspector {
 
     function arbBlockHash(uint256 number) external view returns (bytes32) {
         return ArbSys(address(100)).arbBlockHash(number);
+    }
+
+    function writeCurrentBlockHash() external {
+        uint256 arbBlockNumber = ArbSys(address(100)).arbBlockNumber();
+        BlockhashStore = ArbSys(address(100)).arbBlockHash(arbBlockNumber);
     }
 }
