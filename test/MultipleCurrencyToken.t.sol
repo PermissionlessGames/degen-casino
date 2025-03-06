@@ -363,10 +363,8 @@ contract MultipleCurrencyTokenTest is Test {
         assertEq(mct.balanceOf(user1), mintAmount);
         // Record balance before withdrawal
         uint256 preWithdrawBalance = user1.balance;
-        console.log("Line 298");
         // Withdraw ETH
         uint256 withdrawAmount = mct.withdraw(INATIVE, 0, mintAmount);
-        console.log("Line 301");
         // Check results
         assertEq(withdrawAmount, 1 ether, "Withdraw amount should be 1 ether");
         assertEq(
@@ -726,6 +724,13 @@ contract MultipleCurrencyTokenTest is Test {
 
         assertGt(newPrice, initialPrice);
         vm.stopPrank();
+    }
+
+    function testDoesCurrencyExist() public view {
+        bool exists = mct.doesCurrencyExist(address(mockUsdt), 0, false);
+        assertTrue(exists, "USDT should exist");
+        exists = mct.doesCurrencyExist(address(mockUsdt), 1, true);
+        assertFalse(exists, "USDT should not exist as 1155");
     }
 
     receive() external payable {}

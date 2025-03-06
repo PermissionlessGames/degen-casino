@@ -54,5 +54,11 @@ interface IMultipleCurrencyToken {
             bool[] memory is1155
         );
 
+    function doesCurrencyExist(
+        address currency,
+        uint256 tokenId,
+        bool is1155
+    ) external view returns (bool);
+
     event NewPricingDataAdded(CreatePricingDataParams pricingData);
 }

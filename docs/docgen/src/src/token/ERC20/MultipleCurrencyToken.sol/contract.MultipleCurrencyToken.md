@@ -1,5 +1,5 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8c111e031dce22e9b3adb986428659289f9e12a7/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f5c690e811e13fbceddc4a674556bfa12726141f/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
@@ -303,5 +303,12 @@ function getMintPrice(bytes memory currency) public view override returns (uint2
 
 ```solidity
 function getRedeemPrice(bytes memory currency) public view override returns (uint256);
+```
+
+### doesCurrencyExist
+
+
+```solidity
+function doesCurrencyExist(address currency, uint256 tokenId, bool is1155) public view override returns (bool);
 ```
 

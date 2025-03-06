@@ -1,5 +1,5 @@
 # MCTOwnership
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8c111e031dce22e9b3adb986428659289f9e12a7/src/token/ERC20/extensions/MCTOwnership.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f5c690e811e13fbceddc4a674556bfa12726141f/src/token/ERC20/extensions/MCTOwnership.sol)
 
 **Inherits:**
 Ownable, [MultipleCurrencyToken](/src/token/ERC20/MultipleCurrencyToken.sol/contract.MultipleCurrencyToken.md)

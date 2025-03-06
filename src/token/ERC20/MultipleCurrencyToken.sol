@@ -363,4 +363,15 @@ contract MultipleCurrencyToken is
     ) public view override returns (uint256) {
         return redeemPricingData.getCurrencyPrice(currency);
     }
+
+    function doesCurrencyExist(
+        address currency,
+        uint256 tokenId,
+        bool is1155
+    ) public view override returns (bool) {
+        return
+            mintPricingData.currencyExists(
+                encodeCurrency(currency, tokenId, is1155)
+            );
+    }
 }
