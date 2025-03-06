@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/fe17d0a13c5a7eda578cb77bcdae367d568a3083/src/DegenGambit.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/768292e039db1c7f4c0027b2deb85bbbc8bc447f/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -319,6 +319,13 @@ mapping(address => uint256) public CurrentWeeklyStreakLength;
 ```
 
 
+### winners
+
+```solidity
+Winner[] public winners;
+```
+
+
 ## Functions
 ### supportsInterface
 
@@ -344,6 +351,15 @@ Allows the contract to receive the native token on its blockchain.
 
 ```solidity
 receive() external payable;
+```
+
+### updateWinners
+
+Updates the winners array with the latest winner
+
+
+```solidity
+function updateWinners(address player, uint256 amount, uint256 prizeIndex) internal;
 ```
 
 ### decimals
@@ -474,7 +490,7 @@ function payout(uint256 left, uint256 center, uint256 right)
     public
     view
     virtual
-    returns (uint256 result, uint256 typeOfPrize);
+    returns (uint256 result, uint256 typeOfPrize, uint256 prizeIndex);
 ```
 
 ### prizes
@@ -674,6 +690,13 @@ version pure function that returns a string with version
 function version() external pure virtual returns (string memory);
 ```
 
+### latestWinners
+
+
+```solidity
+function latestWinners() external view returns (address[] memory, uint256[] memory, uint256[] memory);
+```
+
 ## Events
 ### Spin
 Fired when a player spins (and respins).
@@ -745,5 +768,16 @@ error OutcomeOutOfBounds();
 
 ```solidity
 error FailedPrizeTransfer();
+```
+
+## Structs
+### Winner
+
+```solidity
+struct Winner {
+    address player;
+    uint256 amount;
+    uint256 timestamp;
+}
 ```
 
