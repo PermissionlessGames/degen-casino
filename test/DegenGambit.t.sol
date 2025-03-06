@@ -1058,10 +1058,8 @@ contract DegenGambitTest is Test {
     function test_prizes_and_payout_match() public {
         vm.expectRevert(DegenGambit.OutcomeOutOfBounds.selector);
         degenGambit.payout(19, 19, 19);
-        console.log("Hello 1");
         (uint256[] memory prizes, uint256[] memory typeOfPrize) = degenGambit
             .prizes();
-        console.log("Hello 2");
         //No Payout
         (uint256 payout, uint256 prizeType) = degenGambit.payout(0, 0, 0);
         assertEq(0, payout);
