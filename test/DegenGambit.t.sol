@@ -174,7 +174,7 @@ contract DegenGambitTest is Test {
         emit Spin(player1, false);
         degenGambit.spin{value: costToSpin}(false);
 
-        vm.roll(block.number + blocksToAct + 2);
+        vm.roll(block.number + blocksToAct + 1);
         vm.expectRevert(DegenGambit.InsufficientValue.selector);
         degenGambit.spin{value: costToRespin}(false);
 
@@ -219,7 +219,7 @@ contract DegenGambitTest is Test {
         assertEq(typeOfPrize, 1);
         assertEq(prizeIndex, 2);
 
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
 
         vm.expectEmit();
         emit Award(player1, expectedPayout);
@@ -280,7 +280,7 @@ contract DegenGambitTest is Test {
         assertEq(typeOfPrize, 1);
         assertEq(prizeIndex, 2);
 
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
 
         vm.expectEmit();
         emit Award(player1, expectedPayout);
@@ -353,7 +353,7 @@ contract DegenGambitTest is Test {
         }
         assertEq(degenGambit.LastSpinBoosted(player1), false);
 
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
 
         vm.expectEmit();
         emit Award(player1, expectedPayout);
@@ -426,7 +426,7 @@ contract DegenGambitTest is Test {
         }
         assertEq(degenGambit.LastSpinBoosted(player1), false);
 
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
 
         vm.expectEmit();
         emit Award(player1, expectedPayout);
@@ -509,7 +509,7 @@ contract DegenGambitTest is Test {
         }
         assertEq(degenGambit.LastSpinBoosted(player1), true);
 
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
 
         // This guarantees that the outcome isn't coming from the regular distributions but the boosted ones.
         (left, center, right, ) = degenGambit.outcome(entropy, false);
@@ -1258,7 +1258,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
         degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
         (uint256 payout1, , ) = degenGambit.payout(2, 2, 2);
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
         degenGambit.accept();
         vm.stopPrank();
 
@@ -1272,7 +1272,7 @@ contract DegenGambitTest is Test {
         degenGambit.setEntropyFromOutcomes(16, 16, 16, player2, false);
         (uint256 payout2, , uint256 index2) = degenGambit.payout(16, 16, 16);
         assertEq(index2, 6);
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
         degenGambit.accept();
         vm.stopPrank();
 
@@ -1310,7 +1310,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
         degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
         (uint256 payout1, , uint256 index1) = degenGambit.payout(2, 2, 2);
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
         degenGambit.accept();
         vm.stopPrank();
 
@@ -1335,7 +1335,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
         degenGambit.setEntropyFromOutcomes(2, 2, 2, player2, false);
         (uint256 payout2, , uint256 index2) = degenGambit.payout(2, 2, 2);
-        vm.roll(block.number + 2);
+        vm.roll(block.number + 1);
         degenGambit.accept();
         vm.stopPrank();
 
