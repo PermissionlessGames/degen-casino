@@ -51,6 +51,16 @@ The `"result"` key is the hexadecimal representation of the balance. In this cas
 If you are using `web3.js`, `web3.py`, `ethers.js`, or a similar client library, you will not need to form this request yourself, nor will you need to
 decode the result. Please consult the relevant library documentation to see how to perform a balance check.
 
+## Latest Winners of the Slot machine
+
+*Degen's Gambit* exposes [`latestWinners` method](./docgen/src/src/DegenGambit.sol/contracts.DegenGambit.md#latestWinners) which returns three arrays of player address, amounts won, and time stamp of collecting winnings.
+
+```solidity
+	// Selector: d5e754ec
+	function latestWinners() external view returns (address[] memory, uint256[] memory, uint256[] memory);
+```
+
+The array indexes match that of the prize payouts above in the prizes function. 
 
 ## Spinning the slot machine
 
