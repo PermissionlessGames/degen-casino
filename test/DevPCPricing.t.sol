@@ -212,4 +212,241 @@ contract DevPCPricingTest is Test {
             "NON_EXISTENT should not exist"
         );
     }
+
+    function testBatchProcessing() public {
+        // Add more currencies to test batch processing
+        bytes memory USDC = "USDC";
+        bytes memory DAI = "DAI";
+        bytes memory BTC = "BTC";
+
+        devPCPricing.setCurrencyPrice(USDC, 100);
+        devPCPricing.setCurrencyPrice(DAI, 100);
+        devPCPricing.setCurrencyPrice(BTC, 30000);
+
+        // Test processing with batch size of 2
+        uint256 processed1 = devPCPricing.adjustNonAnchorPricesBatch(false, 2);
+        assertEq(processed1, 2, "Should process 2 currencies in first batch");
+
+        // Get state after first batch
+        (uint256 lastIndex, uint256 total) = devPCPricing
+            .getBatchProcessingState();
+        assertEq(total, 5, "Should have 5 total currencies");
+        assertEq(lastIndex, 2, "Last processed index should be 2");
+
+        // Process remaining currencies
+        uint256 processed2 = devPCPricing.adjustNonAnchorPricesBatch(false, 3);
+        assertEq(processed2, 3, "Should process 3 currencies in second batch");
+
+        // Verify the index was reset
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(
+            lastIndex,
+            0,
+            "Index should reset after processing all currencies"
+        );
+
+        // Verify all prices were adjusted
+        assertEq(
+            devPCPricing.getCurrencyPrice(USDT),
+            95,
+            "USDT price should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(GOLD),
+            475,
+            "GOLD price should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(USDC),
+            95,
+            "USDC price should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(DAI),
+            95,
+            "DAI price should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(BTC),
+            28500,
+            "BTC price should be adjusted"
+        );
+    }
+
+    function testBatchProcessingWithSmallBatches() public {
+        // Add more currencies
+        for (uint i = 0; i < 10; i++) {
+            bytes memory currency = bytes(
+                string.concat("TOKEN", vm.toString(i))
+            );
+            devPCPricing.setCurrencyPrice(currency, 100);
+        }
+
+        // Set batch size to 3
+        devPCPricing.setBatchSize(3);
+
+        // Process currencies in multiple calls
+        // First batch (processes indices 0-2)
+        devPCPricing.useAnchorCurrency(false);
+        (uint256 lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 3, "Last index should be 3 after first batch");
+
+        // Second batch (processes indices 3-5)
+        devPCPricing.useAnchorCurrency(false);
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 6, "Last index should be 6 after second batch");
+
+        // Third batch (processes indices 6-8)
+        devPCPricing.useAnchorCurrency(false);
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 9, "Last index should be 9 after third batch");
+
+        // Fourth batch (processes indices 9-11)
+        devPCPricing.useAnchorCurrency(false);
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 0, "Last index should wrap around to 0");
+
+        // Verify all prices were adjusted (95 = 100 - 5%)
+        for (uint i = 0; i < 10; i++) {
+            bytes memory currency = bytes(
+                string.concat("TOKEN", vm.toString(i))
+            );
+            assertEq(
+                devPCPricing.getCurrencyPrice(currency),
+                95,
+                "Price should be adjusted"
+            );
+        }
+        assertEq(
+            devPCPricing.getCurrencyPrice(USDT),
+            95,
+            "USDT price should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(GOLD),
+            475,
+            "GOLD price should be adjusted"
+        );
+    }
+
+    function testSetBatchSize() public {
+        devPCPricing.setBatchSize(5);
+        assertEq(
+            devPCPricing.getBatchSize(),
+            5,
+            "Batch size should be set to 5"
+        );
+    }
+
+    function testCannotSetZeroBatchSize() public {
+        vm.expectRevert("Batch size must be greater than 0");
+        devPCPricing.setBatchSize(0);
+    }
+
+    function testAutomaticBatchProcessing() public {
+        // Add more currencies to exceed batch size
+        for (uint i = 0; i < 10; i++) {
+            bytes memory currency = bytes(
+                string.concat("TOKEN", vm.toString(i))
+            );
+            devPCPricing.setCurrencyPrice(currency, 100);
+        }
+
+        // Set batch size to 3
+        devPCPricing.setBatchSize(3);
+
+        // First batch should process first 3 tokens
+        devPCPricing.useAnchorCurrency(false);
+        (uint256 lastIndex, uint256 total) = devPCPricing
+            .getBatchProcessingState();
+        assertEq(lastIndex, 3, "Should process first 3 tokens");
+        assertEq(
+            total,
+            12,
+            "Should have 12 total currencies (10 + USDT + GOLD)"
+        );
+
+        // Verify first batch prices were adjusted
+        assertEq(
+            devPCPricing.getCurrencyPrice(bytes("TOKEN0")),
+            95,
+            "TOKEN0 should be adjusted"
+        );
+        // Second batch should process next 3 tokens
+        devPCPricing.useAnchorCurrency(false);
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 6, "Should process next 3 tokens");
+
+        assertEq(
+            devPCPricing.getCurrencyPrice(bytes("TOKEN1")),
+            95,
+            "TOKEN1 should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(bytes("TOKEN2")),
+            95,
+            "TOKEN2 should be adjusted"
+        );
+
+        // Verify second batch prices were adjusted
+        assertEq(
+            devPCPricing.getCurrencyPrice(bytes("TOKEN3")),
+            95,
+            "TOKEN3 should be adjusted"
+        );
+
+        devPCPricing.useAnchorCurrency(false);
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 9, "Should process next 3 tokens");
+
+        assertEq(
+            devPCPricing.getCurrencyPrice(bytes("TOKEN4")),
+            95,
+            "TOKEN4 should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(bytes("TOKEN5")),
+            95,
+            "TOKEN5 should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(bytes("TOKEN6")),
+            95,
+            "TOKEN6 should be adjusted"
+        );
+
+        // Process remaining batches
+        devPCPricing.useAnchorCurrency(false); // Third batch (9-11)
+        // Verify final state
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 0, "Index should wrap around to 0");
+        devPCPricing.useAnchorCurrency(false); // Fourth batch (0-3)
+        // Verify final state
+        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        assertEq(lastIndex, 3, "Index should wrap around to 3");
+
+        // Verify all remaining prices were adjusted
+        for (uint i = 7; i < 10; i++) {
+            bytes memory currency = bytes(
+                string.concat("TOKEN", vm.toString(i))
+            );
+            assertEq(
+                devPCPricing.getCurrencyPrice(currency),
+                95,
+                string.concat("TOKEN", vm.toString(i), " should be adjusted")
+            );
+        }
+
+        // Verify original currencies were also adjusted
+        assertEq(
+            devPCPricing.getCurrencyPrice(USDT),
+            91,
+            "USDT should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(GOLD),
+            452,
+            "GOLD should be adjusted"
+        );
+    }
 }
