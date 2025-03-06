@@ -1298,4 +1298,69 @@ contract DegenGambitTest is Test {
         assertEq(winnersAmount[2], payout1);
         assertEq(winnersTimestamp[2], block.timestamp);
     }
+
+    function test_latest_winners_same_prize() public {
+        vm.roll(block.number + blocksToAct + 1);
+        vm.deal(address(degenGambit), costToSpin << 30);
+
+        // First winner with three 2s (50x prize)
+        vm.startPrank(player1);
+        vm.expectEmit();
+        emit Spin(player1, false);
+        degenGambit.spin{value: costToSpin}(false);
+        degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
+        (uint256 payout1, , uint256 index1) = degenGambit.payout(2, 2, 2);
+        vm.roll(block.number + 1);
+        degenGambit.accept();
+        vm.stopPrank();
+
+        // Get winners after first win
+        (
+            address[] memory winners1,
+            uint256[] memory amounts1,
+            uint256[] memory timestamps1
+        ) = degenGambit.latestWinners();
+
+        // Verify first winner is recorded
+        assertEq(winners1[index1], player1);
+        assertEq(amounts1[index1], payout1);
+        assertEq(timestamps1[index1], block.timestamp);
+
+        // Second player wins the same prize (three 2s - 50x prize)
+        address player2 = address(0x2);
+        vm.deal(player2, costToSpin);
+        vm.startPrank(player2);
+        vm.expectEmit();
+        emit Spin(player2, false);
+        degenGambit.spin{value: costToSpin}(false);
+        degenGambit.setEntropyFromOutcomes(2, 2, 2, player2, false);
+        (uint256 payout2, , uint256 index2) = degenGambit.payout(2, 2, 2);
+        vm.roll(block.number + 1);
+        degenGambit.accept();
+        vm.stopPrank();
+
+        // Get winners after second win
+        (
+            address[] memory winners2,
+            uint256[] memory amounts2,
+            uint256[] memory timestamps2
+        ) = degenGambit.latestWinners();
+
+        // Verify indices are the same since it's the same prize
+        assertEq(index1, index2);
+
+        // Verify second winner replaced first winner in the same slot
+        assertEq(winners2[index2], player2);
+        assertEq(amounts2[index2], payout2);
+        assertEq(timestamps2[index2], block.timestamp);
+
+        // Verify other slots remained unchanged
+        for (uint i = 0; i < winners2.length; i++) {
+            if (i != index2) {
+                assertEq(winners2[i], winners1[i]);
+                assertEq(amounts2[i], amounts1[i]);
+                assertEq(timestamps2[i], timestamps1[i]);
+            }
+        }
+    }
 }
