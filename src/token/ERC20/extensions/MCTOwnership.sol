@@ -53,6 +53,10 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory _createPricingDataParams
     ) external onlyOwner {
+        require(
+            _createPricingDataParams.length > 0,
+            "Pricing data array cannot be empty"
+        );
         for (uint256 i = 0; i < _createPricingDataParams.length; i++) {
             require(
                 _createPricingDataParams[i].currency != address(0),
