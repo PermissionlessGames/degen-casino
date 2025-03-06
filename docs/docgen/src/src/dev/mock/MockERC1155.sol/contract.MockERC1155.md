@@ -1,5 +1,5 @@
 # MockERC1155
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/5e8f008a9d2e5903bd547eedaed31c3efcb6ca7b/src/dev/mock/MockERC1155.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8c111e031dce22e9b3adb986428659289f9e12a7/src/dev/mock/MockERC1155.sol)
 
 **Inherits:**
 ERC1155

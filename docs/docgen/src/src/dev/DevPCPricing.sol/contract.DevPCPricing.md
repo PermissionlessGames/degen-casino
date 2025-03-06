@@ -1,5 +1,5 @@
 # DevPCPricing
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/7a794f3daf632c32ff2205d7d9459ac48a135034/src/dev/DevPCPricing.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8c111e031dce22e9b3adb986428659289f9e12a7/src/dev/DevPCPricing.sol)
 
 **Author:**
 Permissionless Games & ChatGPT
