@@ -25,7 +25,7 @@ contract DevPCPricingTest is Test {
         devPCPricing.setCurrencyPrice(GOLD, 500);
     }
 
-    function testInitialPrices() public {
+    function testInitialPrices() public view {
         uint256 ethPrice = devPCPricing.getCurrencyPrice(ETH);
         uint256 usdtPrice = devPCPricing.getCurrencyPrice(USDT);
         uint256 goldPrice = devPCPricing.getCurrencyPrice(GOLD);
@@ -65,7 +65,7 @@ contract DevPCPricingTest is Test {
         assertEq(newGoldPrice, 475, "GOLD price should decrease by 5%");
     }
 
-    function testGetAllCurrencyPrices() public {
+    function testGetAllCurrencyPrices() public view {
         (bytes[] memory currencies, uint256[] memory prices) = devPCPricing
             .getAllCurrencyPrices();
 
@@ -78,33 +78,33 @@ contract DevPCPricingTest is Test {
         assertEq(prices[1], 500, "Second price should be 500");
     }
 
-    function testGetAdjustmentFactors() public {
+    function testGetAdjustmentFactors() public view {
         (uint256 numerator, uint256 denominator) = devPCPricing
             .getAdjustmentFactor();
         assertEq(numerator, 5, "Adjustment numerator should be 5");
         assertEq(denominator, 100, "Adjustment denominator should be 100");
     }
 
-    function testGetAnchorCurrency() public {
+    function testGetAnchorCurrency() public view {
         bytes memory anchorCurrency = devPCPricing.getAnchorCurrency();
         assertEq(anchorCurrency, ETH, "Anchor currency should be ETH");
     }
 
-    function testGetTrackedCurrencies() public {
+    function testGetTrackedCurrencies() public view {
         bytes[] memory currencies = devPCPricing.getTrackedCurrencies();
         assertEq(currencies.length, 2, "Should have 2 tracked currencies");
         assertEq(currencies[0], USDT, "First tracked currency should be USDT");
         assertEq(currencies[1], GOLD, "Second tracked currency should be GOLD");
     }
 
-    function testGetCurrencyIndex() public {
+    function testGetCurrencyIndex() public view {
         uint256 usdtIndex = devPCPricing.getCurrencyIndex(USDT);
         uint256 goldIndex = devPCPricing.getCurrencyIndex(GOLD);
         assertEq(usdtIndex, 0, "USDT should be at index 0");
         assertEq(goldIndex, 1, "GOLD should be at index 1");
     }
 
-    function testCurrencyExists() public {
+    function testCurrencyExists() public view {
         assertTrue(devPCPricing.currencyExists(ETH), "ETH should exist");
         assertTrue(devPCPricing.currencyExists(USDT), "USDT should exist");
         assertTrue(devPCPricing.currencyExists(GOLD), "GOLD should exist");
@@ -199,13 +199,13 @@ contract DevPCPricingTest is Test {
         newDevPCPricing = new DevPCPricing(ETH, 1000, 0, 100);
     }
 
-    function testGetIndexOfNonExistentCurrencyShouldBe0() public {
+    function testGetIndexOfNonExistentCurrencyShouldBe0() public view {
         bytes memory nonExistentCurrency = "NON_EXISTENT";
         uint256 index = devPCPricing.getCurrencyIndex(nonExistentCurrency);
         assertEq(index, 0, "Index should be 0");
     }
 
-    function testCurrencyExistBothFalseAndTrue() public {
+    function testCurrencyExistBothFalseAndTrue() public view {
         assertTrue(devPCPricing.currencyExists(ETH), "ETH should exist");
         assertFalse(
             devPCPricing.currencyExists("NON_EXISTENT"),
