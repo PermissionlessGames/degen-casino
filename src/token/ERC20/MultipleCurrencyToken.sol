@@ -15,15 +15,25 @@ contract MultipleCurrencyToken is
     ERC1155Holder,
     IMultipleCurrencyToken
 {
+    /// @notice SafeERC20 library for ERC20 token operations
     using SafeERC20 for IERC20;
+    /// @notice PCPricing library for pricing data operations
     using PCPricing for PCPricing.PricingData;
 
-    PCPricing.PricingData mintPricingData; // Pricing data for minting
-    PCPricing.PricingData redeemPricingData; // Pricing data for redeeming
-    address public immutable INATIVE; // Used to identify native deposits
+    /// @notice Pricing data for minting
+    PCPricing.PricingData mintPricingData;
+    /// @notice Pricing data for redeeming
+    PCPricing.PricingData redeemPricingData;
+    /// @notice Address used to identify native deposits
+    address public immutable INATIVE;
+    /// @notice Mapping of token addresses to booleans indicating if they are ERC1155
     mapping(address => bool) public tokenIs1155;
+    /// @notice Array of token configurations
     CreatePricingDataParams[] private _tokens;
 
+    /// @notice Get the token configuration at a specific index
+    /// @param index The index of the token configuration
+    /// @return token The token configuration
     function tokens(
         uint256 index
     ) public view override returns (CreatePricingDataParams memory) {
@@ -326,24 +336,32 @@ contract MultipleCurrencyToken is
             treasuryTokens.length
         );
         for (uint256 i = 0; i < treasuryTokens.length; i++) {
-            mintPriceRatios[i] = mintPricingData.getCurrencyPrice(
-                encodeCurrency(
-                    treasuryTokens[i],
-                    tokenIds[i],
-                    tokenIs1155[treasuryTokens[i]]
-                )
+            bytes memory currency = encodeCurrency(
+                treasuryTokens[i],
+                tokenIds[i],
+                tokenIs1155[treasuryTokens[i]]
             );
-            redeemPriceRatios[i] = redeemPricingData.getCurrencyPrice(
-                encodeCurrency(
-                    treasuryTokens[i],
-                    tokenIds[i],
-                    tokenIs1155[treasuryTokens[i]]
-                )
-            );
+            uint256 mintPrice = mintPricingData.getCurrencyPrice(currency);
+            uint256 redeemPrice = redeemPricingData.getCurrencyPrice(currency);
+            //If the mint price is greater than the redeem price, use the mint price
+            //Otherwise, use the redeem price
+            mintPriceRatios[i] = mintPrice > redeemPrice
+                ? mintPrice
+                : redeemPrice;
+            //If the redeem price is greater than the mint price, use the redeem price
+            //Otherwise, use the mint price
+            redeemPriceRatios[i] = mintPrice < redeemPrice
+                ? mintPrice
+                : redeemPrice;
         }
         return (mintPriceRatios, redeemPriceRatios);
     }
 
+    /// @notice Encode a currency into a bytes array
+    /// @param currency The address of the currency
+    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
+    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @return currencyBytes The encoded currency
     function encodeCurrency(
         address currency,
         uint256 tokenId,
@@ -352,18 +370,29 @@ contract MultipleCurrencyToken is
         return abi.encodePacked(currency, tokenId, is1155);
     }
 
+    /// @notice Get the mint price for a currency
+    /// @param currency The encoded currency
+    /// @return price The mint price
     function getMintPrice(
         bytes memory currency
     ) public view override returns (uint256) {
         return mintPricingData.getCurrencyPrice(currency);
     }
 
+    /// @notice Get the redeem price for a currency
+    /// @param currency The encoded currency
+    /// @return price The redeem price
     function getRedeemPrice(
         bytes memory currency
     ) public view override returns (uint256) {
         return redeemPricingData.getCurrencyPrice(currency);
     }
 
+    /// @notice Check if a currency exists
+    /// @param currency The address of the currency
+    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
+    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @return exists Boolean indicating if the currency exists
     function doesCurrencyExist(
         address currency,
         uint256 tokenId,
@@ -374,4 +403,31 @@ contract MultipleCurrencyToken is
                 encodeCurrency(currency, tokenId, is1155)
             );
     }
+
+    /// @notice Get the amount needed to mint a currency
+    /// @param requestingAmount The amount of tokens to mint
+    /// @param currency The address of the currency
+    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
+    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @return amount The amount needed to mint
+    function amountNeededToMint(
+        uint256 requestingAmount,
+        address currency,
+        uint256 tokenId,
+        bool is1155
+    ) public view returns (uint256, bool) {
+        bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
+        if (mintPricingData.currencyExists(_currency)) {
+            uint256 price = mintPricingData.getCurrencyPrice(_currency);
+            price = price > redeemPricingData.getCurrencyPrice(_currency)
+                ? price
+                : redeemPricingData.getCurrencyPrice(_currency);
+            return ((requestingAmount * price) / 1e18, true);
+        } else {
+            return (0, false);
+        }
+    }
+
+    /// @notice Receive function to allow contract to receive native currency
+    receive() external payable {}
 }

@@ -733,5 +733,38 @@ contract MultipleCurrencyTokenTest is Test {
         assertFalse(exists, "USDT should not exist as 1155");
     }
 
+    function testAmountNeededToMint() public view {
+        (uint256 amount, bool exists) = mct.amountNeededToMint(
+            100e18,
+            address(mockUsdt),
+            0,
+            false
+        );
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(mockUsdt);
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256 estimatedAmount = mct.estimateDepositAmount(
+            currencies,
+            tokenIds,
+            amounts
+        );
+        assertEq(100e18, estimatedAmount, "Amount should be estimated amount");
+        assertTrue(exists, "USDT should exist");
+    }
+
+    function testAmountNeededToMintNoCurrency() public view {
+        (uint256 amount, bool exists) = mct.amountNeededToMint(
+            100e18,
+            address(0),
+            0,
+            false
+        );
+        assertEq(amount, 0, "Amount should be 0");
+        assertFalse(exists, "Currency should not exist");
+    }
+
     receive() external payable {}
 }

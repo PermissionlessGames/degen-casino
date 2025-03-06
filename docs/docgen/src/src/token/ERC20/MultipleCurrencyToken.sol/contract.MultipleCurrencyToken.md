@@ -1,5 +1,5 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/f5c690e811e13fbceddc4a674556bfa12726141f/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/92c3c13d3e6a66ec5e6832bad4bf33e9ff24b4f2/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
@@ -7,6 +7,12 @@ ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20
 
 ## State Variables
 ### mintPricingData
+SafeERC20 library for ERC20 token operations
+
+PCPricing library for pricing data operations
+
+Pricing data for minting
+
 
 ```solidity
 PCPricing.PricingData mintPricingData;
@@ -14,6 +20,8 @@ PCPricing.PricingData mintPricingData;
 
 
 ### redeemPricingData
+Pricing data for redeeming
+
 
 ```solidity
 PCPricing.PricingData redeemPricingData;
@@ -21,6 +29,8 @@ PCPricing.PricingData redeemPricingData;
 
 
 ### INATIVE
+Address used to identify native deposits
+
 
 ```solidity
 address public immutable INATIVE;
@@ -28,6 +38,8 @@ address public immutable INATIVE;
 
 
 ### tokenIs1155
+Mapping of token addresses to booleans indicating if they are ERC1155
+
 
 ```solidity
 mapping(address => bool) public tokenIs1155;
@@ -35,6 +47,8 @@ mapping(address => bool) public tokenIs1155;
 
 
 ### _tokens
+Array of token configurations
+
 
 ```solidity
 CreatePricingDataParams[] private _tokens;
@@ -44,10 +58,24 @@ CreatePricingDataParams[] private _tokens;
 ## Functions
 ### tokens
 
+Get the token configuration at a specific index
+
 
 ```solidity
 function tokens(uint256 index) public view override returns (CreatePricingDataParams memory);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`index`|`uint256`|The index of the token configuration|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`CreatePricingDataParams`|token The token configuration|
+
 
 ### constructor
 
@@ -286,29 +314,126 @@ function getTokenPriceRatios(address[] memory treasuryTokens, uint256[] memory t
 
 ### encodeCurrency
 
+Encode a currency into a bytes array
+
 
 ```solidity
 function encodeCurrency(address currency, uint256 tokenId, bool is1155) public pure override returns (bytes memory);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`currency`|`address`|The address of the currency|
+|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bytes`|currencyBytes The encoded currency|
+
 
 ### getMintPrice
+
+Get the mint price for a currency
 
 
 ```solidity
 function getMintPrice(bytes memory currency) public view override returns (uint256);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`currency`|`bytes`|The encoded currency|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|price The mint price|
+
 
 ### getRedeemPrice
+
+Get the redeem price for a currency
 
 
 ```solidity
 function getRedeemPrice(bytes memory currency) public view override returns (uint256);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`currency`|`bytes`|The encoded currency|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|price The redeem price|
+
 
 ### doesCurrencyExist
+
+Check if a currency exists
 
 
 ```solidity
 function doesCurrencyExist(address currency, uint256 tokenId, bool is1155) public view override returns (bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`currency`|`address`|The address of the currency|
+|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bool`|exists Boolean indicating if the currency exists|
+
+
+### amountNeededToMint
+
+Get the amount needed to mint a currency
+
+
+```solidity
+function amountNeededToMint(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
+    public
+    view
+    returns (uint256, bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`requestingAmount`|`uint256`|The amount of tokens to mint|
+|`currency`|`address`|The address of the currency|
+|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|amount The amount needed to mint|
+|`<none>`|`bool`||
+
+
+### receive
+
+Receive function to allow contract to receive native currency
+
+
+```solidity
+receive() external payable;
 ```
 
