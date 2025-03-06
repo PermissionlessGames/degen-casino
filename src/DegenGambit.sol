@@ -967,9 +967,9 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         view
         returns (address[] memory, uint256[] memory, uint256[] memory)
     {
-        address[] memory players = new address[](7);
-        uint256[] memory amounts = new uint256[](7);
-        uint256[] memory timestamps = new uint256[](7);
+        address[] memory players = new address[](winners.length);
+        uint256[] memory amounts = new uint256[](winners.length);
+        uint256[] memory timestamps = new uint256[](winners.length);
         for (uint256 i = 0; i < winners.length; i++) {
             players[i] = winners[i].player;
             amounts[i] = winners[i].amount;
