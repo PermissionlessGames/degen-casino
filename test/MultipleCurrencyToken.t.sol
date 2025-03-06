@@ -766,5 +766,425 @@ contract MultipleCurrencyTokenTest is Test {
         assertFalse(exists, "Currency should not exist");
     }
 
+    // Price Ratio Tests
+    function testGetTokenPriceRatiosSingleCurrency() public view {
+        address[] memory currencies = new address[](1);
+        currencies[0] = INATIVE;
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        (uint256[] memory mintRatios, uint256[] memory redeemRatios) = mct
+            .getTokenPriceRatios(currencies, tokenIds);
+
+        assertEq(mintRatios.length, 1);
+        assertEq(redeemRatios.length, 1);
+        assertEq(mintRatios[0], 1e18);
+        assertEq(redeemRatios[0], 1e18);
+    }
+
+    function testGetTokenPriceRatiosMultipleCurrencies() public view {
+        address[] memory currencies = new address[](2);
+        currencies[0] = INATIVE;
+        currencies[1] = address(mockUsdt);
+
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = 0;
+        tokenIds[1] = 0;
+
+        (uint256[] memory mintRatios, uint256[] memory redeemRatios) = mct
+            .getTokenPriceRatios(currencies, tokenIds);
+
+        assertEq(mintRatios.length, 2);
+        assertEq(redeemRatios.length, 2);
+        // Check INATIVE ratios
+        assertEq(mintRatios[0], 1e18);
+        assertEq(redeemRatios[0], 1e18);
+        // Check USDT ratios
+        assertEq(mintRatios[1], 1e6);
+        assertEq(redeemRatios[1], 1e6);
+    }
+
+    function testGetTokenPriceRatiosAfterPriceChange() public {
+        // First make a deposit to change prices
+        vm.startPrank(user1);
+        mockUsdt.approve(address(mct), 1000e18);
+
+        address[] memory depositCurrencies = new address[](1);
+        depositCurrencies[0] = address(mockUsdt);
+
+        uint256[] memory depositTokenIds = new uint256[](1);
+        depositTokenIds[0] = 0;
+
+        uint256[] memory depositAmounts = new uint256[](1);
+        depositAmounts[0] = 100e18;
+
+        mct.deposit(depositCurrencies, depositTokenIds, depositAmounts);
+        vm.stopPrank();
+
+        // Now check price ratios
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(mockUsdt);
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        (uint256[] memory mintRatios, uint256[] memory redeemRatios) = mct
+            .getTokenPriceRatios(currencies, tokenIds);
+
+        assertGt(mintRatios[0], 1e6); // Price should have increased
+        assertEq(redeemRatios[0], 1e6); // Redeem price should stay the same
+    }
+
+    // Additional Price Adjustment Tests
+    function testPriceAdjustmentWithAnchorCurrency() public {
+        vm.startPrank(user1);
+
+        // First deposit with anchor currency (ETH)
+        address[] memory currencies = new address[](1);
+        currencies[0] = INATIVE;
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        // Get initial prices
+        uint256 initialUsdtPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+
+        // Deposit ETH
+        mct.deposit{value: 1 ether}(currencies, tokenIds, amounts);
+
+        // Check that non-anchor prices were adjusted
+        uint256 newUsdtPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+        assertLt(
+            newUsdtPrice,
+            initialUsdtPrice,
+            "Non-anchor prices should decrease when depositing anchor currency"
+        );
+
+        vm.stopPrank();
+    }
+
+    function testPriceAdjustmentWithMultipleDeposits() public {
+        vm.startPrank(user1);
+        mockUsdt.approve(address(mct), 1000e18);
+        mockGold.setApprovalForAll(address(mct), true);
+
+        address[] memory currencies = new address[](2);
+        currencies[0] = address(mockUsdt);
+        currencies[1] = address(mockGold);
+
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = 0;
+        tokenIds[1] = GOLD_TOKEN_ID;
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 100e18;
+        amounts[1] = 1;
+
+        uint256 initialUsdtPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+        uint256 initialGoldPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockGold), GOLD_TOKEN_ID, true)
+        );
+
+        mct.deposit(currencies, tokenIds, amounts);
+
+        uint256 newUsdtPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+        uint256 newGoldPrice = mct.getMintPrice(
+            mct.encodeCurrency(address(mockGold), GOLD_TOKEN_ID, true)
+        );
+
+        assertGt(newUsdtPrice, initialUsdtPrice, "USDT price should increase");
+        assertGt(newGoldPrice, initialGoldPrice, "GOLD price should increase");
+
+        vm.stopPrank();
+    }
+
+    // Array Validation Tests
+    function testGetTokenPriceRatiosEmptyArrays() public view {
+        address[] memory currencies = new address[](0);
+        uint256[] memory tokenIds = new uint256[](0);
+        (uint256[] memory mintRatios, uint256[] memory redeemRatios) = mct
+            .getTokenPriceRatios(currencies, tokenIds);
+        assertEq(mintRatios.length, 0);
+        assertEq(redeemRatios.length, 0);
+    }
+
+    function testFailGetTokenPriceRatiosMismatchedArrays() public view {
+        address[] memory currencies = new address[](2);
+        currencies[0] = INATIVE;
+        currencies[1] = address(mockUsdt);
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        mct.getTokenPriceRatios(currencies, tokenIds);
+    }
+
+    function testFailDepositEmptyArrays() public {
+        vm.startPrank(user1);
+
+        address[] memory currencies = new address[](0);
+        uint256[] memory tokenIds = new uint256[](0);
+        uint256[] memory amounts = new uint256[](0);
+
+        mct.deposit(currencies, tokenIds, amounts);
+
+        vm.stopPrank();
+    }
+
+    // Additional Withdrawal Price Adjustment Tests
+    function testPriceAdjustmentOnAnchorWithdraw() public {
+        // First deposit
+        vm.startPrank(user1);
+        address[] memory currencies = new address[](1);
+        currencies[0] = INATIVE;
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        uint256 mintAmount = mct.deposit{value: 1 ether}(
+            currencies,
+            tokenIds,
+            amounts
+        );
+
+        // Get initial non-anchor price
+        uint256 initialUsdtPrice = mct.getRedeemPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+
+        // Withdraw ETH
+        mct.withdraw(INATIVE, 0, mintAmount);
+
+        // Check non-anchor price adjustment
+        uint256 newUsdtPrice = mct.getRedeemPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+        assertGt(
+            newUsdtPrice,
+            initialUsdtPrice,
+            "Non-anchor prices should increase when withdrawing anchor currency"
+        );
+
+        vm.stopPrank();
+    }
+
+    function testPriceAdjustmentWithMultipleWithdraws() public {
+        // First deposit multiple currencies
+        vm.startPrank(user1);
+        mockUsdt.approve(address(mct), 1000e18);
+        mockGold.setApprovalForAll(address(mct), true);
+
+        address[] memory currencies = new address[](2);
+        currencies[0] = address(mockUsdt);
+        currencies[1] = address(mockGold);
+
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = 0;
+        tokenIds[1] = GOLD_TOKEN_ID;
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 100e18;
+        amounts[1] = 1;
+
+        uint256 mintAmount = mct.deposit(currencies, tokenIds, amounts);
+
+        // Get prices after deposit
+        uint256 postDepositUsdtPrice = mct.getRedeemPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+        uint256 postDepositGoldPrice = mct.getRedeemPrice(
+            mct.encodeCurrency(address(mockGold), GOLD_TOKEN_ID, true)
+        );
+
+        // Withdraw half of each
+        mct.withdraw(address(mockUsdt), 0, mintAmount / 2);
+        mct.withdraw(address(mockGold), GOLD_TOKEN_ID, mintAmount / 2);
+
+        // Check price adjustments
+        uint256 postWithdrawUsdtPrice = mct.getRedeemPrice(
+            mct.encodeCurrency(address(mockUsdt), 0, false)
+        );
+        uint256 postWithdrawGoldPrice = mct.getRedeemPrice(
+            mct.encodeCurrency(address(mockGold), GOLD_TOKEN_ID, true)
+        );
+
+        assertLt(
+            postWithdrawUsdtPrice,
+            postDepositUsdtPrice,
+            "USDT price should decrease after withdrawal"
+        );
+        assertLt(
+            postWithdrawGoldPrice,
+            postDepositGoldPrice,
+            "GOLD price should decrease after withdrawal"
+        );
+
+        vm.stopPrank();
+    }
+
+    // Balance Limit Tests
+    function testWithdrawNearContractBalance() public {
+        // First deposit
+        vm.startPrank(user1);
+        mockUsdt.approve(address(mct), 1000e18);
+        mockGold.setApprovalForAll(address(mct), true);
+        address[] memory currencies = new address[](2);
+        currencies[0] = address(mockUsdt);
+        currencies[1] = address(mockGold);
+
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = 0;
+        tokenIds[1] = GOLD_TOKEN_ID;
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 100e18;
+        amounts[1] = 1;
+        mct.deposit(currencies, tokenIds, amounts);
+
+        // Try to withdraw slightly more than deposited
+        uint256 withdrawAmount = mct.withdraw(
+            address(mockUsdt),
+            0,
+            mct.balanceOf(user1)
+        );
+
+        assertEq(
+            withdrawAmount,
+            100e18,
+            "Should only withdraw available balance"
+        );
+        assertEq(mct.balanceOf(user1), 0, "User should have 0");
+        assertEq(
+            mockUsdt.balanceOf(address(mct)),
+            0,
+            "Contract should have 0 USDT"
+        );
+        assertEq(
+            mockGold.balanceOf(address(mct), GOLD_TOKEN_ID),
+            1,
+            "Contract should have 1 GOLD"
+        );
+        assertEq(mct.totalSupply(), 0, "Total supply should be 0");
+        vm.stopPrank();
+    }
+
+    function testWithdrawWithInsufficientContractBalance() public {
+        vm.startPrank(user1);
+
+        // First deposit ETH
+        address[] memory currencies = new address[](1);
+        currencies[0] = INATIVE;
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        uint256 mintAmount = mct.deposit{value: 1 ether}(
+            currencies,
+            tokenIds,
+            amounts
+        );
+
+        // Simulate loss of contract balance
+        vm.deal(address(mct), 0.5 ether);
+
+        // Try to withdraw full amount
+        uint256 withdrawAmount = mct.withdraw(INATIVE, 0, mintAmount);
+        assertEq(
+            withdrawAmount,
+            0.5 ether,
+            "Should only withdraw available balance"
+        );
+        assertEq(mct.balanceOf(user1), 0, "User should have 0");
+        vm.stopPrank();
+    }
+
+    // ERC1155 Specific Tests
+    function testMultipleERC1155TokenIds() public {
+        vm.startPrank(user1);
+        mockGold.setApprovalForAll(address(mct), true);
+
+        // Mint additional tokens of the existing ID
+        mockGold.mint(user1, GOLD_TOKEN_ID, 10);
+
+        // Test depositing multiple times with the same token ID
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(mockGold);
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = GOLD_TOKEN_ID;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 2; // Deposit 2 tokens
+
+        uint256 mintAmount = mct.deposit(currencies, tokenIds, amounts);
+        assertGt(mintAmount, 0, "Should mint tokens for ERC1155");
+
+        // Check balances
+        assertEq(
+            mockGold.balanceOf(address(mct), GOLD_TOKEN_ID),
+            2,
+            "Contract should have 2 tokens"
+        );
+        assertEq(
+            mockGold.balanceOf(user1, GOLD_TOKEN_ID),
+            18,
+            "User should have 18 tokens left"
+        ); // 20 initial - 2 deposited
+
+        // Test withdrawal
+        uint256 withdrawAmount = mct.withdraw(
+            address(mockGold),
+            GOLD_TOKEN_ID,
+            mintAmount
+        );
+        assertGt(withdrawAmount, 0, "Should withdraw tokens");
+        assertEq(
+            mockGold.balanceOf(address(mct), GOLD_TOKEN_ID),
+            0,
+            "Contract should have 0 tokens after withdrawal"
+        );
+        assertEq(
+            mockGold.balanceOf(user1, GOLD_TOKEN_ID),
+            20,
+            "User should have all tokens back"
+        );
+
+        vm.stopPrank();
+    }
+
+    function testFailInvalidERC1155TokenId() public {
+        vm.startPrank(user1);
+        mockGold.setApprovalForAll(address(mct), true);
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = address(mockGold);
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 999; // Non-existent token ID
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+
+        mct.deposit(currencies, tokenIds, amounts);
+
+        vm.stopPrank();
+    }
+
     receive() external payable {}
 }
