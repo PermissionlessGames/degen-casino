@@ -196,29 +196,29 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// The length of the current weekly streak the made by a given player. This is for weekly streak length.
     mapping(address => uint256) public CurrentWeeklyStreakLength;
 
-    address public prize0Winner;
-    address public prize1Winner;
-    address public prize2Winner;
-    address public prize3Winner;
-    address public prize4Winner;
-    address public prize5Winner;
-    address public prize6Winner;
+    address public Prize0Winner;
+    address public Prize1Winner;
+    address public Prize2Winner;
+    address public Prize3Winner;
+    address public Prize4Winner;
+    address public Prize5Winner;
+    address public Prize6Winner;
 
-    uint256 public prize0WonAmount;
-    uint256 public prize1WonAmount;
-    uint256 public prize2WonAmount;
-    uint256 public prize3WonAmount;
-    uint256 public prize4WonAmount;
-    uint256 public prize5WonAmount;
-    uint256 public prize6WonAmount;
+    uint256 public Prize0WonAmount;
+    uint256 public Prize1WonAmount;
+    uint256 public Prize2WonAmount;
+    uint256 public Prize3WonAmount;
+    uint256 public Prize4WonAmount;
+    uint256 public Prize5WonAmount;
+    uint256 public Prize6WonAmount;
 
-    uint256 public prize0LastWonTimestamp;
-    uint256 public prize1LastWonTimestamp;
-    uint256 public prize2LastWonTimestamp;
-    uint256 public prize3LastWonTimestamp;
-    uint256 public prize4LastWonTimestamp;
-    uint256 public prize5LastWonTimestamp;
-    uint256 public prize6LastWonTimestamp;
+    uint256 public Prize0LastWonTimestamp;
+    uint256 public Prize1LastWonTimestamp;
+    uint256 public Prize2LastWonTimestamp;
+    uint256 public Prize3LastWonTimestamp;
+    uint256 public Prize4LastWonTimestamp;
+    uint256 public Prize5LastWonTimestamp;
+    uint256 public Prize6LastWonTimestamp;
 
     /// Fired when a player spins (and respins).
     event Spin(address indexed player, bool indexed bonus);
@@ -263,39 +263,40 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     receive() external payable {}
 
     /// Updates the winners array with the latest winner
-    function updateWinners(
+    function _updateWinners(
         address player,
         uint256 amount,
         uint256 prizeIndex
     ) internal virtual {
+        require(prizeIndex < 7, "Invalid prize index");
         if (prizeIndex == 0) {
-            prize0Winner = player;
-            prize0WonAmount = amount;
-            prize0LastWonTimestamp = block.timestamp;
+            Prize0Winner = player;
+            Prize0WonAmount = amount;
+            Prize0LastWonTimestamp = block.timestamp;
         } else if (prizeIndex == 1) {
-            prize1Winner = player;
-            prize1WonAmount = amount;
-            prize1LastWonTimestamp = block.timestamp;
+            Prize1Winner = player;
+            Prize1WonAmount = amount;
+            Prize1LastWonTimestamp = block.timestamp;
         } else if (prizeIndex == 2) {
-            prize2Winner = player;
-            prize2WonAmount = amount;
-            prize2LastWonTimestamp = block.timestamp;
+            Prize2Winner = player;
+            Prize2WonAmount = amount;
+            Prize2LastWonTimestamp = block.timestamp;
         } else if (prizeIndex == 3) {
-            prize3Winner = player;
-            prize3WonAmount = amount;
-            prize3LastWonTimestamp = block.timestamp;
+            Prize3Winner = player;
+            Prize3WonAmount = amount;
+            Prize3LastWonTimestamp = block.timestamp;
         } else if (prizeIndex == 4) {
-            prize4Winner = player;
-            prize4WonAmount = amount;
-            prize4LastWonTimestamp = block.timestamp;
+            Prize4Winner = player;
+            Prize4WonAmount = amount;
+            Prize4LastWonTimestamp = block.timestamp;
         } else if (prizeIndex == 5) {
-            prize5Winner = player;
-            prize5WonAmount = amount;
-            prize5LastWonTimestamp = block.timestamp;
+            Prize5Winner = player;
+            Prize5WonAmount = amount;
+            Prize5LastWonTimestamp = block.timestamp;
         } else if (prizeIndex == 6) {
-            prize6Winner = player;
-            prize6WonAmount = amount;
-            prize6LastWonTimestamp = block.timestamp;
+            Prize6Winner = player;
+            Prize6WonAmount = amount;
+            Prize6LastWonTimestamp = block.timestamp;
         }
     }
 
@@ -799,7 +800,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             // Only transfer prize if there is a prize to transfer
             if (prize > 0) {
                 _transferPrize(prize, player, typeOfPrize);
-                updateWinners(player, prize, prizeIndex);
+                _updateWinners(player, prize, prizeIndex);
             }
         }
         emit Award(player, prize);
