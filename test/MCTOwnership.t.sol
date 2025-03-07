@@ -315,7 +315,7 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
 
         assertEq(mct.owner(), user1);
-
+        //
         // Test that old owner can't call owner functions
         vm.startPrank(owner);
         vm.expectRevert();
