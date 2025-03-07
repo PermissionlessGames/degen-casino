@@ -1485,4 +1485,43 @@ contract DegenGambitTest is Test {
         assertEq(degenGambit.Prize2WonAmount(), payout2);
         assertEq(degenGambit.Prize2LastWonTimestamp(), block.timestamp);
     }
+
+    function test_fail_spin_17_17_17_0_true_large_pot_not_enough_gambit()
+        public
+    {
+        uint256 left;
+        uint256 center;
+        uint256 right;
+        uint256 remainingEntropy;
+        uint256 prize;
+        vm.roll(block.number + blocksToAct + 1);
+
+        // Guarantees that the payout does not fall under balance-based clamping flow.
+        vm.deal(address(degenGambit), costToSpin << 30);
+
+        // Guarantees that the player has enough GAMBIT for a boosted spin
+
+        degenGambit.mintGambit(player1, (10 ** degenGambit.decimals()) - 1);
+
+        uint256 entropy = degenGambit.generateEntropyForImprovedReelOutcome(
+            17,
+            17,
+            17
+        );
+
+        uint256 gameBalanceBefore = address(degenGambit).balance;
+        uint256 playerBalanceBefore = player1.balance;
+        uint256 gambitSupplyBefore = degenGambit.totalSupply();
+        uint256 playerGambitBalanceBefore = degenGambit.balanceOf(player1);
+
+        vm.startPrank(player1);
+        vm.expectRevert();
+        degenGambit.spin{value: costToSpin}(true);
+        degenGambit.setEntropy(player1, entropy);
+        vm.stopPrank();
+        assertEq(address(degenGambit).balance, gameBalanceBefore);
+        assertEq(player1.balance, playerBalanceBefore);
+        assertEq(degenGambit.balanceOf(player1), playerGambitBalanceBefore);
+        assertEq(degenGambit.totalSupply(), gambitSupplyBefore);
+    }
 }
