@@ -354,7 +354,8 @@ contract DegenGambitTest is Test {
 
     function test_gambit_minted_on_streak_boosted_spinfor() public {
         // Make sure the player has GAMBIT to boost with.
-        degenGambit.mintGambit(player1, 2);
+        uint256 singleDegenGambitToken = 10 ** degenGambit.decimals();
+        degenGambit.mintGambit(player1, 2 * singleDegenGambitToken);
 
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
@@ -375,10 +376,13 @@ contract DegenGambitTest is Test {
         uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
         assertEq(intermediateStreakDay, block.timestamp / SECONDS_PER_DAY);
 
-        assertEq(gambitSupplyIntermediate, gambitSupplyInitial - 1);
+        assertEq(
+            gambitSupplyIntermediate,
+            gambitSupplyInitial - singleDegenGambitToken
+        );
         assertEq(
             playerGambitBalanceIntermediate,
-            playerGambitBalanceInitial - 1
+            playerGambitBalanceInitial - singleDegenGambitToken
         );
 
         vm.roll(block.number + 1);
@@ -407,11 +411,15 @@ contract DegenGambitTest is Test {
 
         assertEq(
             gambitSupplyFinal,
-            gambitSupplyIntermediate + dailyStreakReward - 1
+            gambitSupplyIntermediate +
+                dailyStreakReward -
+                singleDegenGambitToken
         );
         assertEq(
             playerGambitBalanceFinal,
-            playerGambitBalanceIntermediate + dailyStreakReward - 1
+            playerGambitBalanceIntermediate +
+                dailyStreakReward -
+                singleDegenGambitToken
         );
     }
 
