@@ -196,6 +196,30 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// The length of the current weekly streak the made by a given player. This is for weekly streak length.
     mapping(address => uint256) public CurrentWeeklyStreakLength;
 
+    address public Prize0Winner;
+    address public Prize1Winner;
+    address public Prize2Winner;
+    address public Prize3Winner;
+    address public Prize4Winner;
+    address public Prize5Winner;
+    address public Prize6Winner;
+
+    uint256 public Prize0WonAmount;
+    uint256 public Prize1WonAmount;
+    uint256 public Prize2WonAmount;
+    uint256 public Prize3WonAmount;
+    uint256 public Prize4WonAmount;
+    uint256 public Prize5WonAmount;
+    uint256 public Prize6WonAmount;
+
+    uint256 public Prize0LastWonTimestamp;
+    uint256 public Prize1LastWonTimestamp;
+    uint256 public Prize2LastWonTimestamp;
+    uint256 public Prize3LastWonTimestamp;
+    uint256 public Prize4LastWonTimestamp;
+    uint256 public Prize5LastWonTimestamp;
+    uint256 public Prize6LastWonTimestamp;
+
     /// Fired when a player spins (and respins).
     event Spin(address indexed player, bool indexed bonus);
     /// Fired when a player accepts the outcome of a roll.
@@ -237,6 +261,44 @@ contract DegenGambit is ERC20, ReentrancyGuard {
 
     /// Allows the contract to receive the native token on its blockchain.
     receive() external payable {}
+
+    /// Updates the winners array with the latest winner
+    function _updateWinners(
+        address player,
+        uint256 amount,
+        uint256 prizeIndex
+    ) internal virtual {
+        require(prizeIndex < 7, "Invalid prize index");
+        if (prizeIndex == 0) {
+            Prize0Winner = player;
+            Prize0WonAmount = amount;
+            Prize0LastWonTimestamp = block.timestamp;
+        } else if (prizeIndex == 1) {
+            Prize1Winner = player;
+            Prize1WonAmount = amount;
+            Prize1LastWonTimestamp = block.timestamp;
+        } else if (prizeIndex == 2) {
+            Prize2Winner = player;
+            Prize2WonAmount = amount;
+            Prize2LastWonTimestamp = block.timestamp;
+        } else if (prizeIndex == 3) {
+            Prize3Winner = player;
+            Prize3WonAmount = amount;
+            Prize3LastWonTimestamp = block.timestamp;
+        } else if (prizeIndex == 4) {
+            Prize4Winner = player;
+            Prize4WonAmount = amount;
+            Prize4LastWonTimestamp = block.timestamp;
+        } else if (prizeIndex == 5) {
+            Prize5Winner = player;
+            Prize5WonAmount = amount;
+            Prize5LastWonTimestamp = block.timestamp;
+        } else if (prizeIndex == 6) {
+            Prize6Winner = player;
+            Prize6WonAmount = amount;
+            Prize6LastWonTimestamp = block.timestamp;
+        }
+    }
 
     /// The GAMBIT token (representing bonus rolls on the Degen's Gambit slot machine) has 0 decimals.
     function decimals() public pure override returns (uint8) {
@@ -582,7 +644,12 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         uint256 left,
         uint256 center,
         uint256 right
-    ) public view virtual returns (uint256 result, uint256 typeOfPrize) {
+    )
+        public
+        view
+        virtual
+        returns (uint256 result, uint256 typeOfPrize, uint256 prizeIndex)
+    {
         if (left >= 19 || center >= 19 || right >= 19) {
             revert OutcomeOutOfBounds();
         }
@@ -593,6 +660,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 // Minor symbol pair on outside reels with different minor symbol in the center. Case 1
                 result = MinorGambitPrize;
                 typeOfPrize = 20;
+                prizeIndex = 1;
             } else if (left == right && left == center && left <= 15) {
                 // 3 of a kind with a minor symbol. Case 2
                 result = 50 * CostToSpin;
@@ -600,6 +668,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                     result = address(this).balance >> 6;
                 }
                 typeOfPrize = 1;
+                prizeIndex = 2;
             } else if (left == right && center >= 16 && left <= 15) {
                 // Minor symbol pair on outside reels with major symbol in the center. Case 3
                 result = 100 * CostToSpin;
@@ -607,6 +676,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                     result = address(this).balance >> 4;
                 }
                 typeOfPrize = 1;
+                prizeIndex = 3;
             } else if (
                 left != right &&
                 center != left &&
@@ -615,23 +685,27 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 center >= 16 &&
                 right >= 16
             ) {
-                // Three distinct major symbols. Case 4
+                // Three distinct major symbols. Case 5
                 result = address(this).balance >> 3;
                 typeOfPrize = 1;
+                prizeIndex = 5;
             } else if (
                 left == right && left != center && left >= 16 && center >= 16
             ) {
-                // Major symbol pair on the outside with a different major symbol in the center. Case 5
+                // Major symbol pair on the outside with a different major symbol in the center. Case 4
                 result = address(this).balance >> 3;
                 typeOfPrize = 1;
+                prizeIndex = 4;
             } else if (left == center && center == right && left >= 16) {
                 // 3 of a kind with a major symbol. Jackpot! Case 6
                 result = address(this).balance >> 1;
                 typeOfPrize = 1;
+                prizeIndex = 6;
             } else if (left > 15 || center > 15 || right > 15) {
                 // If at least 1 Major symbol is present
                 result = MajorGambitPrize;
                 typeOfPrize = 20;
+                prizeIndex = 0;
             }
         }
     }
@@ -691,7 +765,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 _entropy(player),
                 LastSpinBoosted[player]
             );
-            (uint256 prize, ) = payout(left, center, right);
+            (uint256 prize, , ) = payout(left, center, right);
             toReceive = prize > 0;
         }
         return toReceive;
@@ -720,10 +794,16 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             _entropy(player),
             LastSpinBoosted[player]
         );
-        (prize, typeOfPrize) = payout(left, center, right);
-        _transferPrize(prize, player, typeOfPrize);
+        {
+            uint256 prizeIndex;
+            (prize, typeOfPrize, prizeIndex) = payout(left, center, right);
+            // Only transfer prize if there is a prize to transfer
+            if (prize > 0) {
+                _transferPrize(prize, player, typeOfPrize);
+                _updateWinners(player, prize, prizeIndex);
+            }
+        }
         emit Award(player, prize);
-
         delete LastSpinBoosted[player];
         delete LastSpinBlock[player];
     }
@@ -888,7 +968,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             LastSpinBoosted[degenerate]
         );
 
-        (prize, typeOfPrize) = payout(left, center, right);
+        (prize, typeOfPrize, ) = payout(left, center, right);
     }
 
     function symbol() public view override returns (string memory) {

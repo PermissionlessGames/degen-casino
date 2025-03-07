@@ -51,6 +51,53 @@ The `"result"` key is the hexadecimal representation of the balance. In this cas
 If you are using `web3.js`, `web3.py`, `ethers.js`, or a similar client library, you will not need to form this request yourself, nor will you need to
 decode the result. Please consult the relevant library documentation to see how to perform a balance check.
 
+## To Check Most current winners for each prize.
+
+```solidity
+	// Selector: f0299692
+	function Prize0LastWonTimestamp() external view returns (uint256);
+	// Selector: d782242a
+	function Prize0Winner() external view returns (address);
+	// Selector: 7366199f
+	function Prize0WonAmount() external view returns (uint256);
+	// Selector: 7fa15950
+	function Prize1LastWonTimestamp() external view returns (uint256);
+	// Selector: 1b087acd
+	function Prize1Winner() external view returns (address);
+	// Selector: 41e6f89e
+	function Prize1WonAmount() external view returns (uint256);
+	// Selector: 507984f9
+	function Prize2LastWonTimestamp() external view returns (uint256);
+	// Selector: e10356f1
+	function Prize2Winner() external view returns (address);
+	// Selector: 5968055f
+	function Prize2WonAmount() external view returns (uint256);
+	// Selector: b95d6a34
+	function Prize3LastWonTimestamp() external view returns (uint256);
+	// Selector: be4e6f0a
+	function Prize3Winner() external view returns (address);
+	// Selector: 72ad1623
+	function Prize3WonAmount() external view returns (uint256);
+	// Selector: 1bf55ef0
+	function Prize4LastWonTimestamp() external view returns (uint256);
+	// Selector: bd3979fc
+	function Prize4Winner() external view returns (address);
+	// Selector: 50e71d95
+	function Prize4WonAmount() external view returns (uint256);
+	// Selector: fc6d2e40
+	function Prize5LastWonTimestamp() external view returns (uint256);
+	// Selector: 2114ae27
+	function Prize5Winner() external view returns (address);
+	// Selector: eb6ae025
+	function Prize5WonAmount() external view returns (uint256);
+	// Selector: a2a609e4
+	function Prize6LastWonTimestamp() external view returns (uint256);
+	// Selector: c93e1d44
+	function Prize6Winner() external view returns (address);
+	// Selector: 0216f70e
+	function Prize6WonAmount() external view returns (uint256);
+	// Selector: bd0ebd4b
+```
 
 ## Spinning the slot machine
 
