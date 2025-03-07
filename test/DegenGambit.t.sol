@@ -5,6 +5,7 @@ import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
 import {ArbSys} from "../src/ArbSys.sol";
 import {DevDegenGambit} from "../src/dev/DevDegenGambit.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract ArbSysMock is ArbSys {
     function arbBlockNumber() external view returns (uint) {
@@ -1515,7 +1516,14 @@ contract DegenGambitTest is Test {
         uint256 playerGambitBalanceBefore = degenGambit.balanceOf(player1);
 
         vm.startPrank(player1);
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientBalance.selector,
+                address(player1),
+                playerGambitBalanceBefore,
+                10 ** degenGambit.decimals()
+            )
+        );
         degenGambit.spin{value: costToSpin}(true);
         degenGambit.setEntropy(player1, entropy);
         vm.stopPrank();
