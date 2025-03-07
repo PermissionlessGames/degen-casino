@@ -1,5 +1,9 @@
 # DegenGambit
+<<<<<<< HEAD
 [Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8e3c49ec1b47ecdb92bceb56c31f5683f84e9463/src/DegenGambit.sol)
+=======
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/0d7359ed797e3cb894eda25170a83921e44b03a9/src/DegenGambit.sol)
+>>>>>>> main
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -319,6 +323,153 @@ mapping(address => uint256) public CurrentWeeklyStreakLength;
 ```
 
 
+### Prize0Winner
+
+```solidity
+address public Prize0Winner;
+```
+
+
+### Prize1Winner
+
+```solidity
+address public Prize1Winner;
+```
+
+
+### Prize2Winner
+
+```solidity
+address public Prize2Winner;
+```
+
+
+### Prize3Winner
+
+```solidity
+address public Prize3Winner;
+```
+
+
+### Prize4Winner
+
+```solidity
+address public Prize4Winner;
+```
+
+
+### Prize5Winner
+
+```solidity
+address public Prize5Winner;
+```
+
+
+### Prize6Winner
+
+```solidity
+address public Prize6Winner;
+```
+
+
+### Prize0WonAmount
+
+```solidity
+uint256 public Prize0WonAmount;
+```
+
+
+### Prize1WonAmount
+
+```solidity
+uint256 public Prize1WonAmount;
+```
+
+
+### Prize2WonAmount
+
+```solidity
+uint256 public Prize2WonAmount;
+```
+
+
+### Prize3WonAmount
+
+```solidity
+uint256 public Prize3WonAmount;
+```
+
+
+### Prize4WonAmount
+
+```solidity
+uint256 public Prize4WonAmount;
+```
+
+
+### Prize5WonAmount
+
+```solidity
+uint256 public Prize5WonAmount;
+```
+
+
+### Prize6WonAmount
+
+```solidity
+uint256 public Prize6WonAmount;
+```
+
+
+### Prize0LastWonTimestamp
+
+```solidity
+uint256 public Prize0LastWonTimestamp;
+```
+
+
+### Prize1LastWonTimestamp
+
+```solidity
+uint256 public Prize1LastWonTimestamp;
+```
+
+
+### Prize2LastWonTimestamp
+
+```solidity
+uint256 public Prize2LastWonTimestamp;
+```
+
+
+### Prize3LastWonTimestamp
+
+```solidity
+uint256 public Prize3LastWonTimestamp;
+```
+
+
+### Prize4LastWonTimestamp
+
+```solidity
+uint256 public Prize4LastWonTimestamp;
+```
+
+
+### Prize5LastWonTimestamp
+
+```solidity
+uint256 public Prize5LastWonTimestamp;
+```
+
+
+### Prize6LastWonTimestamp
+
+```solidity
+uint256 public Prize6LastWonTimestamp;
+```
+
+
 ## Functions
 ### supportsInterface
 
@@ -344,6 +495,15 @@ Allows the contract to receive the native token on its blockchain.
 
 ```solidity
 receive() external payable;
+```
+
+### _updateWinners
+
+Updates the winners array with the latest winner
+
+
+```solidity
+function _updateWinners(address player, uint256 amount, uint256 prizeIndex) internal virtual;
 ```
 
 ### decimals
@@ -474,7 +634,7 @@ function payout(uint256 left, uint256 center, uint256 right)
     public
     view
     virtual
-    returns (uint256 result, uint256 typeOfPrize);
+    returns (uint256 result, uint256 typeOfPrize, uint256 prizeIndex);
 ```
 
 ### prizes
