@@ -685,17 +685,17 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 center >= 16 &&
                 right >= 16
             ) {
-                // Three distinct major symbols. Case 4
-                result = address(this).balance >> 3;
-                typeOfPrize = 1;
-                prizeIndex = 4;
-            } else if (
-                left == right && left != center && left >= 16 && center >= 16
-            ) {
-                // Major symbol pair on the outside with a different major symbol in the center. Case 5
+                // Three distinct major symbols. Case 5
                 result = address(this).balance >> 3;
                 typeOfPrize = 1;
                 prizeIndex = 5;
+            } else if (
+                left == right && left != center && left >= 16 && center >= 16
+            ) {
+                // Major symbol pair on the outside with a different major symbol in the center. Case 4
+                result = address(this).balance >> 3;
+                typeOfPrize = 1;
+                prizeIndex = 4;
             } else if (left == center && center == right && left >= 16) {
                 // 3 of a kind with a major symbol. Jackpot! Case 6
                 result = address(this).balance >> 1;
