@@ -42,8 +42,31 @@ contract DevPCPricing {
     }
 
     /// @notice Reduce all non-anchor currency prices when the anchor is used
+    /// @dev WARNING: This function may hit gas limits with large currency arrays
     function useAnchorCurrency(bool increase) external {
         pricingData.adjustAllNonAnchorPrices(increase);
+    }
+
+    /// @notice Process a batch of non-anchor currency price adjustments
+    /// @param increase Whether to increase or decrease prices
+    /// @param batchSize Maximum number of currencies to process
+    /// @return processedCount Number of currencies processed
+    function adjustNonAnchorPricesBatch(
+        bool increase,
+        uint256 batchSize
+    ) external returns (uint256) {
+        return pricingData.adjustNonAnchorPricesBatch(increase, batchSize);
+    }
+
+    /// @notice Get the current state of batch processing
+    /// @return lastProcessedIndex The index where processing will resume
+    /// @return totalCurrencies Total number of tracked currencies
+    function getBatchProcessingState()
+        external
+        view
+        returns (uint256 lastProcessedIndex, uint256 totalCurrencies)
+    {
+        return pricingData.getBatchProcessingState();
     }
 
     /// @notice Get a specific currency price
@@ -96,5 +119,16 @@ contract DevPCPricing {
     /// @notice Remove a currency from the system
     function removeCurrency(bytes memory currency) external {
         pricingData.removeCurrency(currency);
+    }
+
+    /// @notice Set the batch size for processing large arrays of currencies
+    /// @param newBatchSize The maximum number of currencies to process in a single batch
+    function setBatchSize(uint256 newBatchSize) external {
+        pricingData.setBatchSize(newBatchSize);
+    }
+
+    /// @notice Get the current batch size setting
+    function getBatchSize() external view returns (uint256) {
+        return pricingData.batchSize;
     }
 }

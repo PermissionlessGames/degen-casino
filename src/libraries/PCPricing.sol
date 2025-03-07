@@ -31,6 +31,12 @@ library PCPricing {
     /// @notice Emitted when all non-anchor prices are reduced
     event NonAnchorPricesReduced();
 
+    /// @notice Emitted when a batch of non-anchor prices are adjusted
+    event NonAnchorPricesAdjustedBatch(
+        uint256 processedCount,
+        uint256 nextIndex
+    );
+
     struct PricingData {
         bytes anchorCurrency; // The anchor (base) currency
         uint256 adjustmentNumerator; // The numerator of the universal adjustment percentage
@@ -38,6 +44,8 @@ library PCPricing {
         mapping(bytes => uint256) currencyPrice; // Mapping of currency prices
         mapping(bytes => uint256) currencyIndex; // Mapping of currency index
         bytes[] trackedCurrencies; // List of tracked non-anchor currencies
+        uint256 lastProcessedIndex; // Index tracking for batch processing
+        uint256 batchSize; // Maximum number of currencies to process in a single batch
     }
 
     /// @notice Set the anchor currency and its initial price
@@ -128,19 +136,76 @@ library PCPricing {
         );
     }
 
-    /// @notice adjust the price of all non-anchor currencies when the anchor currency is used
-    function adjustAllNonAnchorPrices(
+    /// @notice adjust the price of a batch of non-anchor currencies
+    /// @param batchSize Maximum number of currencies to process in this transaction
+    /// @return (processedCount, hasMore) Number of currencies processed and whether there are more to process
+    function adjustNonAnchorPricesBatch(
         PricingData storage self,
-        bool increase
-    ) internal {
-        for (uint256 i = 0; i < self.trackedCurrencies.length; i++) {
-            bytes memory currency = self.trackedCurrencies[i];
+        bool increase,
+        uint256 batchSize
+    ) internal returns (uint256) {
+        uint256 length = self.trackedCurrencies.length;
+        if (length == 0) return (0);
+
+        uint256 startIndex = self.lastProcessedIndex % length;
+
+        for (uint256 i = 0; i < batchSize; i++) {
+            uint256 currentIndex = (startIndex + i) % length;
+            bytes memory currency = self.trackedCurrencies[currentIndex];
+
             if (keccak256(currency) != keccak256(self.anchorCurrency)) {
                 adjustCurrencyPrice(self, currency, increase);
             }
         }
 
-        emit NonAnchorPricesReduced();
+        // Update the last processed index, ensuring it wraps around
+        self.lastProcessedIndex = (startIndex + batchSize) % length;
+
+        emit NonAnchorPricesAdjustedBatch(batchSize, self.lastProcessedIndex);
+
+        return batchSize;
+    }
+
+    /// @notice Set the batch size for processing large arrays of currencies
+    function setBatchSize(
+        PricingData storage self,
+        uint256 newBatchSize
+    ) internal {
+        require(newBatchSize > 0, "Batch size must be greater than 0");
+        self.batchSize = newBatchSize;
+    }
+
+    /// @notice Legacy function that adjusts all prices in one transaction
+    /// @dev If trackedCurrencies length exceeds batchSize, it will use batch processing
+    function adjustAllNonAnchorPrices(
+        PricingData storage self,
+        bool increase
+    ) internal {
+        uint256 length = self.trackedCurrencies.length;
+
+        // If batchSize is not set or array is smaller than batch size, process all at once
+        if (self.batchSize == 0 || length <= self.batchSize) {
+            for (uint256 i = 0; i < length; i++) {
+                bytes memory currency = self.trackedCurrencies[i];
+                if (keccak256(currency) != keccak256(self.anchorCurrency)) {
+                    adjustCurrencyPrice(self, currency, increase);
+                }
+            }
+            emit NonAnchorPricesReduced();
+        } else {
+            adjustNonAnchorPricesBatch(self, increase, self.batchSize);
+        }
+    }
+
+    /// @notice Get the current batch processing state
+    function getBatchProcessingState(
+        PricingData storage self
+    )
+        internal
+        view
+        returns (uint256 lastProcessedIndex, uint256 totalCurrencies)
+    {
+        return (self.lastProcessedIndex, self.trackedCurrencies.length);
     }
 
     /// @notice Get the current price of a currency

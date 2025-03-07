@@ -1,5 +1,9 @@
 # PCPricing
+<<<<<<< HEAD
 [Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/libraries/PCPricing.sol)
+=======
+[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8e3c49ec1b47ecdb92bceb56c31f5683f84e9463/src/libraries/PCPricing.sol)
+>>>>>>> preferred-currency-pricing
 
 **Author:**
 Permissionless Games & ChatGpt
@@ -47,13 +51,61 @@ Adjust the price dynamically based on usage (same adjustment for all non-anchor 
 function adjustCurrencyPrice(PricingData storage self, bytes memory currency, bool increase) internal;
 ```
 
+### adjustNonAnchorPricesBatch
+
+adjust the price of a batch of non-anchor currencies
+
+
+```solidity
+function adjustNonAnchorPricesBatch(PricingData storage self, bool increase, uint256 batchSize)
+    internal
+    returns (uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`self`|`PricingData`||
+|`increase`|`bool`||
+|`batchSize`|`uint256`|Maximum number of currencies to process in this transaction|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|(processedCount, hasMore) Number of currencies processed and whether there are more to process|
+
+
+### setBatchSize
+
+Set the batch size for processing large arrays of currencies
+
+
+```solidity
+function setBatchSize(PricingData storage self, uint256 newBatchSize) internal;
+```
+
 ### adjustAllNonAnchorPrices
 
-adjust the price of all non-anchor currencies when the anchor currency is used
+Legacy function that adjusts all prices in one transaction
+
+*If trackedCurrencies length exceeds batchSize, it will use batch processing*
 
 
 ```solidity
 function adjustAllNonAnchorPrices(PricingData storage self, bool increase) internal;
+```
+
+### getBatchProcessingState
+
+Get the current batch processing state
+
+
+```solidity
+function getBatchProcessingState(PricingData storage self)
+    internal
+    view
+    returns (uint256 lastProcessedIndex, uint256 totalCurrencies);
 ```
 
 ### getCurrencyPrice
@@ -137,6 +189,14 @@ Emitted when all non-anchor prices are reduced
 event NonAnchorPricesReduced();
 ```
 
+### NonAnchorPricesAdjustedBatch
+Emitted when a batch of non-anchor prices are adjusted
+
+
+```solidity
+event NonAnchorPricesAdjustedBatch(uint256 processedCount, uint256 nextIndex);
+```
+
 ## Structs
 ### PricingData
 
@@ -148,6 +208,8 @@ struct PricingData {
     mapping(bytes => uint256) currencyPrice;
     mapping(bytes => uint256) currencyIndex;
     bytes[] trackedCurrencies;
+    uint256 lastProcessedIndex;
+    uint256 batchSize;
 }
 ```
 
