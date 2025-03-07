@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/1903f0c0ad3fc2c014c73c0365a495a493de737d/src/DegenGambit.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/326cd137244b79387d77ce8ef73f4bb11ed2a233/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -319,10 +319,150 @@ mapping(address => uint256) public CurrentWeeklyStreakLength;
 ```
 
 
-### winners
+### prize0Winner
 
 ```solidity
-Winner[] public winners;
+address public prize0Winner;
+```
+
+
+### prize1Winner
+
+```solidity
+address public prize1Winner;
+```
+
+
+### prize2Winner
+
+```solidity
+address public prize2Winner;
+```
+
+
+### prize3Winner
+
+```solidity
+address public prize3Winner;
+```
+
+
+### prize4Winner
+
+```solidity
+address public prize4Winner;
+```
+
+
+### prize5Winner
+
+```solidity
+address public prize5Winner;
+```
+
+
+### prize6Winner
+
+```solidity
+address public prize6Winner;
+```
+
+
+### prize0WonAmount
+
+```solidity
+uint256 public prize0WonAmount;
+```
+
+
+### prize1WonAmount
+
+```solidity
+uint256 public prize1WonAmount;
+```
+
+
+### prize2WonAmount
+
+```solidity
+uint256 public prize2WonAmount;
+```
+
+
+### prize3WonAmount
+
+```solidity
+uint256 public prize3WonAmount;
+```
+
+
+### prize4WonAmount
+
+```solidity
+uint256 public prize4WonAmount;
+```
+
+
+### prize5WonAmount
+
+```solidity
+uint256 public prize5WonAmount;
+```
+
+
+### prize6WonAmount
+
+```solidity
+uint256 public prize6WonAmount;
+```
+
+
+### prize0LastWonTimestamp
+
+```solidity
+uint256 public prize0LastWonTimestamp;
+```
+
+
+### prize1LastWonTimestamp
+
+```solidity
+uint256 public prize1LastWonTimestamp;
+```
+
+
+### prize2LastWonTimestamp
+
+```solidity
+uint256 public prize2LastWonTimestamp;
+```
+
+
+### prize3LastWonTimestamp
+
+```solidity
+uint256 public prize3LastWonTimestamp;
+```
+
+
+### prize4LastWonTimestamp
+
+```solidity
+uint256 public prize4LastWonTimestamp;
+```
+
+
+### prize5LastWonTimestamp
+
+```solidity
+uint256 public prize5LastWonTimestamp;
+```
+
+
+### prize6LastWonTimestamp
+
+```solidity
+uint256 public prize6LastWonTimestamp;
 ```
 
 
@@ -359,7 +499,7 @@ Updates the winners array with the latest winner
 
 
 ```solidity
-function updateWinners(address player, uint256 amount, uint256 prizeIndex) internal;
+function updateWinners(address player, uint256 amount, uint256 prizeIndex) internal virtual;
 ```
 
 ### decimals
@@ -690,13 +830,6 @@ version pure function that returns a string with version
 function version() external pure virtual returns (string memory);
 ```
 
-### latestWinners
-
-
-```solidity
-function latestWinners() external view returns (address[] memory, uint256[] memory, uint256[] memory);
-```
-
 ## Events
 ### Spin
 Fired when a player spins (and respins).
@@ -768,16 +901,5 @@ error OutcomeOutOfBounds();
 
 ```solidity
 error FailedPrizeTransfer();
-```
-
-## Structs
-### Winner
-
-```solidity
-struct Winner {
-    address player;
-    uint256 amount;
-    uint256 timestamp;
-}
 ```
 

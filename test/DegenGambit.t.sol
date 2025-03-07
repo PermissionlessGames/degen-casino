@@ -1276,27 +1276,14 @@ contract DegenGambitTest is Test {
         degenGambit.accept();
         vm.stopPrank();
 
-        // Get latest winners
-        (
-            address[] memory winners,
-            uint256[] memory winnersAmount,
-            uint256[] memory winnersTimestamp
-        ) = degenGambit.latestWinners();
-
-        // Should have 7 winners
-        assertEq(winners.length, 7);
-        assertEq(winnersAmount.length, 7);
-        assertEq(winnersTimestamp.length, 7);
-        // Check second winner (most recent)
-
-        assertEq(winners[6], player2);
-        assertEq(winnersAmount[6], payout2);
-        assertEq(winnersTimestamp[6], block.timestamp);
+        assertEq(degenGambit.prize6Winner(), player2);
+        assertEq(degenGambit.prize6WonAmount(), payout2);
+        assertEq(degenGambit.prize6LastWonTimestamp(), block.timestamp);
 
         // Check first winner
-        assertEq(winners[2], player1);
-        assertEq(winnersAmount[2], payout1);
-        assertEq(winnersTimestamp[2], block.timestamp);
+        assertEq(degenGambit.prize2Winner(), player1);
+        assertEq(degenGambit.prize2WonAmount(), payout1);
+        assertEq(degenGambit.prize2LastWonTimestamp(), block.timestamp);
     }
 
     function test_latest_winners_same_prize() public {
@@ -1314,17 +1301,10 @@ contract DegenGambitTest is Test {
         degenGambit.accept();
         vm.stopPrank();
 
-        // Get winners after first win
-        (
-            address[] memory winners1,
-            uint256[] memory amounts1,
-            uint256[] memory timestamps1
-        ) = degenGambit.latestWinners();
-
         // Verify first winner is recorded
-        assertEq(winners1[index1], player1);
-        assertEq(amounts1[index1], payout1);
-        assertEq(timestamps1[index1], block.timestamp);
+        assertEq(degenGambit.prize2Winner(), player1);
+        assertEq(degenGambit.prize2WonAmount(), payout1);
+        assertEq(degenGambit.prize2LastWonTimestamp(), block.timestamp);
 
         // Second player wins the same prize (three 2s - 50x prize)
         address player2 = address(0x2);
@@ -1339,28 +1319,11 @@ contract DegenGambitTest is Test {
         degenGambit.accept();
         vm.stopPrank();
 
-        // Get winners after second win
-        (
-            address[] memory winners2,
-            uint256[] memory amounts2,
-            uint256[] memory timestamps2
-        ) = degenGambit.latestWinners();
-
-        // Verify indices are the same since it's the same prize
         assertEq(index1, index2);
 
         // Verify second winner replaced first winner in the same slot
-        assertEq(winners2[index2], player2);
-        assertEq(amounts2[index2], payout2);
-        assertEq(timestamps2[index2], block.timestamp);
-
-        // Verify other slots remained unchanged
-        for (uint i = 0; i < winners2.length; i++) {
-            if (i != index2) {
-                assertEq(winners2[i], winners1[i]);
-                assertEq(amounts2[i], amounts1[i]);
-                assertEq(timestamps2[i], timestamps1[i]);
-            }
-        }
+        assertEq(degenGambit.prize2Winner(), player2);
+        assertEq(degenGambit.prize2WonAmount(), payout2);
+        assertEq(degenGambit.prize2LastWonTimestamp(), block.timestamp);
     }
 }
