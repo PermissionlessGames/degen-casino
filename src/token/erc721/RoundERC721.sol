@@ -16,7 +16,7 @@ import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.s
  * the Metadata extension, but not including the Enumerable extension, which is available separately as
  * {ERC721Enumerable}.
  */
-abstract contract ERC721 is
+abstract contract RoundERC721 is
     Context,
     ERC165,
     IERC721,
