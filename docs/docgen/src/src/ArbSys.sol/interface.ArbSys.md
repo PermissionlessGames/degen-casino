@@ -1,5 +1,6 @@
 # ArbSys
 <<<<<<< HEAD
+<<<<<<< HEAD
 [Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/ArbSys.sol)
 =======
 <<<<<<< HEAD
@@ -7,6 +8,9 @@
 =======
 [Git Source](https://github.com/PermissionlessGames/degen-casino/blob/0d7359ed797e3cb894eda25170a83921e44b03a9/src/ArbSys.sol)
 >>>>>>> main
+>>>>>>> preferred-currency-pricing
+=======
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9977712fe4f7065ed4673747aef2f7ccaf6b6b33/src/ArbSys.sol)
 >>>>>>> preferred-currency-pricing
 
 This code was adapted from the OffchainLabs/nitro-contracts repository: https://github.com/OffchainLabs/nitro-contracts.

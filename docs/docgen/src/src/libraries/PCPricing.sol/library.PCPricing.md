@@ -1,8 +1,12 @@
 # PCPricing
 <<<<<<< HEAD
+<<<<<<< HEAD
 [Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/libraries/PCPricing.sol)
 =======
 [Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8e3c49ec1b47ecdb92bceb56c31f5683f84e9463/src/libraries/PCPricing.sol)
+>>>>>>> preferred-currency-pricing
+=======
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9977712fe4f7065ed4673747aef2f7ccaf6b6b33/src/libraries/PCPricing.sol)
 >>>>>>> preferred-currency-pricing
 
 **Author:**
