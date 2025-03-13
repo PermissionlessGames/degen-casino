@@ -216,7 +216,7 @@ contract MultipleCurrencyToken is
                 tokenIs1155[currencies[i]]
             );
             uint256 ratio = getMintPrice(currency);
-            uint256 price = (deposits[i] * _decimals) / ratio;
+            uint256 price = (deposits[i] * ratio) / _decimals;
             amount += price;
         }
     }
