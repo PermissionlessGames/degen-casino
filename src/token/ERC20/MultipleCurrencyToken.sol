@@ -37,6 +37,7 @@ contract MultipleCurrencyToken is
     function tokens(
         uint256 index
     ) public view virtual override returns (CreatePricingDataParams memory) {
+        require(index < _tokens.length, "Index out of bounds");
         return _tokens[index];
     }
 
@@ -63,7 +64,7 @@ contract MultipleCurrencyToken is
         CreatePricingDataParams[] memory currencies
     ) ERC20(name_, symbol_) {
         INATIVE = inative;
-
+        require(currencies.length > 0, "Must provide at least one currency");
         uint256 anchorPrice = currencies[0].price;
         bytes memory anchorCurrencyBytes = encodeCurrency(
             currencies[0].currency,
@@ -336,6 +337,10 @@ contract MultipleCurrencyToken is
         uint256[] memory mintPriceRatios = new uint256[](treasuryTokens.length);
         uint256[] memory redeemPriceRatios = new uint256[](
             treasuryTokens.length
+        );
+        require(
+            treasuryTokens.length == tokenIds.length,
+            "Mismatched array lengths"
         );
         for (uint256 i = 0; i < treasuryTokens.length; i++) {
             bytes memory currency = encodeCurrency(

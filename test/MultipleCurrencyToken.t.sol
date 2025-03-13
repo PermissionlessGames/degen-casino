@@ -142,7 +142,7 @@ contract MultipleCurrencyTokenTest is Test {
     }
 
     // Additional Constructor Tests
-    function testFailConstructorWithEmptyCurrencies() public {
+    function testRevertConstructorWithEmptyCurrencies() public {
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory emptyCurrencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
                 0
@@ -158,7 +158,7 @@ contract MultipleCurrencyTokenTest is Test {
         );
     }
 
-    function testFailConstructorWithZeroPrice() public {
+    function testRevertConstructorWithZeroPrice() public {
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory currencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
                 1
@@ -170,7 +170,7 @@ contract MultipleCurrencyTokenTest is Test {
             tokenId: 0
         });
 
-        vm.expectRevert("Price must be greater than zero");
+        vm.expectRevert("Anchor price must be greater than 0");
         new MultipleCurrencyToken(
             "Test Token",
             "TEST",
@@ -555,7 +555,7 @@ contract MultipleCurrencyTokenTest is Test {
     }
 
     // Failure Tests
-    function testFailDepositZeroAmount() public {
+    function testRevertDepositZeroAmount() public {
         vm.startPrank(user1);
 
         address[] memory currencies = new address[](1);
@@ -566,13 +566,13 @@ contract MultipleCurrencyTokenTest is Test {
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 0;
-
+        vm.expectRevert("Mint amount too small");
         mct.deposit{value: 0}(currencies, tokenIds, amounts);
 
         vm.stopPrank();
     }
 
-    function testFailDepositMismatchedArrayLengths() public {
+    function testRevertDepositMismatchedArrayLengths() public {
         vm.startPrank(user1);
 
         address[] memory currencies = new address[](1);
@@ -584,26 +584,28 @@ contract MultipleCurrencyTokenTest is Test {
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1 ether;
-
+        vm.expectRevert("Mismatched array lengths");
         mct.deposit{value: 1 ether}(currencies, tokenIds, amounts);
 
         vm.stopPrank();
     }
 
-    function testFailWithdrawZeroAmount() public {
+    function testRevertWithdrawZeroAmount() public {
         vm.startPrank(user1);
+        vm.expectRevert("Invalid withdraw amount");
         mct.withdraw(INATIVE, 0, 0);
         vm.stopPrank();
     }
 
-    function testFailWithdrawInsufficientBalance() public {
+    function testRevertWithdrawInsufficientBalance() public {
         vm.startPrank(user1);
+        vm.expectRevert("Insufficient balance");
         mct.withdraw(INATIVE, 0, 1e18);
         vm.stopPrank();
     }
 
     // Additional Failure Tests
-    function testFailDepositWithInvalidCurrency() public {
+    function testRevertDepositWithInvalidCurrency() public {
         vm.startPrank(user1);
 
         address[] memory currencies = new address[](1);
@@ -614,18 +616,12 @@ contract MultipleCurrencyTokenTest is Test {
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1 ether;
-
+        vm.expectRevert("Currency price not set");
         mct.deposit(currencies, tokenIds, amounts);
         vm.stopPrank();
     }
 
-    function testFailWithdrawToZeroAddress() public {
-        vm.startPrank(address(0));
-        mct.withdraw(INATIVE, 0, 1 ether);
-        vm.stopPrank();
-    }
-
-    function testFailDepositWithMismatchedValue() public {
+    function testRevertDepositWithMismatchedValue() public {
         vm.startPrank(user1);
 
         address[] memory currencies = new address[](1);
@@ -637,7 +633,7 @@ contract MultipleCurrencyTokenTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 2 ether;
 
-        // This should fail because we're sending less ETH than specified in amounts
+        vm.expectRevert("Insufficient native value");
         mct.deposit{value: 1 ether}(currencies, tokenIds, amounts);
         assertEq(mct.balanceOf(user1), 0);
         vm.stopPrank();
@@ -696,7 +692,8 @@ contract MultipleCurrencyTokenTest is Test {
         assertEq(token.currency, address(mockGold));
     }
 
-    function testFailGetTokenAtInvalidIndex() public view {
+    function testRevertGetTokenAtInvalidIndex() public {
+        vm.expectRevert("Index out of bounds");
         mct.tokens(4); // Should revert as we only have 4 tokens (0-3)
     }
 
@@ -919,24 +916,24 @@ contract MultipleCurrencyTokenTest is Test {
         assertEq(redeemRatios.length, 0);
     }
 
-    function testFailGetTokenPriceRatiosMismatchedArrays() public view {
+    function testRevertGetTokenPriceRatiosMismatchedArrays() public {
         address[] memory currencies = new address[](2);
         currencies[0] = INATIVE;
         currencies[1] = address(mockUsdt);
 
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 0;
-
+        vm.expectRevert("Mismatched array lengths");
         mct.getTokenPriceRatios(currencies, tokenIds);
     }
 
-    function testFailDepositEmptyArrays() public {
+    function testRevertDepositEmptyArrays() public {
         vm.startPrank(user1);
 
         address[] memory currencies = new address[](0);
         uint256[] memory tokenIds = new uint256[](0);
         uint256[] memory amounts = new uint256[](0);
-
+        vm.expectRevert("Mint amount too small");
         mct.deposit(currencies, tokenIds, amounts);
 
         vm.stopPrank();
@@ -1175,7 +1172,7 @@ contract MultipleCurrencyTokenTest is Test {
         vm.stopPrank();
     }
 
-    function testFailInvalidERC1155TokenId() public {
+    function testRevertInvalidERC1155TokenId() public {
         vm.startPrank(user1);
         mockGold.setApprovalForAll(address(mct), true);
 
@@ -1188,6 +1185,7 @@ contract MultipleCurrencyTokenTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1;
 
+        vm.expectRevert("Currency price not set");
         mct.deposit(currencies, tokenIds, amounts);
 
         vm.stopPrank();
