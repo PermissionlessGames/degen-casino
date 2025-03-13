@@ -122,20 +122,23 @@ contract MCTOwnershipTest is Test {
         assertNotEq(mct.owner(), user1);
     }
 
-    function testFailNonOwnerAdjustPricingData() public {
+    function testRevertNonOwnerAdjustPricingData() public {
         vm.startPrank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
         mct.adjustPricingData(0, 2e18);
         vm.stopPrank();
     }
 
-    function testFailNonOwnerAdjustAdjustmentFactor() public {
+    function testRevertNonOwnerAdjustAdjustmentFactor() public {
         vm.startPrank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
         mct.adjustAdjustmentFactor(10, 100);
         vm.stopPrank();
     }
 
-    function testFailNonOwnerAddNewPricingData() public {
+    function testRevertNonOwnerAddNewPricingData() public {
         vm.startPrank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory newCurrencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
                 1
@@ -144,8 +147,9 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
     }
 
-    function testFailNonOwnerRemovePricingData() public {
+    function testRevertNonOwnerRemovePricingData() public {
         vm.startPrank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
         mct.removePricingData(0);
         vm.stopPrank();
     }
@@ -162,8 +166,9 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
     }
 
-    function testFailAdjustAnchorCurrency() public {
+    function testRevertAdjustAnchorCurrency() public {
         vm.startPrank(owner);
+        vm.expectRevert("Cannot adjust anchor currency");
         mct.adjustPricingData(0, 2e18); // Should fail when trying to adjust anchor currency
         vm.stopPrank();
     }
@@ -224,7 +229,7 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
     }
 
-    function testFailAddExistingCurrency() public {
+    function testRevertAddExistingCurrency() public {
         vm.startPrank(owner);
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory newCurrencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
@@ -237,11 +242,12 @@ contract MCTOwnershipTest is Test {
             tokenId: 0
         });
 
+        vm.expectRevert("Currency already exists");
         mct.addNewPricingData(newCurrencies);
         vm.stopPrank();
     }
 
-    function testFailAddZeroAddressCurrency() public {
+    function testRevertAddZeroAddressCurrency() public {
         vm.startPrank(owner);
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory newCurrencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
@@ -253,12 +259,12 @@ contract MCTOwnershipTest is Test {
             is1155: false,
             tokenId: 0
         });
-
+        vm.expectRevert("Invalid currency address");
         mct.addNewPricingData(newCurrencies);
         vm.stopPrank();
     }
 
-    function testFailAddZeroPriceCurrency() public {
+    function testRevertAddZeroPriceCurrency() public {
         vm.startPrank(owner);
         MockERC20 newToken = new MockERC20("NEW", "NEW");
         IMultipleCurrencyToken.CreatePricingDataParams[]
@@ -271,7 +277,7 @@ contract MCTOwnershipTest is Test {
             is1155: false,
             tokenId: 0
         });
-
+        vm.expectRevert("Invalid price");
         mct.addNewPricingData(newCurrencies);
         vm.stopPrank();
     }
@@ -303,7 +309,7 @@ contract MCTOwnershipTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 100e18;
 
-        vm.expectRevert(); // Should revert as currency no longer exists
+        vm.expectRevert("Currency does not exist"); // Should revert as currency no longer exists
         mct.deposit(currencies, tokenIds, amounts);
         vm.stopPrank();
     }
@@ -328,8 +334,9 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
     }
 
-    function testFailTransferToZeroAddress() public {
+    function testRevertTransferToZeroAddress() public {
         vm.startPrank(owner);
+        vm.expectRevert("Ownable: new owner is the zero address");
         mct.transferOwnership(address(0));
         vm.stopPrank();
     }
@@ -350,21 +357,24 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
     }
 
-    function testFailRemoveAnchorCurrency() public {
+    function testRevertRemoveAnchorCurrency() public {
         vm.startPrank(owner);
+        vm.expectRevert("Cannot remove anchor currency");
         mct.removePricingData(0); // Should fail when trying to remove anchor currency
         vm.stopPrank();
     }
 
     // Adjustment Factor Tests
-    function testFailAdjustmentFactorZeroDenominator() public {
+    function testRevertAdjustmentFactorZeroDenominator() public {
         vm.startPrank(owner);
+        vm.expectRevert("Invalid denominator");
         mct.adjustAdjustmentFactor(5, 0);
         vm.stopPrank();
     }
 
-    function testAdjustmentFactorNumeratorLargerThanDenominator() public {
+    function testRevertAdjustmentFactorNumeratorLargerThanDenominator() public {
         vm.startPrank(owner);
+        vm.expectRevert("Invalid numerator");
         mct.adjustAdjustmentFactor(101, 100); // More than 100% adjustment
         vm.stopPrank();
     }
@@ -400,8 +410,9 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
     }
 
-    function testFailRemoveInvalidIndex() public {
+    function testRevertRemoveInvalidIndex() public {
         vm.startPrank(owner);
+        vm.expectRevert("Invalid index");
         mct.removePricingData(99); // Invalid index
         vm.stopPrank();
     }
@@ -443,7 +454,7 @@ contract MCTOwnershipTest is Test {
     }
 
     // Additional Edge Cases
-    function testFailAddEmptyPricingDataArray() public {
+    function testRevertAddEmptyPricingDataArray() public {
         vm.startPrank(owner);
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory newCurrencies = new IMultipleCurrencyToken.CreatePricingDataParams[](
@@ -453,8 +464,9 @@ contract MCTOwnershipTest is Test {
         vm.stopPrank();
     }
 
-    function testFailAdjustPricingDataInvalidIndex() public {
+    function testRevertAdjustPricingDataInvalidIndex() public {
         vm.startPrank(owner);
+        vm.expectRevert("Invalid index");
         mct.adjustPricingData(99, 1e18); // Invalid index
         vm.stopPrank();
     }
