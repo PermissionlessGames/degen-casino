@@ -112,6 +112,20 @@ interface IMultipleCurrencyToken {
         bool is1155
     ) external view returns (uint256, bool);
 
+    /// @notice Get the amount wanted to redeem a currency
+    /// @param requestingAmount The amount of tokens to redeem
+    /// @param currency The address of the currency
+    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
+    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @return amount The amount needed to redeem requested amount
+    /// @return exists Boolean indicating if the currency exists
+    function amountWantedToRedeem(
+        uint256 requestingAmount,
+        address currency,
+        uint256 tokenId,
+        bool is1155
+    ) external view returns (uint256, bool);
+
     /// @notice Event emitted when new pricing data is added
     /// @param pricingData The new pricing data
     event NewPricingDataAdded(CreatePricingDataParams pricingData);
