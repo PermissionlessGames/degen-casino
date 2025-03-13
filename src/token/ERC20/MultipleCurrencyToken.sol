@@ -36,7 +36,7 @@ contract MultipleCurrencyToken is
     /// @return token The token configuration
     function tokens(
         uint256 index
-    ) public view override returns (CreatePricingDataParams memory) {
+    ) public view virtual override returns (CreatePricingDataParams memory) {
         return _tokens[index];
     }
 
@@ -52,7 +52,8 @@ contract MultipleCurrencyToken is
     /// @dev The first currency in the array is set as the anchor currency with its price as the anchor price
     /// @dev All other currencies are initialized with their specified prices relative to the anchor
     /// @dev Both mint and redeem pricing data are initialized with the same adjustment factors
-
+    /// @dev The decimals of the token are set to the number of decimals of the anchor currency
+    /// @dev The token is initialized with the initial pricing data
     constructor(
         string memory name_,
         string memory symbol_,
@@ -91,9 +92,11 @@ contract MultipleCurrencyToken is
         _decimals = 10 ** decimals();
     }
 
+    /// @notice Add new pricing data for a currency
+    /// @param _createPricingDataParams The pricing data to add
     function addNewPricingData(
         CreatePricingDataParams memory _createPricingDataParams
-    ) internal {
+    ) internal virtual {
         bytes memory currency = encodeCurrency(
             _createPricingDataParams.currency,
             _createPricingDataParams.tokenId,
@@ -128,7 +131,7 @@ contract MultipleCurrencyToken is
         address[] memory currencies,
         uint256[] memory tokenIds,
         uint256[] memory amounts
-    ) external payable nonReentrant returns (uint256 mintAmount) {
+    ) external payable virtual nonReentrant returns (uint256 mintAmount) {
         require(
             currencies.length == amounts.length &&
                 tokenIds.length == amounts.length,
@@ -157,7 +160,7 @@ contract MultipleCurrencyToken is
         uint256[] memory amounts,
         address caller,
         uint256 msgValue
-    ) internal {
+    ) internal virtual {
         for (uint256 i = 0; i < currencies.length; i++) {
             require(amounts[i] > 0, "Amount must be greater than 0");
             if (currencies[i] != INATIVE) {
@@ -211,10 +214,7 @@ contract MultipleCurrencyToken is
                 tokenIds[i],
                 tokenIs1155[currencies[i]]
             );
-            uint256 ratio = mintPricingData.getCurrencyPrice(currency);
-            ratio = ratio > redeemPricingData.getCurrencyPrice(currency)
-                ? ratio
-                : redeemPricingData.getCurrencyPrice(currency);
+            uint256 ratio = getMintPrice(currency);
             uint256 price = (deposits[i] * _decimals) / ratio;
             amount += price;
         }
@@ -235,7 +235,7 @@ contract MultipleCurrencyToken is
         address currency,
         uint256 tokenId,
         uint256 amountIn
-    ) external nonReentrant returns (uint256 amountOut) {
+    ) external virtual nonReentrant returns (uint256 amountOut) {
         require(amountIn > 0, "Invalid withdraw amount");
         require(balanceOf(msg.sender) >= amountIn, "Insufficient balance");
         amountOut = estimateWithdrawAmount(currency, tokenId, amountIn);
@@ -279,16 +279,13 @@ contract MultipleCurrencyToken is
         address currency,
         uint256 tokenId,
         uint256 amountIn
-    ) public view returns (uint256 amountOut) {
+    ) public view virtual returns (uint256 amountOut) {
         bytes memory _currency = encodeCurrency(
             currency,
             tokenId,
             tokenIs1155[currency]
         );
-        uint256 price = redeemPricingData.getCurrencyPrice(_currency);
-        price = price < mintPricingData.getCurrencyPrice(_currency)
-            ? price
-            : mintPricingData.getCurrencyPrice(_currency);
+        uint256 price = getRedeemPrice(_currency);
         amountOut = (amountIn * price) / _decimals;
         if (currency == INATIVE) {
             amountOut = amountOut > address(this).balance
@@ -313,6 +310,7 @@ contract MultipleCurrencyToken is
     function getTokens()
         external
         view
+        virtual
         returns (address[] memory, uint256[] memory, bool[] memory)
     {
         address[] memory currencies = new address[](_tokens.length);
@@ -334,7 +332,7 @@ contract MultipleCurrencyToken is
     function getTokenPriceRatios(
         address[] memory treasuryTokens,
         uint256[] memory tokenIds
-    ) external view returns (uint256[] memory, uint256[] memory) {
+    ) external view virtual returns (uint256[] memory, uint256[] memory) {
         uint256[] memory mintPriceRatios = new uint256[](treasuryTokens.length);
         uint256[] memory redeemPriceRatios = new uint256[](
             treasuryTokens.length
@@ -345,18 +343,8 @@ contract MultipleCurrencyToken is
                 tokenIds[i],
                 tokenIs1155[treasuryTokens[i]]
             );
-            uint256 mintPrice = mintPricingData.getCurrencyPrice(currency);
-            uint256 redeemPrice = redeemPricingData.getCurrencyPrice(currency);
-            //If the mint price is greater than the redeem price, use the mint price
-            //Otherwise, use the redeem price
-            mintPriceRatios[i] = mintPrice > redeemPrice
-                ? mintPrice
-                : redeemPrice;
-            //If the redeem price is greater than the mint price, use the redeem price
-            //Otherwise, use the mint price
-            redeemPriceRatios[i] = mintPrice < redeemPrice
-                ? mintPrice
-                : redeemPrice;
+            mintPriceRatios[i] = getMintPrice(currency);
+            redeemPriceRatios[i] = getRedeemPrice(currency);
         }
         return (mintPriceRatios, redeemPriceRatios);
     }
@@ -370,7 +358,7 @@ contract MultipleCurrencyToken is
         address currency,
         uint256 tokenId,
         bool is1155
-    ) public pure override returns (bytes memory) {
+    ) public pure virtual returns (bytes memory) {
         return abi.encodePacked(currency, tokenId, is1155);
     }
 
@@ -379,8 +367,12 @@ contract MultipleCurrencyToken is
     /// @return price The mint price
     function getMintPrice(
         bytes memory currency
-    ) public view override returns (uint256) {
-        return mintPricingData.getCurrencyPrice(currency);
+    ) public view virtual returns (uint256) {
+        return
+            mintPricingData.getCurrencyPrice(currency) >
+                redeemPricingData.getCurrencyPrice(currency)
+                ? mintPricingData.getCurrencyPrice(currency)
+                : redeemPricingData.getCurrencyPrice(currency);
     }
 
     /// @notice Get the redeem price for a currency
@@ -388,8 +380,12 @@ contract MultipleCurrencyToken is
     /// @return price The redeem price
     function getRedeemPrice(
         bytes memory currency
-    ) public view override returns (uint256) {
-        return redeemPricingData.getCurrencyPrice(currency);
+    ) public view virtual returns (uint256) {
+        return
+            redeemPricingData.getCurrencyPrice(currency) <
+                mintPricingData.getCurrencyPrice(currency)
+                ? redeemPricingData.getCurrencyPrice(currency)
+                : mintPricingData.getCurrencyPrice(currency);
     }
 
     /// @notice Check if a currency exists
@@ -401,7 +397,7 @@ contract MultipleCurrencyToken is
         address currency,
         uint256 tokenId,
         bool is1155
-    ) public view override returns (bool) {
+    ) public view virtual returns (bool) {
         return
             mintPricingData.currencyExists(
                 encodeCurrency(currency, tokenId, is1155)
@@ -419,13 +415,32 @@ contract MultipleCurrencyToken is
         address currency,
         uint256 tokenId,
         bool is1155
-    ) public view returns (uint256, bool) {
+    ) public view virtual returns (uint256, bool) {
         bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
         if (mintPricingData.currencyExists(_currency)) {
-            uint256 price = mintPricingData.getCurrencyPrice(_currency);
-            price = price > redeemPricingData.getCurrencyPrice(_currency)
-                ? price
-                : redeemPricingData.getCurrencyPrice(_currency);
+            uint256 price = getMintPrice(_currency);
+            return ((requestingAmount * price) / _decimals, true);
+        } else {
+            return (0, false);
+        }
+    }
+
+    /// @notice Get the amount wanted to redeem a currency
+    /// @param requestingAmount The amount of tokens to redeem
+    /// @param currency The address of the currency
+    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
+    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @return amount The amount needed to redeem requested amount
+    /// @return exists Boolean indicating if the currency exists
+    function amountWantedToRedeem(
+        uint256 requestingAmount,
+        address currency,
+        uint256 tokenId,
+        bool is1155
+    ) public view virtual returns (uint256, bool) {
+        bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
+        if (redeemPricingData.currencyExists(_currency)) {
+            uint256 price = getRedeemPrice(_currency);
             return ((requestingAmount * price) / _decimals, true);
         } else {
             return (0, false);

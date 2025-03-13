@@ -1,13 +1,5 @@
 # DevDegenGambit
-<<<<<<< HEAD
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/dev/DevDegenGambit.sol)
-=======
-<<<<<<< HEAD
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8e3c49ec1b47ecdb92bceb56c31f5683f84e9463/src/dev/DevDegenGambit.sol)
-=======
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/0d7359ed797e3cb894eda25170a83921e44b03a9/src/dev/DevDegenGambit.sol)
->>>>>>> main
->>>>>>> preferred-currency-pricing
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/bddf26f53780df0084476907b0ce9ba179448aae/src/dev/DevDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)

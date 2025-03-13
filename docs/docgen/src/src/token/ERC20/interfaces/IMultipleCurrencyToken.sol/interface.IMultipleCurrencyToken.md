@@ -1,5 +1,5 @@
 # IMultipleCurrencyToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/bddf26f53780df0084476907b0ce9ba179448aae/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
 
 
 ## Functions
@@ -233,6 +233,34 @@ function amountNeededToMint(uint256 requestingAmount, address currency, uint256 
 |----|----|-----------|
 |`<none>`|`uint256`|amount The amount needed to mint|
 |`<none>`|`bool`||
+
+
+### amountWantedToRedeem
+
+Get the amount wanted to redeem a currency
+
+
+```solidity
+function amountWantedToRedeem(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
+    external
+    view
+    returns (uint256, bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`requestingAmount`|`uint256`|The amount of tokens to redeem|
+|`currency`|`address`|The address of the currency|
+|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|amount The amount needed to redeem requested amount|
+|`<none>`|`bool`|exists Boolean indicating if the currency exists|
 
 
 ## Events

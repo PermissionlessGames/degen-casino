@@ -1,5 +1,5 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/bddf26f53780df0084476907b0ce9ba179448aae/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
@@ -69,7 +69,7 @@ Get the token configuration at a specific index
 
 
 ```solidity
-function tokens(uint256 index) public view override returns (CreatePricingDataParams memory);
+function tokens(uint256 index) public view virtual override returns (CreatePricingDataParams memory);
 ```
 **Parameters**
 
@@ -93,6 +93,10 @@ Constructor for PCPricedToken
 *All other currencies are initialized with their specified prices relative to the anchor*
 
 *Both mint and redeem pricing data are initialized with the same adjustment factors*
+
+*The decimals of the token are set to the number of decimals of the anchor currency*
+
+*The token is initialized with the initial pricing data*
 
 
 ```solidity
@@ -119,10 +123,18 @@ constructor(
 
 ### addNewPricingData
 
+Add new pricing data for a currency
+
 
 ```solidity
-function addNewPricingData(CreatePricingDataParams memory _createPricingDataParams) internal;
+function addNewPricingData(CreatePricingDataParams memory _createPricingDataParams) internal virtual;
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_createPricingDataParams`|`CreatePricingDataParams`|The pricing data to add|
+
 
 ### deposit
 
@@ -143,6 +155,7 @@ Deposit tokens to mint PCPTokens
 function deposit(address[] memory currencies, uint256[] memory tokenIds, uint256[] memory amounts)
     external
     payable
+    virtual
     nonReentrant
     returns (uint256 mintAmount);
 ```
@@ -173,7 +186,7 @@ function depositTokens(
     uint256[] memory amounts,
     address caller,
     uint256 msgValue
-) internal;
+) internal virtual;
 ```
 **Parameters**
 
@@ -232,6 +245,7 @@ Withdraw tokens from the contract
 ```solidity
 function withdraw(address currency, uint256 tokenId, uint256 amountIn)
     external
+    virtual
     nonReentrant
     returns (uint256 amountOut);
 ```
@@ -259,6 +273,7 @@ Estimate the amount of tokens to be withdrawn based on currency price
 function estimateWithdrawAmount(address currency, uint256 tokenId, uint256 amountIn)
     public
     view
+    virtual
     returns (uint256 amountOut);
 ```
 **Parameters**
@@ -282,7 +297,7 @@ Get the list of tokens and their properties
 
 
 ```solidity
-function getTokens() external view returns (address[] memory, uint256[] memory, bool[] memory);
+function getTokens() external view virtual returns (address[] memory, uint256[] memory, bool[] memory);
 ```
 **Returns**
 
@@ -302,6 +317,7 @@ Get the price ratios for minting and redeeming
 function getTokenPriceRatios(address[] memory treasuryTokens, uint256[] memory tokenIds)
     external
     view
+    virtual
     returns (uint256[] memory, uint256[] memory);
 ```
 **Parameters**
@@ -325,7 +341,7 @@ Encode a currency into a bytes array
 
 
 ```solidity
-function encodeCurrency(address currency, uint256 tokenId, bool is1155) public pure override returns (bytes memory);
+function encodeCurrency(address currency, uint256 tokenId, bool is1155) public pure virtual returns (bytes memory);
 ```
 **Parameters**
 
@@ -348,7 +364,7 @@ Get the mint price for a currency
 
 
 ```solidity
-function getMintPrice(bytes memory currency) public view override returns (uint256);
+function getMintPrice(bytes memory currency) public view virtual returns (uint256);
 ```
 **Parameters**
 
@@ -369,7 +385,7 @@ Get the redeem price for a currency
 
 
 ```solidity
-function getRedeemPrice(bytes memory currency) public view override returns (uint256);
+function getRedeemPrice(bytes memory currency) public view virtual returns (uint256);
 ```
 **Parameters**
 
@@ -390,7 +406,7 @@ Check if a currency exists
 
 
 ```solidity
-function doesCurrencyExist(address currency, uint256 tokenId, bool is1155) public view override returns (bool);
+function doesCurrencyExist(address currency, uint256 tokenId, bool is1155) public view virtual returns (bool);
 ```
 **Parameters**
 
@@ -416,6 +432,7 @@ Get the amount needed to mint a currency
 function amountNeededToMint(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
     public
     view
+    virtual
     returns (uint256, bool);
 ```
 **Parameters**
@@ -433,6 +450,35 @@ function amountNeededToMint(uint256 requestingAmount, address currency, uint256 
 |----|----|-----------|
 |`<none>`|`uint256`|amount The amount needed to mint|
 |`<none>`|`bool`||
+
+
+### amountWantedToRedeem
+
+Get the amount wanted to redeem a currency
+
+
+```solidity
+function amountWantedToRedeem(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
+    public
+    view
+    virtual
+    returns (uint256, bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`requestingAmount`|`uint256`|The amount of tokens to redeem|
+|`currency`|`address`|The address of the currency|
+|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|amount The amount needed to redeem requested amount|
+|`<none>`|`bool`|exists Boolean indicating if the currency exists|
 
 
 ### receive
