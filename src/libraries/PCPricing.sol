@@ -10,15 +10,24 @@ pragma solidity ^0.8.19;
 library PCPricing {
     using PCPricing for PCPricing.PricingData;
     /// @notice Emitted when a new anchor currency is set
+    /// @param currency The currency that was set as the anchor
+    /// @param price The price of the anchor currency
     event AnchorCurrencySet(bytes indexed currency, uint256 price);
 
     /// @notice Emitted when the adjustment factor is updated
+    /// @param numerator The numerator of the adjustment factor
+    /// @param denominator The denominator of the adjustment factor
     event AdjustmentFactorSet(uint256 numerator, uint256 denominator);
 
     /// @notice Emitted when a new currency price is set
+    /// @param currency The currency that was set
+    /// @param price The price of the currency
     event CurrencyPriceSet(bytes indexed currency, uint256 price);
 
     /// @notice Emitted when a currency price is adjusted
+    /// @param currency The currency that was adjusted
+    /// @param newPrice The new price of the currency
+    /// @param increased Whether the price was increased or decreased
     event CurrencyPriceAdjusted(
         bytes indexed currency,
         uint256 newPrice,
@@ -26,6 +35,7 @@ library PCPricing {
     );
 
     /// @notice Emitted when a currency is removed
+    /// @param currency The currency that was removed
     event CurrencyRemoved(bytes indexed currency);
 
     /// @notice Emitted when all non-anchor prices are reduced
@@ -37,6 +47,7 @@ library PCPricing {
         uint256 nextIndex
     );
 
+    /// @notice Struct for pricing data
     struct PricingData {
         bytes anchorCurrency; // The anchor (base) currency
         uint256 adjustmentNumerator; // The numerator of the universal adjustment percentage
@@ -49,6 +60,8 @@ library PCPricing {
     }
 
     /// @notice Set the anchor currency and its initial price
+    /// @param currency The currency to set as the anchor
+    /// @param price The initial price of the anchor currency
     function setAnchorCurrency(
         PricingData storage self,
         bytes memory currency,
@@ -63,6 +76,8 @@ library PCPricing {
     }
 
     /// @notice Set the universal adjustment percentage for all non-anchor currencies
+    /// @param numerator The numerator of the adjustment factor
+    /// @param denominator The denominator of the adjustment factor
     function setAdjustmentFactor(
         PricingData storage self,
         uint256 numerator,
@@ -77,6 +92,8 @@ library PCPricing {
     }
 
     /// @notice Set the initial price for a specific currency
+    /// @param currency The currency to set the price for
+    /// @param price The price to set for the currency
     function setCurrencyPrice(
         PricingData storage self,
         bytes memory currency,
@@ -103,6 +120,7 @@ library PCPricing {
     }
 
     /// @notice Adjust the price dynamically based on usage (same adjustment for all non-anchor currencies)
+    /// @param increase Whether to increase or decrease the price
     function adjustCurrencyPrice(
         PricingData storage self,
         bytes memory currency,
@@ -137,6 +155,7 @@ library PCPricing {
     }
 
     /// @notice adjust the price of a batch of non-anchor currencies
+    /// @param increase Whether to increase or decrease the price
     /// @param batchSize Maximum number of currencies to process in this transaction
     /// @return (processedCount, hasMore) Number of currencies processed and whether there are more to process
     function adjustNonAnchorPricesBatch(
@@ -167,6 +186,7 @@ library PCPricing {
     }
 
     /// @notice Set the batch size for processing large arrays of currencies
+    /// @param newBatchSize The new batch size
     function setBatchSize(
         PricingData storage self,
         uint256 newBatchSize
@@ -176,6 +196,7 @@ library PCPricing {
     }
 
     /// @notice Legacy function that adjusts all prices in one transaction
+    /// @param increase Whether to increase or decrease the price
     /// @dev If trackedCurrencies length exceeds batchSize, it will use batch processing
     function adjustAllNonAnchorPrices(
         PricingData storage self,
@@ -198,6 +219,8 @@ library PCPricing {
     }
 
     /// @notice Get the current batch processing state
+    /// @return lastProcessedIndex The last processed index
+    /// @return totalCurrencies The total number of currencies
     function getBatchProcessingState(
         PricingData storage self
     )
@@ -209,6 +232,8 @@ library PCPricing {
     }
 
     /// @notice Get the current price of a currency
+    /// @param currency The currency to get the price of
+    /// @return price The price of the currency
     function getCurrencyPrice(
         PricingData storage self,
         bytes memory currency
@@ -218,6 +243,8 @@ library PCPricing {
     }
 
     /// @notice Get all tracked currency prices
+    /// @return currencies The list of tracked currencies
+    /// @return prices The list of prices for the tracked currencies
     function getAllCurrencyPrices(
         PricingData storage self
     ) internal view returns (bytes[] memory, uint256[] memory) {
@@ -234,6 +261,9 @@ library PCPricing {
         return (currencies, prices);
     }
 
+    /// @notice Check if a currency exists
+    /// @param currency The currency to check
+    /// @return exists Whether the currency exists
     function currencyExists(
         PricingData storage self,
         bytes memory currency
@@ -241,6 +271,8 @@ library PCPricing {
         return self.currencyPrice[currency] > 0;
     }
 
+    /// @notice Remove a currency from the pricing data
+    /// @param currency The currency to remove
     function removeCurrency(
         PricingData storage self,
         bytes memory currency
