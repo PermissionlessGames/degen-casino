@@ -1,5 +1,5 @@
 # IMultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/e51575ec321323c4f0687ab65549f1df9bfb5f4b/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/0a21d198b907b9ea729a40f241595eda22a96da4/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
 
 
 ## Functions

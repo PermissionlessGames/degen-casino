@@ -41,8 +41,6 @@ contract MultipleCurrencyToken is
         return _tokens[index];
     }
 
-    uint256 _decimals;
-
     /// @notice Constructor for PCPricedToken
     /// @param name_ The name of the token
     /// @param symbol_ The symbol of the token
@@ -89,8 +87,6 @@ contract MultipleCurrencyToken is
         for (uint256 i = 1; i < currencies.length; i++) {
             addNewPricingData(currencies[i]);
         }
-
-        _decimals = 10 ** decimals();
     }
 
     /// @notice Add new pricing data for a currency
@@ -192,9 +188,9 @@ contract MultipleCurrencyToken is
                     tokenIds[i],
                     tokenIs1155[currencies[i]]
                 );
-                mintPricingData.adjustCurrencyPrice(currency, true);
+                mintPricingData.adjustCurrencyPrice(currency, false);
             } else {
-                mintPricingData.adjustAllNonAnchorPrices(false);
+                mintPricingData.adjustAllNonAnchorPrices(true);
             }
         }
     }
@@ -216,7 +212,7 @@ contract MultipleCurrencyToken is
                 tokenIs1155[currencies[i]]
             );
             uint256 ratio = getMintPrice(currency);
-            uint256 price = (deposits[i] * _decimals) / ratio;
+            uint256 price = deposits[i] * ratio;
             amount += price;
         }
     }
@@ -244,10 +240,10 @@ contract MultipleCurrencyToken is
         if (currency != _tokens[0].currency) {
             redeemPricingData.adjustCurrencyPrice(
                 encodeCurrency(currency, tokenId, tokenIs1155[currency]),
-                false
+                true
             );
         } else {
-            redeemPricingData.adjustAllNonAnchorPrices(true);
+            redeemPricingData.adjustAllNonAnchorPrices(false);
         }
 
         _burn(msg.sender, amountIn);
@@ -287,7 +283,7 @@ contract MultipleCurrencyToken is
             tokenIs1155[currency]
         );
         uint256 price = getRedeemPrice(_currency);
-        amountOut = (amountIn * price) / _decimals;
+        amountOut = amountIn / price;
         if (currency == INATIVE) {
             amountOut = amountOut > address(this).balance
                 ? address(this).balance
@@ -374,7 +370,7 @@ contract MultipleCurrencyToken is
         bytes memory currency
     ) public view virtual returns (uint256) {
         return
-            mintPricingData.getCurrencyPrice(currency) >
+            mintPricingData.getCurrencyPrice(currency) <
                 redeemPricingData.getCurrencyPrice(currency)
                 ? mintPricingData.getCurrencyPrice(currency)
                 : redeemPricingData.getCurrencyPrice(currency);
@@ -387,7 +383,7 @@ contract MultipleCurrencyToken is
         bytes memory currency
     ) public view virtual returns (uint256) {
         return
-            redeemPricingData.getCurrencyPrice(currency) <
+            redeemPricingData.getCurrencyPrice(currency) >
                 mintPricingData.getCurrencyPrice(currency)
                 ? redeemPricingData.getCurrencyPrice(currency)
                 : mintPricingData.getCurrencyPrice(currency);
@@ -410,11 +406,11 @@ contract MultipleCurrencyToken is
     }
 
     /// @notice Get the amount needed to mint a currency
-    /// @param requestingAmount The amount of tokens to mint
-    /// @param currency The address of the currency
+    /// @param requestingAmount The amount of MCT tokens to mint
+    /// @param currency The address of the currency wanting to deposit
     /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
     /// @param is1155 Boolean indicating if the token is an ERC1155
-    /// @return amount The amount needed to mint
+    /// @return amount The amount needed of treasury tokens to mint
     function amountNeededToMint(
         uint256 requestingAmount,
         address currency,
@@ -424,15 +420,15 @@ contract MultipleCurrencyToken is
         bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
         if (mintPricingData.currencyExists(_currency)) {
             uint256 price = getMintPrice(_currency);
-            return ((requestingAmount * price) / _decimals, true);
+            return (requestingAmount / price, true);
         } else {
             return (0, false);
         }
     }
 
     /// @notice Get the amount wanted to redeem a currency
-    /// @param requestingAmount The amount of tokens to redeem
-    /// @param currency The address of the currency
+    /// @param requestingAmount The amount of treasury tokens to redeem
+    /// @param currency The address of the currency to redeem
     /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
     /// @param is1155 Boolean indicating if the token is an ERC1155
     /// @return amount The amount needed to redeem requested amount
@@ -444,9 +440,13 @@ contract MultipleCurrencyToken is
         bool is1155
     ) public view virtual returns (uint256, bool) {
         bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
-        if (redeemPricingData.currencyExists(_currency)) {
+        if (
+            redeemPricingData.currencyExists(_currency) &&
+            requestingAmount <= IERC20(currency).balanceOf(address(this))
+        ) {
             uint256 price = getRedeemPrice(_currency);
-            return ((requestingAmount * price) / _decimals, true);
+            uint256 amount = requestingAmount * price;
+            return (amount, true);
         } else {
             return (0, false);
         }
