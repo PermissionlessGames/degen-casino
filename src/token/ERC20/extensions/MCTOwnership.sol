@@ -8,6 +8,13 @@ import "../MultipleCurrencyToken.sol";
 abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
     using PCPricing for PCPricing.PricingData;
 
+    /// @notice Constructor for the MCTOwnership contract
+    /// @param name_ The name of the token
+    /// @param symbol_ The symbol of the token
+    /// @param inative The address of the native currency
+    /// @param adjustmentNumerator The numerator of the adjustment factor
+    /// @param adjustmentDenominator The denominator of the adjustment factor
+    /// @param currencies The currencies to add to the token
     constructor(
         string memory name_,
         string memory symbol_,
@@ -27,6 +34,9 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
         Ownable(msg.sender)
     {}
 
+    /// @notice Adjust the pricing data for a currency
+    /// @param _pricingDataIndex The index of the pricing data to adjust
+    /// @param _newPrice The new price of the currency
     function adjustPricingData(
         uint256 _pricingDataIndex,
         uint256 _newPrice
@@ -41,6 +51,9 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
         redeemPricingData.setCurrencyPrice(currency, _newPrice);
     }
 
+    /// @notice Adjust the adjustment factor for the token
+    /// @param _numerator The numerator of the adjustment factor
+    /// @param _denominator The denominator of the adjustment factor
     function adjustAdjustmentFactor(
         uint256 _numerator,
         uint256 _denominator
@@ -49,6 +62,8 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
         redeemPricingData.setAdjustmentFactor(_numerator, _denominator);
     }
 
+    /// @notice Add new pricing data for a currency
+    /// @param _createPricingDataParams The pricing data to add
     function addNewPricingData(
         IMultipleCurrencyToken.CreatePricingDataParams[]
             memory _createPricingDataParams
@@ -78,6 +93,8 @@ abstract contract MCTOwnership is Ownable, MultipleCurrencyToken {
         }
     }
 
+    /// @notice Remove pricing data for a currency
+    /// @param _pricingDataIndex The index of the pricing data to remove
     function removePricingData(uint256 _pricingDataIndex) external onlyOwner {
         CreatePricingDataParams memory tokenData = tokens(_pricingDataIndex);
         bytes memory currency = encodeCurrency(
