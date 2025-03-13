@@ -850,22 +850,21 @@ contract MultipleCurrencyTokenTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1 ether;
 
-        // Get initial prices
-        uint256 initialUsdtPrice = mct.getMintPrice(
-            mct.encodeCurrency(address(mockUsdt), 0, false)
+        bytes memory currency = mct.encodeCurrency(address(mockUsdt), 0, false);
+
+        assertEq(
+            mct.getMintPrice(currency),
+            mct.getRedeemPrice(currency),
+            "Mint price should be equal to redeem price"
         );
 
         // Deposit ETH
         mct.deposit{value: 1 ether}(currencies, tokenIds, amounts);
 
-        // Check that non-anchor prices were adjusted
-        uint256 newUsdtPrice = mct.getMintPrice(
-            mct.encodeCurrency(address(mockUsdt), 0, false)
-        );
-        assertLt(
-            newUsdtPrice,
-            initialUsdtPrice,
-            "Non-anchor prices should decrease when depositing anchor currency"
+        assertGt(
+            mct.getMintPrice(currency),
+            mct.getRedeemPrice(currency),
+            "Mint price should be greater than redeem price"
         );
 
         vm.stopPrank();
@@ -947,12 +946,23 @@ contract MultipleCurrencyTokenTest is Test {
     function testPriceAdjustmentOnAnchorWithdraw() public {
         // First deposit
         vm.startPrank(user1);
-        address[] memory currencies = new address[](1);
+        address[] memory currencies = new address[](2);
         currencies[0] = INATIVE;
-        uint256[] memory tokenIds = new uint256[](1);
+        currencies[1] = address(mockUsdt);
+        uint256[] memory tokenIds = new uint256[](2);
         tokenIds[0] = 0;
-        uint256[] memory amounts = new uint256[](1);
+        tokenIds[1] = 0;
+        uint256[] memory amounts = new uint256[](2);
         amounts[0] = 1 ether;
+        amounts[1] = 100e18;
+        bytes memory currency = mct.encodeCurrency(address(mockUsdt), 0, false);
+        assertEq(
+            mct.getRedeemPrice(currency),
+            mct.getMintPrice(currency),
+            "Initial price should be equal to mint price"
+        );
+
+        IERC20(address(mockUsdt)).approve(address(mct), 1000e18);
 
         uint256 mintAmount = mct.deposit{value: 1 ether}(
             currencies,
@@ -960,22 +970,19 @@ contract MultipleCurrencyTokenTest is Test {
             amounts
         );
 
-        // Get initial non-anchor price
-        uint256 initialUsdtPrice = mct.getRedeemPrice(
-            mct.encodeCurrency(address(mockUsdt), 0, false)
+        assertGt(
+            mct.getMintPrice(currency),
+            mct.getRedeemPrice(currency),
+            "Mint price should be greater than redeem price"
         );
 
         // Withdraw ETH
         mct.withdraw(INATIVE, 0, mintAmount);
 
-        // Check non-anchor price adjustment
-        uint256 newUsdtPrice = mct.getRedeemPrice(
-            mct.encodeCurrency(address(mockUsdt), 0, false)
-        );
         assertGt(
-            newUsdtPrice,
-            initialUsdtPrice,
-            "Non-anchor prices should increase when withdrawing anchor currency"
+            mct.getMintPrice(currency),
+            mct.getRedeemPrice(currency),
+            "Mint price should be greater than redeem price"
         );
 
         vm.stopPrank();
