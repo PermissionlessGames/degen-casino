@@ -1,13 +1,5 @@
 # DevPCPricing
-<<<<<<< HEAD
-<<<<<<< HEAD
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/cf1c5ca470c688d20285ece4b239db87eca65887/src/dev/DevPCPricing.sol)
-=======
-[Git Source](https://github.com//PermissionlessGames/degen-casino/blob/8e3c49ec1b47ecdb92bceb56c31f5683f84e9463/src/dev/DevPCPricing.sol)
->>>>>>> preferred-currency-pricing
-=======
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9977712fe4f7065ed4673747aef2f7ccaf6b6b33/src/dev/DevPCPricing.sol)
->>>>>>> preferred-currency-pricing
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/bddf26f53780df0084476907b0ce9ba179448aae/src/dev/DevPCPricing.sol)
 
 **Author:**
 Permissionless Games & ChatGPT

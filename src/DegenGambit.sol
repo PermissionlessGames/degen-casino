@@ -903,7 +903,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
 
         if (boost) {
             // Burn an ERC20 token off of this contract from the player's account.
-            _burn(msg.sender, 1);
+            _burn(msg.sender, 10 ** decimals());
         }
 
         LastSpinBlock[spinPlayer] = _blockNumber();
