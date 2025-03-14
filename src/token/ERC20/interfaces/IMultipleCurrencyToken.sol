@@ -118,7 +118,7 @@ interface IMultipleCurrencyToken {
     /// @param currency The address of the currency
     /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
     /// @param is1155 Boolean indicating if the token is an ERC1155
-    /// @return amount The amount needed to redeem requested amount
+    /// @return amount The amount needed to redeem the requested amount
     /// @return exists Boolean indicating if the currency exists
     function amountWantedToRedeem(
         uint256 requestingAmount,

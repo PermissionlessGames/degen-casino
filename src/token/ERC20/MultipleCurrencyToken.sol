@@ -185,7 +185,7 @@ contract MultipleCurrencyToken is
                 }
             } else {
                 require(amounts[i] == msgValue, "Insufficient native value");
-                //Incase of multiple cases of Native being passed in.
+                //In case of multiple cases of Native being passed in.
                 msgValue = 0;
             }
 
