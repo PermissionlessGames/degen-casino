@@ -28,6 +28,9 @@ contract MultipleCurrencyToken is
     address public immutable INATIVE;
     /// @notice Mapping of token addresses to booleans indicating if they are ERC1155
     mapping(address => bool) public tokenIs1155;
+
+    mapping(bool => uint256) private _decimals;
+
     /// @notice Array of token configurations
     CreatePricingDataParams[] private _tokens;
 
@@ -87,6 +90,9 @@ contract MultipleCurrencyToken is
         for (uint256 i = 1; i < currencies.length; i++) {
             addNewPricingData(currencies[i]);
         }
+        //Set the decimals for ERC20 and ERC1155 tokens
+        _decimals[false] = 10 ** decimals();
+        _decimals[true] = 1;
     }
 
     /// @notice Add new pricing data for a currency
@@ -212,7 +218,8 @@ contract MultipleCurrencyToken is
                 tokenIs1155[currencies[i]]
             );
             uint256 ratio = getMintPrice(currency);
-            uint256 price = deposits[i] * ratio;
+            uint256 price = (deposits[i] * ratio) /
+                _decimals[tokenIs1155[currencies[i]]];
             amount += price;
         }
     }
@@ -283,7 +290,7 @@ contract MultipleCurrencyToken is
             tokenIs1155[currency]
         );
         uint256 price = getRedeemPrice(_currency);
-        amountOut = amountIn / price;
+        amountOut = (amountIn * _decimals[tokenIs1155[currency]]) / price;
         if (currency == INATIVE) {
             amountOut = amountOut > address(this).balance
                 ? address(this).balance

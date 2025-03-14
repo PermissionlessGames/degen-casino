@@ -1,5 +1,5 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/0a21d198b907b9ea729a40f241595eda22a96da4/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/7d2e905993a38cf087573faa79e61b7609411aa7/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
@@ -43,6 +43,13 @@ Mapping of token addresses to booleans indicating if they are ERC1155
 
 ```solidity
 mapping(address => bool) public tokenIs1155;
+```
+
+
+### _decimals
+
+```solidity
+mapping(bool => uint256) private _decimals;
 ```
 
 
@@ -432,8 +439,8 @@ function amountNeededToMint(uint256 requestingAmount, address currency, uint256 
 
 |Name|Type|Description|
 |----|----|-----------|
-|`requestingAmount`|`uint256`|The amount of tokens to mint|
-|`currency`|`address`|The address of the currency|
+|`requestingAmount`|`uint256`|The amount of MCT tokens to mint|
+|`currency`|`address`|The address of the currency wanting to deposit|
 |`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
 |`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
 
@@ -441,7 +448,7 @@ function amountNeededToMint(uint256 requestingAmount, address currency, uint256 
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`uint256`|amount The amount needed to mint|
+|`<none>`|`uint256`|amount The amount needed of treasury tokens to mint|
 |`<none>`|`bool`||
 
 
@@ -461,8 +468,8 @@ function amountWantedToRedeem(uint256 requestingAmount, address currency, uint25
 
 |Name|Type|Description|
 |----|----|-----------|
-|`requestingAmount`|`uint256`|The amount of tokens to redeem|
-|`currency`|`address`|The address of the currency|
+|`requestingAmount`|`uint256`|The amount of treasury tokens to redeem|
+|`currency`|`address`|The address of the currency to redeem|
 |`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
 |`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
 
