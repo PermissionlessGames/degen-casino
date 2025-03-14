@@ -1,5 +1,5 @@
 # IMultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/7d2e905993a38cf087573faa79e61b7609411aa7/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/3230342a3988b6f02b8ad28b0ec1006256aaaab6/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
 
 
 ## Functions
@@ -287,6 +287,7 @@ Struct defining the parameters for creating pricing data
 struct CreatePricingDataParams {
     address currency;
     uint256 price;
+    uint256 decimalCount;
     bool is1155;
     uint256 tokenId;
 }

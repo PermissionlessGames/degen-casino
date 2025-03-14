@@ -29,7 +29,7 @@ contract MultipleCurrencyToken is
     /// @notice Mapping of token addresses to booleans indicating if they are ERC1155
     mapping(address => bool) public tokenIs1155;
 
-    mapping(bool => uint256) private _decimals;
+    mapping(bytes => uint256) private _decimals;
 
     /// @notice Array of token configurations
     CreatePricingDataParams[] private _tokens;
@@ -90,9 +90,9 @@ contract MultipleCurrencyToken is
         for (uint256 i = 1; i < currencies.length; i++) {
             addNewPricingData(currencies[i]);
         }
-        //Set the decimals for ERC20 and ERC1155 tokens
-        _decimals[false] = 10 ** decimals();
-        _decimals[true] = 1;
+        //Set the batch size for processing large arrays of currencies
+        redeemPricingData.setBatchSize(5);
+        mintPricingData.setBatchSize(5);
     }
 
     /// @notice Add new pricing data for a currency
@@ -117,6 +117,7 @@ contract MultipleCurrencyToken is
             _createPricingDataParams.currency
         ] = _createPricingDataParams.is1155;
         _tokens.push(_createPricingDataParams);
+        _decimals[currency] = 10 ** _createPricingDataParams.decimalCount;
         emit NewPricingDataAdded(_createPricingDataParams);
     }
 
@@ -218,8 +219,7 @@ contract MultipleCurrencyToken is
                 tokenIs1155[currencies[i]]
             );
             uint256 ratio = getMintPrice(currency);
-            uint256 price = (deposits[i] * ratio) /
-                _decimals[tokenIs1155[currencies[i]]];
+            uint256 price = (deposits[i] * ratio) / _decimals[currency];
             amount += price;
         }
     }
@@ -290,7 +290,7 @@ contract MultipleCurrencyToken is
             tokenIs1155[currency]
         );
         uint256 price = getRedeemPrice(_currency);
-        amountOut = (amountIn * _decimals[tokenIs1155[currency]]) / price;
+        amountOut = (amountIn * _decimals[_currency]) / price;
         if (currency == INATIVE) {
             amountOut = amountOut > address(this).balance
                 ? address(this).balance
@@ -427,7 +427,7 @@ contract MultipleCurrencyToken is
         bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
         if (mintPricingData.currencyExists(_currency)) {
             uint256 price = getMintPrice(_currency);
-            return (requestingAmount / price, true);
+            return ((requestingAmount * _decimals[_currency]) / price, true);
         } else {
             return (0, false);
         }
@@ -452,7 +452,7 @@ contract MultipleCurrencyToken is
             requestingAmount <= IERC20(currency).balanceOf(address(this))
         ) {
             uint256 price = getRedeemPrice(_currency);
-            uint256 amount = requestingAmount * price;
+            uint256 amount = (requestingAmount * price) / _decimals[_currency];
             return (amount, true);
         } else {
             return (0, false);

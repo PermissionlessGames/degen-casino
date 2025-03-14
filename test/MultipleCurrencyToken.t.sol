@@ -56,6 +56,7 @@ contract MultipleCurrencyTokenTest is Test {
         initialCurrencies[0] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: INATIVE,
             price: 1e18, // 1 ETH = 1 token
+            decimalCount: 18,
             is1155: false,
             tokenId: 0
         });
@@ -64,6 +65,7 @@ contract MultipleCurrencyTokenTest is Test {
         initialCurrencies[1] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: address(mockUsdt),
             price: 1e6, // 1 USDT = 0.001 token
+            decimalCount: 6,
             is1155: false,
             tokenId: 0
         });
@@ -72,6 +74,7 @@ contract MultipleCurrencyTokenTest is Test {
         initialCurrencies[2] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: address(mockUsdc),
             price: 1e6, // 1 USDC = 0.001 token
+            decimalCount: 6,
             is1155: false,
             tokenId: 0
         });
@@ -80,6 +83,7 @@ contract MultipleCurrencyTokenTest is Test {
         initialCurrencies[3] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: address(mockGold),
             price: 5e17, // 1 GOLD = 0.5 token
+            decimalCount: 18,
             is1155: true,
             tokenId: GOLD_TOKEN_ID
         });
@@ -118,12 +122,14 @@ contract MultipleCurrencyTokenTest is Test {
         initialCurrencies[0] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: INATIVE,
             price: 1e18,
+            decimalCount: 18,
             is1155: false,
             tokenId: 0
         });
         initialCurrencies[1] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: address(mockUsdt),
             price: 1e6,
+            decimalCount: 6,
             is1155: false,
             tokenId: 0
         });
@@ -166,6 +172,7 @@ contract MultipleCurrencyTokenTest is Test {
         currencies[0] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: INATIVE,
             price: 0,
+            decimalCount: 18,
             is1155: false,
             tokenId: 0
         });

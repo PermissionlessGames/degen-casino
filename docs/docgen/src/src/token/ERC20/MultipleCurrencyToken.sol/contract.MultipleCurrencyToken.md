@@ -1,5 +1,5 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/7d2e905993a38cf087573faa79e61b7609411aa7/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/3230342a3988b6f02b8ad28b0ec1006256aaaab6/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
@@ -49,7 +49,7 @@ mapping(address => bool) public tokenIs1155;
 ### _decimals
 
 ```solidity
-mapping(bool => uint256) private _decimals;
+mapping(bytes => uint256) private _decimals;
 ```
 
 
