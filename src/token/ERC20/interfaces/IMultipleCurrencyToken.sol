@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-interface IMultipleCurrencyToken {
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+interface IMultipleCurrencyToken is IERC20 {
     /// @notice Struct defining the parameters for creating pricing data
     struct CreatePricingDataParams {
         address currency;
@@ -106,6 +108,7 @@ interface IMultipleCurrencyToken {
     /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
     /// @param is1155 Boolean indicating if the token is an ERC1155
     /// @return amount The amount needed to mint
+    /// @return exists Boolean indicating if the currency exists
     function amountNeededToMint(
         uint256 requestingAmount,
         address currency,
