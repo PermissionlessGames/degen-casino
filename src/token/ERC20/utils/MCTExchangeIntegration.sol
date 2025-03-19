@@ -3,8 +3,8 @@ pragma solidity ^0.8.13;
 
 import {IMultipleCurrencyToken} from "../interfaces/IMultipleCurrencyToken.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import {IERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/IERC1155Holder.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract MCTExchangeIntegration {
     IMultipleCurrencyToken public immutable mct;
@@ -58,7 +58,7 @@ contract MCTExchangeIntegration {
     function estimatePayoutForMCTUse(
         MCTTokens memory baseToken,
         uint256 baseAmountRequired
-    ) public returns (uint256) {
+    ) public view returns (uint256) {
         address[] memory currencies = new address[](1);
         currencies[0] = baseToken.currency;
         uint256[] memory tokenIds = new uint256[](1);
@@ -88,7 +88,7 @@ contract MCTExchangeIntegration {
             ""
         );
 
-        IERC1155(currency).approve(address(mct), amount);
+        IERC1155(currency).setApprovalForAll(address(mct), true);
         address[] memory currencies = new address[](1);
         currencies[0] = currency;
         uint256[] memory tokenIds = new uint256[](1);
@@ -96,6 +96,7 @@ contract MCTExchangeIntegration {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         mct.deposit(currencies, tokenIds, amounts);
+        IERC1155(currency).setApprovalForAll(address(mct), false);
     }
 
     function deposit20(
@@ -112,5 +113,25 @@ contract MCTExchangeIntegration {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         mct.deposit(currencies, tokenIds, amounts);
+    }
+
+    function useMCTToPay(
+        MCTTokens memory baseToken,
+        address from,
+        address to,
+        uint256 baseCost
+    ) internal {
+        uint256 amount = estimatePayoutForMCTUse(baseToken, baseCost);
+        IERC20(address(mct)).safeTransferFrom(from, to, amount);
+    }
+
+    receive() external payable virtual {
+        address[] memory currencies = new address[](1);
+        currencies[0] = mct.INATIVE();
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = msg.value;
+        mct.deposit{value: msg.value}(currencies, tokenIds, amounts);
     }
 }

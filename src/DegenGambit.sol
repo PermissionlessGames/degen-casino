@@ -263,7 +263,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// Allows the contract to receive the native token on its blockchain.
-    receive() external payable {}
+    receive() external payable virtual {}
 
     /// Updates the winners array with the latest winner
     function _updateWinners(

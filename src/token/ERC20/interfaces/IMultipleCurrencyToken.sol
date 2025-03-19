@@ -13,6 +13,8 @@ interface IMultipleCurrencyToken is IERC20 {
         uint256 tokenId;
     }
 
+    function INATIVE() external view returns (address);
+
     /// @notice Get the token configuration at a specific index
     /// @param index The index of the token configuration
     /// @return token The token configuration

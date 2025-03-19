@@ -6,17 +6,13 @@ import {MCTExchangeIntegration} from "./token/ERC20/utils/MCTExchangeIntegration
 
 contract MCTDegenGambit is DegenGambit, MCTExchangeIntegration {
     MCTTokens public baseToken;
-    address public immutable INATIVE;
-
-    using SafeERC20 for IERC20;
 
     constructor(
         address _mct,
         uint256 blocksToAct,
         uint256 costToSpin,
         uint256 costToRespin,
-        MCTTokens memory _baseToken,
-        address _INATIVE
+        MCTTokens memory _baseToken
     )
         MCTExchangeIntegration(_mct)
         DegenGambit(blocksToAct, costToSpin, costToRespin)
@@ -24,8 +20,6 @@ contract MCTDegenGambit is DegenGambit, MCTExchangeIntegration {
         baseToken.currency = _baseToken.currency;
         baseToken.tokenId = _baseToken.tokenId;
         baseToken.is1155 = _baseToken.is1155;
-
-        INATIVE = _INATIVE;
     }
 
     function spin(bool boost) public payable override {
@@ -49,10 +43,11 @@ contract MCTDegenGambit is DegenGambit, MCTExchangeIntegration {
         bool boost
     ) public payable {
         uint256 costToSpin;
-        if (tokenToPlay.currency == INATIVE) {
+        if (tokenToPlay.currency == mct.INATIVE()) {
             costToSpin = nativePayments(msg.value);
         } else if (tokenToPlay.currency == address(mct)) {
-            costToSpin = useMCTToPlay(msg.sender, spinPlayer);
+            costToSpin = spinCost(spinPlayer);
+            useMCTToPay(baseToken, msg.sender, address(this), costToSpin);
         } else {
             costToSpin = paymentOfNonNativeCurrency(
                 tokenToPlay,
@@ -69,18 +64,18 @@ contract MCTDegenGambit is DegenGambit, MCTExchangeIntegration {
     ) internal returns (uint256 costToSpin) {
         costToSpin = spinCost(msg.sender);
         address[] memory currencies = new address[](1);
-        currencies[0] = INATIVE;
+        currencies[0] = mct.INATIVE();
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 0;
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        if (INATIVE == baseToken.currency) {
+        if (mct.INATIVE() == baseToken.currency) {
             mct.deposit{value: amounts[0]}(currencies, tokenIds, amounts);
             costToSpin = amounts[0];
         } else {
             MCTTokens memory nonBaseToken;
-            nonBaseToken.currency = INATIVE;
+            nonBaseToken.currency = mct.INATIVE();
             nonBaseToken.tokenId = 0;
             nonBaseToken.is1155 = false;
             (
@@ -110,23 +105,29 @@ contract MCTDegenGambit is DegenGambit, MCTExchangeIntegration {
     ) internal returns (uint256 costToSpin) {
         costToSpin = spinCost(player);
         uint256 amount;
-        uint256 estimatedMCTAmountOut;
+        uint256 estimatedMCTAmountOut = 0;
 
         if (tokenToPlay.currency == baseToken.currency) {
             //not set estimatedMCTAmountOut because it's not needed for base token
             amount = costToSpin;
         } else {
             (
-                uint256 amount,
+                uint256 amountInRequired,
                 uint256 estimateMCTAmountOut,
                 bool exists
-            ) = estimatePayoutForNonBaseCurrency(
+            ) = estimatePaymentOfNonBaseCurrency(
                     baseToken,
                     tokenToPlay,
                     costToSpin
                 );
+            amount = amountInRequired;
             estimatedMCTAmountOut = estimateMCTAmountOut;
+            require(amount > 0, "Amount in required is not greater than 0");
             require(exists, "Token to play does not exist");
+            require(
+                estimatedMCTAmountOut > 0,
+                "Estimated MCT amount out is not greater than 0"
+            );
         }
         uint256 balance = mct.balanceOf(address(this));
         if (tokenToPlay.is1155) {
@@ -145,18 +146,9 @@ contract MCTDegenGambit is DegenGambit, MCTExchangeIntegration {
         );
     }
 
-    function useMCTToPlay(
-        address caller,
-        address player
-    ) internal returns (uint256 costToSpin) {
-        costToSpin = spinCost(player);
-        uint256 amount = estimatePayoutForMCTUse(baseToken, costToSpin);
-        IERC20(address(mct)).safeTransferFrom(caller, address(this), amount);
-    }
-
-    receive() external payable {
+    receive() external payable override(DegenGambit, MCTExchangeIntegration) {
         address[] memory currencies = new address[](1);
-        currencies[0] = INATIVE;
+        currencies[0] = mct.INATIVE();
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 0;
         uint256[] memory amounts = new uint256[](1);
