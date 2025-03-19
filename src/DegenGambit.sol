@@ -256,7 +256,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         uint256 blocksToAct,
         uint256 costToSpin,
         uint256 costToRespin
-    ) ERC20("Degen's Gambit", "GAMBIT") {
+    ) ERC20("Degen Gambit", "GAMBIT") {
         BlocksToAct = blocksToAct;
         CostToSpin = costToSpin;
         CostToRespin = costToRespin;

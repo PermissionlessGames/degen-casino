@@ -39,6 +39,19 @@
   },
   {
     "type": "function",
+    "name": "BoostedSpinCost",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "CostToRespin",
     "inputs": [],
     "outputs": [
