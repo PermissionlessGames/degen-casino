@@ -153,6 +153,6 @@ contract MCTDegenGambit is DegenGambit, MCTExchangeIntegration {
         tokenIds[0] = 0;
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = msg.value;
-        mct.deposit{value: msg.value}(currencies, tokenIds, amounts);
+        mct.deposit{value: amounts[0]}(currencies, tokenIds, amounts);
     }
 }

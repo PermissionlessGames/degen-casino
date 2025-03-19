@@ -132,6 +132,52 @@ contract MCTExchangeIntegration {
         tokenIds[0] = 0;
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = msg.value;
-        mct.deposit{value: msg.value}(currencies, tokenIds, amounts);
+        mct.deposit{value: amounts[0]}(currencies, tokenIds, amounts);
+    }
+
+    function prizes()
+        external
+        view
+        override
+        returns (uint256[] memory prizesAmount, uint256[] memory typeOfPrizes)
+    {
+        uint256[] memory prizesAmount = new uint256[](7);
+        uint256[] memory typeOfPrizes = new uint256[](7);
+        prizesAmount = new uint256[](7);
+        typeOfPrizes = new uint256[](7);
+
+        address[] memory currencies = new address[](1);
+        currencies[0] = mct.INATIVE();
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256[] memory deposits = new uint256[](1);
+        deposits[0] = CostToSpin;
+
+        uint256 adjustedCostToSpin = mct.estimateDepositAmount(
+            currencies,
+            tokenIds,
+            deposits
+        );
+
+        prizesAmount[0] = MajorGambitPrize;
+        typeOfPrizes[0] = 20;
+        prizesAmount[1] = MinorGambitPrize;
+        typeOfPrizes[1] = 20; //Slot boost payout
+        prizesAmount[2] = 50 * adjustedCostToSpin <
+            mct.balanceIf(address(this)).balance >> 6
+            ? 50 * adjustedCostToSpin
+            : mct.balanceIf(address(this)).balance >> 6;
+        typeOfPrize[2] = 1;
+        prizesAmount[3] = 100 * adjustedCostToSpin <
+            mct.balanceIf(address(this)).balance >> 4
+            ? 100 * adjustedCostToSpin
+            : mct.balanceIf(address(this)).balance >> 4;
+        typeOfPrize[3] = 1; //MCT payout
+        prizesAmount[4] = mct.balanceIf(address(this)) >> 3;
+        typeOfPrize[4] = 1;
+        prizesAmount[5] = mct.balanceIf(address(this)) >> 3;
+        typeOfPrize[5] = 1;
+        prizesAmount[6] = mct.balanceIf(address(this)) >> 1;
+        typeOfPrize[6] = 1;
     }
 }
