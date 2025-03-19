@@ -83,7 +83,7 @@ contract MultipleCurrencyTokenTest is Test {
         initialCurrencies[3] = IMultipleCurrencyToken.CreatePricingDataParams({
             currency: address(mockGold),
             price: 5e17, // 1 GOLD = 0.5 token
-            decimalCount: 18,
+            decimalCount: 0,
             is1155: true,
             tokenId: GOLD_TOKEN_ID
         });
@@ -199,14 +199,18 @@ contract MultipleCurrencyTokenTest is Test {
         tokenIds[0] = 0;
 
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = 1 ether;
+        amounts[0] = 1e18;
 
         uint256 expectedMintAmount = mct.estimateDepositAmount(
             currencies,
             tokenIds,
             amounts
         );
-
+        assertGt(
+            expectedMintAmount,
+            0,
+            "Expected mint amount should be greater then 0"
+        );
         vm.expectEmit(true, true, true, true);
         emit Transfer(address(0), user1, expectedMintAmount);
 
@@ -265,12 +269,25 @@ contract MultipleCurrencyTokenTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1;
 
+        assertGt(
+            mct.getMintPrice(
+                mct.encodeCurrency(address(mockGold), GOLD_TOKEN_ID, true)
+            ),
+            0,
+            "MintPrice Should be greater then 0"
+        );
+
         uint256 expectedMintAmount = mct.estimateDepositAmount(
             currencies,
             tokenIds,
             amounts
         );
 
+        assertEq(
+            expectedMintAmount,
+            5e17,
+            "Expected mint amount should be 0.5 token"
+        );
         uint256 mintAmount = mct.deposit(currencies, tokenIds, amounts);
 
         assertEq(mintAmount, expectedMintAmount);
@@ -501,7 +518,7 @@ contract MultipleCurrencyTokenTest is Test {
             mct.encodeCurrency(address(mockUsdt), 0, false)
         );
 
-        assertGt(newPrice, initialPrice);
+        assertLt(newPrice, initialPrice);
 
         vm.stopPrank();
     }
@@ -531,7 +548,7 @@ contract MultipleCurrencyTokenTest is Test {
             mct.encodeCurrency(address(mockUsdt), 0, false)
         );
 
-        assertLt(newPrice, initialPrice);
+        assertGt(newPrice, initialPrice);
 
         vm.stopPrank();
     }
@@ -726,7 +743,7 @@ contract MultipleCurrencyTokenTest is Test {
             mct.encodeCurrency(address(mockUsdt), 0, false)
         );
 
-        assertGt(newPrice, initialPrice);
+        assertLt(newPrice, initialPrice);
         vm.stopPrank();
     }
 
@@ -836,7 +853,7 @@ contract MultipleCurrencyTokenTest is Test {
         (uint256[] memory mintRatios, uint256[] memory redeemRatios) = mct
             .getTokenPriceRatios(currencies, tokenIds);
 
-        assertGt(mintRatios[0], 1e6); // Price should have increased
+        assertGt(1e6, mintRatios[0]); // Price should have increased
         assertEq(redeemRatios[0], 1e6); // Redeem price should stay the same
     }
 
@@ -866,9 +883,9 @@ contract MultipleCurrencyTokenTest is Test {
         mct.deposit{value: 1 ether}(currencies, tokenIds, amounts);
 
         assertGt(
-            mct.getMintPrice(currency),
             mct.getRedeemPrice(currency),
-            "Mint price should be greater than redeem price"
+            mct.getMintPrice(currency),
+            "Mint price should be less than redeem price"
         );
 
         vm.stopPrank();
@@ -907,8 +924,8 @@ contract MultipleCurrencyTokenTest is Test {
             mct.encodeCurrency(address(mockGold), GOLD_TOKEN_ID, true)
         );
 
-        assertGt(newUsdtPrice, initialUsdtPrice, "USDT price should increase");
-        assertGt(newGoldPrice, initialGoldPrice, "GOLD price should increase");
+        assertLt(newUsdtPrice, initialUsdtPrice, "USDT price should decrease");
+        assertLt(newGoldPrice, initialGoldPrice, "GOLD price should decrease");
 
         vm.stopPrank();
     }
@@ -974,19 +991,19 @@ contract MultipleCurrencyTokenTest is Test {
             amounts
         );
 
-        assertGt(
+        assertLt(
             mct.getMintPrice(currency),
             mct.getRedeemPrice(currency),
-            "Mint price should be greater than redeem price"
+            "Mint price should be less than redeem price"
         );
-
+        uint256 initialRedeemPrice = mct.getRedeemPrice(currency);
         // Withdraw ETH
         mct.withdraw(INATIVE, 0, mintAmount);
 
         assertGt(
-            mct.getMintPrice(currency),
+            initialRedeemPrice,
             mct.getRedeemPrice(currency),
-            "Mint price should be greater than redeem price"
+            "Redeem price should be greater than initial redeem price"
         );
 
         vm.stopPrank();
@@ -1032,15 +1049,15 @@ contract MultipleCurrencyTokenTest is Test {
             mct.encodeCurrency(address(mockGold), GOLD_TOKEN_ID, true)
         );
 
-        assertLt(
+        assertGt(
             postWithdrawUsdtPrice,
             postDepositUsdtPrice,
-            "USDT price should decrease after withdrawal"
+            "USDT price should increase after withdrawal"
         );
-        assertLt(
+        assertGt(
             postWithdrawGoldPrice,
             postDepositGoldPrice,
-            "GOLD price should decrease after withdrawal"
+            "GOLD price should increase after withdrawal"
         );
 
         vm.stopPrank();

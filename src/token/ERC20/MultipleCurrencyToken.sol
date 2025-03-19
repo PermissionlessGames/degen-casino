@@ -77,7 +77,7 @@ contract MultipleCurrencyToken is
 
         mintPricingData.setAnchorCurrency(anchorCurrencyBytes, anchorPrice);
         redeemPricingData.setAnchorCurrency(anchorCurrencyBytes, anchorPrice);
-
+        _decimals[anchorCurrencyBytes] = 10 ** currencies[0].decimalCount;
         mintPricingData.setAdjustmentFactor(
             adjustmentNumerator,
             adjustmentDenominator

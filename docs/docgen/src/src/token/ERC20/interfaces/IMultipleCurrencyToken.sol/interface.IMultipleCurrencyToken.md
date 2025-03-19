@@ -1,5 +1,5 @@
 # IMultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/3230342a3988b6f02b8ad28b0ec1006256aaaab6/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/574ed8e157ca14e4798438321c5386a1081b50c8/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
 
 
 ## Functions
@@ -259,7 +259,7 @@ function amountWantedToRedeem(uint256 requestingAmount, address currency, uint25
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`uint256`|amount The amount needed to redeem requested amount|
+|`<none>`|`uint256`|amount The amount needed to redeem the requested amount|
 |`<none>`|`bool`|exists Boolean indicating if the currency exists|
 
 
