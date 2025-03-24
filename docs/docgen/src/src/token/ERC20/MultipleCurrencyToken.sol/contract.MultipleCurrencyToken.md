@@ -1,5 +1,5 @@
 # MultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/574ed8e157ca14e4798438321c5386a1081b50c8/src/token/ERC20/MultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/1d26702b1af6f5c680ab67f00b93e3c8f9072ac9/src/token/ERC20/MultipleCurrencyToken.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard, ERC1155Holder, [IMultipleCurrencyToken](/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol/interface.IMultipleCurrencyToken.md)
@@ -152,10 +152,11 @@ Deposit tokens to mint PCPTokens
 
 
 ```solidity
-function deposit(address[] memory currencies, uint256[] memory tokenIds, uint256[] memory amounts)
+function deposit(MCTTokens memory currency, uint256 amount)
     external
     payable
     virtual
+    override
     nonReentrant
     returns (uint256 mintAmount);
 ```
@@ -163,9 +164,8 @@ function deposit(address[] memory currencies, uint256[] memory tokenIds, uint256
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currencies`|`address[]`|Array of token addresses to deposit (use INATIVE for native currency)|
-|`tokenIds`|`uint256[]`|Array of token IDs for ERC1155 tokens (ignored for ERC20)|
-|`amounts`|`uint256[]`|Array of amounts to deposit for each token|
+|`currency`|`MCTTokens`|The currency to deposit|
+|`amount`|`uint256`|The amount to deposit|
 
 **Returns**
 
@@ -180,21 +180,14 @@ Internal function to handle token deposits
 
 
 ```solidity
-function depositTokens(
-    address[] memory currencies,
-    uint256[] memory tokenIds,
-    uint256[] memory amounts,
-    address caller,
-    uint256 msgValue
-) internal virtual;
+function depositTokens(MCTTokens memory currency, uint256 amount, address caller, uint256 msgValue) internal virtual;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currencies`|`address[]`|Array of token addresses to deposit (use INATIVE for native currency)|
-|`tokenIds`|`uint256[]`|Array of token IDs for ERC1155 tokens (ignored for ERC20)|
-|`amounts`|`uint256[]`|Array of amounts to deposit for each token|
+|`currency`|`MCTTokens`|The currency to deposit|
+|`amount`|`uint256`|The amount to deposit|
 |`caller`|`address`|Address initiating the deposit|
 |`msgValue`|`uint256`|Native currency value sent with transaction|
 
@@ -205,18 +198,19 @@ Estimate the amount of tokens to be minted based on currency price
 
 
 ```solidity
-function estimateDepositAmount(address[] memory currencies, uint256[] memory tokenIds, uint256[] memory deposits)
+function estimateDepositAmount(MCTTokens memory currency, uint256 depositAmount)
     public
     view
+    virtual
+    override
     returns (uint256 amount);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currencies`|`address[]`|Array of currency addresses to deposit|
-|`tokenIds`|`uint256[]`|Array of token IDs for ERC1155 tokens (ignored for ERC20)|
-|`deposits`|`uint256[]`|Array of amounts to deposit for each currency|
+|`currency`|`MCTTokens`|The currency to deposit|
+|`depositAmount`|`uint256`||
 
 **Returns**
 
@@ -243,9 +237,10 @@ Withdraw tokens from the contract
 
 
 ```solidity
-function withdraw(address currency, uint256 tokenId, uint256 amountIn)
+function withdraw(MCTTokens memory currency, uint256 amountIn)
     external
     virtual
+    override
     nonReentrant
     returns (uint256 amountOut);
 ```
@@ -253,8 +248,7 @@ function withdraw(address currency, uint256 tokenId, uint256 amountIn)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currency`|`address`|The address of the currency to withdraw|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`currency`|`MCTTokens`|The currency to withdraw|
 |`amountIn`|`uint256`|The amount of PCP tokens to burn|
 
 **Returns**
@@ -270,7 +264,7 @@ Estimate the amount of tokens to be withdrawn based on currency price
 
 
 ```solidity
-function estimateWithdrawAmount(address currency, uint256 tokenId, uint256 amountIn)
+function estimateWithdrawAmount(MCTTokens memory currency, uint256 amountIn)
     public
     view
     virtual
@@ -280,8 +274,7 @@ function estimateWithdrawAmount(address currency, uint256 tokenId, uint256 amoun
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currency`|`address`|The address of the currency to withdraw|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`currency`|`MCTTokens`|The currency to withdraw|
 |`amountIn`|`uint256`|The amount of PCP tokens to burn|
 
 **Returns**
@@ -297,7 +290,7 @@ Get the list of tokens and their properties
 
 
 ```solidity
-function getTokens() external view virtual returns (address[] memory, uint256[] memory, bool[] memory);
+function getTokens() external view virtual override returns (address[] memory, uint256[] memory, bool[] memory);
 ```
 **Returns**
 
@@ -314,7 +307,7 @@ Get the price ratios for minting and redeeming
 
 
 ```solidity
-function getTokenPriceRatios(address[] memory treasuryTokens, uint256[] memory tokenIds)
+function getTokenPriceRatios(MCTTokens[] memory currencies)
     external
     view
     virtual
@@ -324,8 +317,7 @@ function getTokenPriceRatios(address[] memory treasuryTokens, uint256[] memory t
 
 |Name|Type|Description|
 |----|----|-----------|
-|`treasuryTokens`|`address[]`|Array of token addresses to get price ratios for|
-|`tokenIds`|`uint256[]`|Array of token IDs for ERC1155 tokens (ignored for ERC20)|
+|`currencies`|`MCTTokens[]`|Array of token addresses to get price ratios for|
 
 **Returns**
 
@@ -341,15 +333,13 @@ Encode a currency into a bytes array
 
 
 ```solidity
-function encodeCurrency(address currency, uint256 tokenId, bool is1155) public pure virtual returns (bytes memory);
+function encodeCurrency(MCTTokens memory currency) public pure virtual override returns (bytes memory);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currency`|`address`|The address of the currency|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The currency to encode|
 
 **Returns**
 
@@ -364,7 +354,7 @@ Get the mint price for a currency
 
 
 ```solidity
-function getMintPrice(bytes memory currency) public view virtual returns (uint256);
+function getMintPrice(bytes memory currency) public view virtual override returns (uint256);
 ```
 **Parameters**
 
@@ -406,15 +396,13 @@ Check if a currency exists
 
 
 ```solidity
-function doesCurrencyExist(address currency, uint256 tokenId, bool is1155) public view virtual returns (bool);
+function doesCurrencyExist(MCTTokens memory currency) public view virtual override returns (bool);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currency`|`address`|The address of the currency|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The currency to check|
 
 **Returns**
 
@@ -429,10 +417,11 @@ Get the amount needed to mint a currency
 
 
 ```solidity
-function amountNeededToMint(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
+function amountNeededToMint(uint256 requestingAmount, MCTTokens memory currency)
     public
     view
     virtual
+    override
     returns (uint256, bool);
 ```
 **Parameters**
@@ -440,9 +429,7 @@ function amountNeededToMint(uint256 requestingAmount, address currency, uint256 
 |Name|Type|Description|
 |----|----|-----------|
 |`requestingAmount`|`uint256`|The amount of MCT tokens to mint|
-|`currency`|`address`|The address of the currency wanting to deposit|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The currency wanting to deposit|
 
 **Returns**
 
@@ -458,10 +445,11 @@ Get the amount wanted to redeem a currency
 
 
 ```solidity
-function amountWantedToRedeem(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
+function amountWantedToRedeem(uint256 requestingAmount, MCTTokens memory currency)
     public
     view
     virtual
+    override
     returns (uint256, bool);
 ```
 **Parameters**
@@ -469,9 +457,7 @@ function amountWantedToRedeem(uint256 requestingAmount, address currency, uint25
 |Name|Type|Description|
 |----|----|-----------|
 |`requestingAmount`|`uint256`|The amount of treasury tokens to redeem|
-|`currency`|`address`|The address of the currency to redeem|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The currency wanting to redeem|
 
 **Returns**
 
@@ -480,6 +466,13 @@ function amountWantedToRedeem(uint256 requestingAmount, address currency, uint25
 |`<none>`|`uint256`|amount The amount needed to redeem requested amount|
 |`<none>`|`bool`|exists Boolean indicating if the currency exists|
 
+
+### supportsInterface
+
+
+```solidity
+function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool);
+```
 
 ### receive
 

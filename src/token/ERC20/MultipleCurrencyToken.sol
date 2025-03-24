@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../../libraries/PCPricing.sol";
 import "./interfaces/IMultipleCurrencyToken.sol";
+import {CreatePricingDataParams, MCTTokens} from "./structs/MCTStructs.sol";
 
 contract MultipleCurrencyToken is
     ERC20,
@@ -67,10 +68,13 @@ contract MultipleCurrencyToken is
         INATIVE = inative;
         require(currencies.length > 0, "Must provide at least one currency");
         uint256 anchorPrice = currencies[0].price;
+
         bytes memory anchorCurrencyBytes = encodeCurrency(
-            currencies[0].currency,
-            currencies[0].tokenId,
-            currencies[0].is1155
+            MCTTokens({
+                currency: currencies[0].currency,
+                tokenId: currencies[0].tokenId,
+                is1155: currencies[0].is1155
+            })
         );
         tokenIs1155[currencies[0].currency] = currencies[0].is1155;
         _tokens.push(currencies[0]);
@@ -100,31 +104,28 @@ contract MultipleCurrencyToken is
     function addNewPricingData(
         CreatePricingDataParams memory _createPricingDataParams
     ) internal virtual {
-        bytes memory currency = encodeCurrency(
-            _createPricingDataParams.currency,
-            _createPricingDataParams.tokenId,
-            _createPricingDataParams.is1155
-        );
+        MCTTokens memory currency;
+        currency.currency = _createPricingDataParams.currency;
+        currency.tokenId = _createPricingDataParams.tokenId;
+        currency.is1155 = _createPricingDataParams.is1155;
+        bytes memory currencyBytes = encodeCurrency(currency);
         mintPricingData.setCurrencyPrice(
-            currency,
+            currencyBytes,
             _createPricingDataParams.price
         );
         redeemPricingData.setCurrencyPrice(
-            currency,
+            currencyBytes,
             _createPricingDataParams.price
         );
-        tokenIs1155[
-            _createPricingDataParams.currency
-        ] = _createPricingDataParams.is1155;
+        tokenIs1155[currency.currency] = currency.is1155;
         _tokens.push(_createPricingDataParams);
-        _decimals[currency] = 10 ** _createPricingDataParams.decimalCount;
+        _decimals[currencyBytes] = 10 ** _createPricingDataParams.decimalCount;
         emit NewPricingDataAdded(_createPricingDataParams);
     }
 
     /// @notice Deposit tokens to mint PCPTokens
-    /// @param currencies Array of token addresses to deposit (use INATIVE for native currency)
-    /// @param tokenIds Array of token IDs for ERC1155 tokens (ignored for ERC20)
-    /// @param amounts Array of amounts to deposit for each token
+    /// @param currency The currency to deposit
+    /// @param amount The amount to deposit
     /// @return mintAmount The amount of PCPTokens minted
     /// @dev For each token:
     /// @dev - If native currency (ETH), amount must match msg.value
@@ -132,101 +133,80 @@ contract MultipleCurrencyToken is
     /// @dev - If ERC20, transfers specified amount
     /// @dev Mints PCPTokens based on deposit value calculated from pricing data
     function deposit(
-        address[] memory currencies,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts
-    ) external payable virtual nonReentrant returns (uint256 mintAmount) {
-        require(
-            currencies.length == amounts.length &&
-                tokenIds.length == amounts.length,
-            "Mismatched array lengths"
-        );
-
-        mintAmount = estimateDepositAmount(currencies, tokenIds, amounts);
+        MCTTokens memory currency,
+        uint256 amount
+    )
+        external
+        payable
+        virtual
+        override
+        nonReentrant
+        returns (uint256 mintAmount)
+    {
+        mintAmount = estimateDepositAmount(currency, amount);
         require(mintAmount > 0, "Mint amount too small");
         {
             uint256 msgValue = msg.value;
-            depositTokens(currencies, tokenIds, amounts, msg.sender, msgValue);
+            depositTokens(currency, amount, msg.sender, msgValue);
         }
 
         _mint(msg.sender, mintAmount);
     }
 
     /// @notice Internal function to handle token deposits
-    /// @param currencies Array of token addresses to deposit (use INATIVE for native currency)
-    /// @param tokenIds Array of token IDs for ERC1155 tokens (ignored for ERC20)
-    /// @param amounts Array of amounts to deposit for each token
+    /// @param currency The currency to deposit
+    /// @param amount The amount to deposit
     /// @param caller Address initiating the deposit
     /// @param msgValue Native currency value sent with transaction
     function depositTokens(
-        address[] memory currencies,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
+        MCTTokens memory currency,
+        uint256 amount,
         address caller,
         uint256 msgValue
     ) internal virtual {
-        for (uint256 i = 0; i < currencies.length; i++) {
-            require(amounts[i] > 0, "Amount must be greater than 0");
-            if (currencies[i] != INATIVE) {
-                if (tokenIs1155[currencies[i]]) {
-                    IERC1155(currencies[i]).safeTransferFrom(
-                        caller,
-                        address(this),
-                        tokenIds[i],
-                        amounts[i],
-                        ""
-                    );
-                } else {
-                    IERC20(currencies[i]).safeTransferFrom(
-                        caller,
-                        address(this),
-                        amounts[i]
-                    );
-                }
-            } else {
-                require(amounts[i] == msgValue, "Insufficient native value");
-                //In case of multiple cases of Native being passed in.
-                msgValue = 0;
-            }
-
-            if (currencies[i] != _tokens[0].currency) {
-                bytes memory currency = encodeCurrency(
-                    currencies[i],
-                    tokenIds[i],
-                    tokenIs1155[currencies[i]]
+        if (currency.currency != INATIVE) {
+            if (currency.is1155) {
+                IERC1155(currency.currency).safeTransferFrom(
+                    caller,
+                    address(this),
+                    currency.tokenId,
+                    amount,
+                    ""
                 );
-                mintPricingData.adjustCurrencyPrice(currency, false);
             } else {
-                mintPricingData.adjustAllNonAnchorPrices(true);
+                IERC20(currency.currency).safeTransferFrom(
+                    caller,
+                    address(this),
+                    amount
+                );
             }
+        } else {
+            require(amount == msgValue, "Insufficient native value");
+        }
+
+        if (currency.currency != _tokens[0].currency) {
+            bytes memory currencyBytes = encodeCurrency(currency);
+            mintPricingData.adjustCurrencyPrice(currencyBytes, false);
+        } else {
+            mintPricingData.adjustAllNonAnchorPrices(true);
         }
     }
 
     /// @notice Estimate the amount of tokens to be minted based on currency price
-    /// @param currencies Array of currency addresses to deposit
-    /// @param tokenIds Array of token IDs for ERC1155 tokens (ignored for ERC20)
-    /// @param deposits Array of amounts to deposit for each currency
+    /// @param currency The currency to deposit
+    /// @param amount The amount to deposit
     /// @return amount The estimated amount of tokens to be minted
     function estimateDepositAmount(
-        address[] memory currencies,
-        uint256[] memory tokenIds,
-        uint256[] memory deposits
-    ) public view returns (uint256 amount) {
-        for (uint256 i = 0; i < currencies.length; i++) {
-            bytes memory currency = encodeCurrency(
-                currencies[i],
-                tokenIds[i],
-                tokenIs1155[currencies[i]]
-            );
-            uint256 ratio = getMintPrice(currency);
-            uint256 price = (deposits[i] * ratio) / _decimals[currency];
-            amount += price;
-        }
+        MCTTokens memory currency,
+        uint256 depositAmount
+    ) public view virtual override returns (uint256 amount) {
+        bytes memory currencyBytes = encodeCurrency(currency);
+        uint256 ratio = getMintPrice(currencyBytes);
+        amount = (depositAmount * ratio) / _decimals[currencyBytes];
     }
 
     /// @notice Withdraw tokens from the contract
-    /// @param currency The address of the currency to withdraw
-    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
+    /// @param currency The currency to withdraw
     /// @param amountIn The amount of PCP tokens to burn
     /// @return amountOut The amount of tokens withdrawn
     /// @dev Burns PCP tokens and returns the underlying assets
@@ -236,36 +216,33 @@ contract MultipleCurrencyToken is
     /// @dev For ERC20 tokens, uses safeTransfer
     /// @dev For native, uses call
     function withdraw(
-        address currency,
-        uint256 tokenId,
+        MCTTokens memory currency,
         uint256 amountIn
-    ) external virtual nonReentrant returns (uint256 amountOut) {
+    ) external virtual override nonReentrant returns (uint256 amountOut) {
         require(amountIn > 0, "Invalid withdraw amount");
         require(balanceOf(msg.sender) >= amountIn, "Insufficient balance");
-        amountOut = estimateWithdrawAmount(currency, tokenId, amountIn);
+        amountOut = estimateWithdrawAmount(currency, amountIn);
         require(amountOut > 0, "Insufficient balance");
-        if (currency != _tokens[0].currency) {
-            redeemPricingData.adjustCurrencyPrice(
-                encodeCurrency(currency, tokenId, tokenIs1155[currency]),
-                true
-            );
+        if (currency.currency != _tokens[0].currency) {
+            bytes memory currencyBytes = encodeCurrency(currency);
+            redeemPricingData.adjustCurrencyPrice(currencyBytes, true);
         } else {
             redeemPricingData.adjustAllNonAnchorPrices(false);
         }
 
         _burn(msg.sender, amountIn);
 
-        if (currency != INATIVE) {
-            if (tokenIs1155[currency]) {
-                IERC1155(currency).safeTransferFrom(
+        if (currency.currency != INATIVE) {
+            if (currency.is1155) {
+                IERC1155(currency.currency).safeTransferFrom(
                     address(this),
                     msg.sender,
-                    tokenId,
+                    currency.tokenId,
                     amountOut,
                     ""
                 );
             } else {
-                IERC20(currency).safeTransfer(msg.sender, amountOut);
+                IERC20(currency.currency).safeTransfer(msg.sender, amountOut);
             }
         } else {
             address payable _to = payable(msg.sender);
@@ -275,34 +252,35 @@ contract MultipleCurrencyToken is
     }
 
     /// @notice Estimate the amount of tokens to be withdrawn based on currency price
-    /// @param currency The address of the currency to withdraw
-    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
+    /// @param currency The currency to withdraw
     /// @param amountIn The amount of PCP tokens to burn
     /// @return amountOut The estimated amount of tokens to be withdrawn
     function estimateWithdrawAmount(
-        address currency,
-        uint256 tokenId,
+        MCTTokens memory currency,
         uint256 amountIn
     ) public view virtual returns (uint256 amountOut) {
-        bytes memory _currency = encodeCurrency(
-            currency,
-            tokenId,
-            tokenIs1155[currency]
-        );
+        bytes memory _currency = encodeCurrency(currency);
         uint256 price = getRedeemPrice(_currency);
         amountOut = (amountIn * _decimals[_currency]) / price;
-        if (currency == INATIVE) {
+        if (currency.currency == INATIVE) {
             amountOut = amountOut > address(this).balance
                 ? address(this).balance
                 : amountOut;
-        } else if (tokenIs1155[currency]) {
+        } else if (currency.is1155) {
             amountOut = amountOut >
-                IERC1155(currency).balanceOf(address(this), tokenId)
-                ? IERC1155(currency).balanceOf(address(this), tokenId)
+                IERC1155(currency.currency).balanceOf(
+                    address(this),
+                    currency.tokenId
+                )
+                ? IERC1155(currency.currency).balanceOf(
+                    address(this),
+                    currency.tokenId
+                )
                 : amountOut;
         } else {
-            amountOut = amountOut > IERC20(currency).balanceOf(address(this))
-                ? IERC20(currency).balanceOf(address(this))
+            amountOut = amountOut >
+                IERC20(currency.currency).balanceOf(address(this))
+                ? IERC20(currency.currency).balanceOf(address(this))
                 : amountOut;
         }
     }
@@ -315,6 +293,7 @@ contract MultipleCurrencyToken is
         external
         view
         virtual
+        override
         returns (address[] memory, uint256[] memory, bool[] memory)
     {
         address[] memory currencies = new address[](_tokens.length);
@@ -329,45 +308,35 @@ contract MultipleCurrencyToken is
     }
 
     /// @notice Get the price ratios for minting and redeeming
-    /// @param treasuryTokens Array of token addresses to get price ratios for
-    /// @param tokenIds Array of token IDs for ERC1155 tokens (ignored for ERC20)
+    /// @param currencies Array of token addresses to get price ratios for
     /// @return mintPriceRatios Array of mint price ratios
     /// @return redeemPriceRatios Array of redeem price ratios
     function getTokenPriceRatios(
-        address[] memory treasuryTokens,
-        uint256[] memory tokenIds
+        MCTTokens[] memory currencies
     ) external view virtual returns (uint256[] memory, uint256[] memory) {
-        uint256[] memory mintPriceRatios = new uint256[](treasuryTokens.length);
-        uint256[] memory redeemPriceRatios = new uint256[](
-            treasuryTokens.length
-        );
-        require(
-            treasuryTokens.length == tokenIds.length,
-            "Mismatched array lengths"
-        );
-        for (uint256 i = 0; i < treasuryTokens.length; i++) {
-            bytes memory currency = encodeCurrency(
-                treasuryTokens[i],
-                tokenIds[i],
-                tokenIs1155[treasuryTokens[i]]
-            );
-            mintPriceRatios[i] = getMintPrice(currency);
-            redeemPriceRatios[i] = getRedeemPrice(currency);
+        uint256[] memory mintPriceRatios = new uint256[](currencies.length);
+        uint256[] memory redeemPriceRatios = new uint256[](currencies.length);
+
+        for (uint256 i = 0; i < currencies.length; i++) {
+            bytes memory currencyBytes = encodeCurrency(currencies[i]);
+            mintPriceRatios[i] = getMintPrice(currencyBytes);
+            redeemPriceRatios[i] = getRedeemPrice(currencyBytes);
         }
         return (mintPriceRatios, redeemPriceRatios);
     }
 
     /// @notice Encode a currency into a bytes array
-    /// @param currency The address of the currency
-    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
-    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @param currency The currency to encode
     /// @return currencyBytes The encoded currency
     function encodeCurrency(
-        address currency,
-        uint256 tokenId,
-        bool is1155
-    ) public pure virtual returns (bytes memory) {
-        return abi.encodePacked(currency, tokenId, is1155);
+        MCTTokens memory currency
+    ) public pure virtual override returns (bytes memory) {
+        return
+            abi.encodePacked(
+                currency.currency,
+                currency.tokenId,
+                currency.is1155
+            );
     }
 
     /// @notice Get the mint price for a currency
@@ -375,7 +344,7 @@ contract MultipleCurrencyToken is
     /// @return price The mint price
     function getMintPrice(
         bytes memory currency
-    ) public view virtual returns (uint256) {
+    ) public view virtual override returns (uint256) {
         return
             mintPricingData.getCurrencyPrice(currency) <
                 redeemPricingData.getCurrencyPrice(currency)
@@ -397,34 +366,23 @@ contract MultipleCurrencyToken is
     }
 
     /// @notice Check if a currency exists
-    /// @param currency The address of the currency
-    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
-    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @param currency The currency to check
     /// @return exists Boolean indicating if the currency exists
     function doesCurrencyExist(
-        address currency,
-        uint256 tokenId,
-        bool is1155
-    ) public view virtual returns (bool) {
-        return
-            mintPricingData.currencyExists(
-                encodeCurrency(currency, tokenId, is1155)
-            );
+        MCTTokens memory currency
+    ) public view virtual override returns (bool) {
+        return mintPricingData.currencyExists(encodeCurrency(currency));
     }
 
     /// @notice Get the amount needed to mint a currency
     /// @param requestingAmount The amount of MCT tokens to mint
-    /// @param currency The address of the currency wanting to deposit
-    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
-    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @param currency The currency wanting to deposit
     /// @return amount The amount needed of treasury tokens to mint
     function amountNeededToMint(
         uint256 requestingAmount,
-        address currency,
-        uint256 tokenId,
-        bool is1155
-    ) public view virtual returns (uint256, bool) {
-        bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
+        MCTTokens memory currency
+    ) public view virtual override returns (uint256, bool) {
+        bytes memory _currency = encodeCurrency(currency);
         if (mintPricingData.currencyExists(_currency)) {
             uint256 price = getMintPrice(_currency);
             return ((requestingAmount * _decimals[_currency]) / price, true);
@@ -435,21 +393,18 @@ contract MultipleCurrencyToken is
 
     /// @notice Get the amount wanted to redeem a currency
     /// @param requestingAmount The amount of treasury tokens to redeem
-    /// @param currency The address of the currency to redeem
-    /// @param tokenId The token ID for ERC1155 tokens (ignored for ERC20)
-    /// @param is1155 Boolean indicating if the token is an ERC1155
+    /// @param currency The currency wanting to redeem
     /// @return amount The amount needed to redeem requested amount
     /// @return exists Boolean indicating if the currency exists
     function amountWantedToRedeem(
         uint256 requestingAmount,
-        address currency,
-        uint256 tokenId,
-        bool is1155
-    ) public view virtual returns (uint256, bool) {
-        bytes memory _currency = encodeCurrency(currency, tokenId, is1155);
+        MCTTokens memory currency
+    ) public view virtual override returns (uint256, bool) {
+        bytes memory _currency = encodeCurrency(currency);
         if (
             redeemPricingData.currencyExists(_currency) &&
-            requestingAmount <= IERC20(currency).balanceOf(address(this))
+            requestingAmount <=
+            IERC20(currency.currency).balanceOf(address(this))
         ) {
             uint256 price = getRedeemPrice(_currency);
             uint256 amount = (requestingAmount * price) / _decimals[_currency];
@@ -457,6 +412,14 @@ contract MultipleCurrencyToken is
         } else {
             return (0, false);
         }
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IMultipleCurrencyToken).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /// @notice Receive function to allow contract to receive native currency

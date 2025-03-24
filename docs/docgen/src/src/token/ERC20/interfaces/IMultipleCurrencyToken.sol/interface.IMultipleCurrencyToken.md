@@ -1,5 +1,5 @@
 # IMultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/574ed8e157ca14e4798438321c5386a1081b50c8/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/1d26702b1af6f5c680ab67f00b93e3c8f9072ac9/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
 
 
 ## Functions
@@ -30,15 +30,13 @@ Encode a currency into a bytes array
 
 
 ```solidity
-function encodeCurrency(address currency, uint256 tokenId, bool is1155) external pure returns (bytes memory);
+function encodeCurrency(MCTTokens memory currency) external pure returns (bytes memory);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currency`|`address`|The address of the currency|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The address of the currency|
 
 **Returns**
 
@@ -95,18 +93,14 @@ Deposit a currency
 
 
 ```solidity
-function deposit(address[] memory currencies, uint256[] memory tokenIds, uint256[] memory amounts)
-    external
-    payable
-    returns (uint256 mintAmount);
+function deposit(MCTTokens memory currency, uint256 amount) external payable returns (uint256 mintAmount);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currencies`|`address[]`|The addresses of the currencies|
-|`tokenIds`|`uint256[]`|The token IDs|
-|`amounts`|`uint256[]`|The amounts to deposit|
+|`currency`|`MCTTokens`|The address of the currency|
+|`amount`|`uint256`|The amount to deposit|
 
 **Returns**
 
@@ -121,14 +115,13 @@ Withdraw a currency
 
 
 ```solidity
-function withdraw(address currency, uint256 tokenId, uint256 amountIn) external returns (uint256 amountOut);
+function withdraw(MCTTokens memory currency, uint256 amountIn) external returns (uint256 amountOut);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currency`|`address`|The address of the currency|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
+|`currency`|`MCTTokens`|The address of the currency|
 |`amountIn`|`uint256`|The amount to withdraw|
 
 **Returns**
@@ -144,7 +137,7 @@ Estimate the deposit amount for a currency
 
 
 ```solidity
-function estimateDepositAmount(address[] memory currencies, uint256[] memory tokenIds, uint256[] memory deposits)
+function estimateDepositAmount(MCTTokens memory currency, uint256 depositAmount)
     external
     view
     returns (uint256 amount);
@@ -153,9 +146,8 @@ function estimateDepositAmount(address[] memory currencies, uint256[] memory tok
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currencies`|`address[]`|The addresses of the currencies|
-|`tokenIds`|`uint256[]`|The token IDs|
-|`deposits`|`uint256[]`|The amounts to deposit|
+|`currency`|`MCTTokens`|The address of the currency|
+|`depositAmount`|`uint256`|The amount to deposit|
 
 **Returns**
 
@@ -190,15 +182,13 @@ Check if a currency exists
 
 
 ```solidity
-function doesCurrencyExist(address currency, uint256 tokenId, bool is1155) external view returns (bool);
+function doesCurrencyExist(MCTTokens memory currency) external view returns (bool);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`currency`|`address`|The address of the currency|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The address of the currency|
 
 **Returns**
 
@@ -213,7 +203,7 @@ Get the amount needed to mint a currency
 
 
 ```solidity
-function amountNeededToMint(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
+function amountNeededToMint(uint256 requestingAmount, MCTTokens memory currency)
     external
     view
     returns (uint256, bool);
@@ -223,9 +213,7 @@ function amountNeededToMint(uint256 requestingAmount, address currency, uint256 
 |Name|Type|Description|
 |----|----|-----------|
 |`requestingAmount`|`uint256`|The amount of tokens to mint|
-|`currency`|`address`|The address of the currency|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The address of the currency|
 
 **Returns**
 
@@ -241,7 +229,7 @@ Get the amount wanted to redeem a currency
 
 
 ```solidity
-function amountWantedToRedeem(uint256 requestingAmount, address currency, uint256 tokenId, bool is1155)
+function amountWantedToRedeem(uint256 requestingAmount, MCTTokens memory currency)
     external
     view
     returns (uint256, bool);
@@ -251,9 +239,7 @@ function amountWantedToRedeem(uint256 requestingAmount, address currency, uint25
 |Name|Type|Description|
 |----|----|-----------|
 |`requestingAmount`|`uint256`|The amount of tokens to redeem|
-|`currency`|`address`|The address of the currency|
-|`tokenId`|`uint256`|The token ID for ERC1155 tokens (ignored for ERC20)|
-|`is1155`|`bool`|Boolean indicating if the token is an ERC1155|
+|`currency`|`MCTTokens`|The address of the currency|
 
 **Returns**
 
@@ -277,19 +263,4 @@ event NewPricingDataAdded(CreatePricingDataParams pricingData);
 |Name|Type|Description|
 |----|----|-----------|
 |`pricingData`|`CreatePricingDataParams`|The new pricing data|
-
-## Structs
-### CreatePricingDataParams
-Struct defining the parameters for creating pricing data
-
-
-```solidity
-struct CreatePricingDataParams {
-    address currency;
-    uint256 price;
-    uint256 decimalCount;
-    bool is1155;
-    uint256 tokenId;
-}
-```
 
