@@ -18,12 +18,7 @@ contract DevPCPricing {
     /// @param anchorPrice The starting price of the anchor currency
     /// @param adjNumerator The numerator of the adjustment percentage
     /// @param adjDenominator The denominator of the adjustment percentage
-    constructor(
-        bytes memory anchorCurrency,
-        uint256 anchorPrice,
-        uint256 adjNumerator,
-        uint256 adjDenominator
-    ) {
+    constructor(bytes memory anchorCurrency, uint256 anchorPrice, uint256 adjNumerator, uint256 adjDenominator) {
         pricingData.setAnchorCurrency(anchorCurrency, anchorPrice);
         pricingData.setAdjustmentFactor(adjNumerator, adjDenominator);
     }
@@ -34,10 +29,7 @@ contract DevPCPricing {
     }
 
     /// @notice Manually adjust a currency price
-    function adjustCurrencyPrice(
-        bytes memory currency,
-        bool increase
-    ) external {
+    function adjustCurrencyPrice(bytes memory currency, bool increase) external {
         pricingData.adjustCurrencyPrice(currency, increase);
     }
 
@@ -51,45 +43,29 @@ contract DevPCPricing {
     /// @param increase Whether to increase or decrease prices
     /// @param batchSize Maximum number of currencies to process
     /// @return processedCount Number of currencies processed
-    function adjustNonAnchorPricesBatch(
-        bool increase,
-        uint256 batchSize
-    ) external returns (uint256) {
+    function adjustNonAnchorPricesBatch(bool increase, uint256 batchSize) external returns (uint256) {
         return pricingData.adjustNonAnchorPricesBatch(increase, batchSize);
     }
 
     /// @notice Get the current state of batch processing
     /// @return lastProcessedIndex The index where processing will resume
     /// @return totalCurrencies Total number of tracked currencies
-    function getBatchProcessingState()
-        external
-        view
-        returns (uint256 lastProcessedIndex, uint256 totalCurrencies)
-    {
+    function getBatchProcessingState() external view returns (uint256 lastProcessedIndex, uint256 totalCurrencies) {
         return pricingData.getBatchProcessingState();
     }
 
     /// @notice Get a specific currency price
-    function getCurrencyPrice(
-        bytes memory currency
-    ) external view returns (uint256) {
+    function getCurrencyPrice(bytes memory currency) external view returns (uint256) {
         return pricingData.getCurrencyPrice(currency);
     }
 
     /// @notice Retrieve all stored currency prices
-    function getAllCurrencyPrices()
-        external
-        view
-        returns (bytes[] memory, uint256[] memory)
-    {
+    function getAllCurrencyPrices() external view returns (bytes[] memory, uint256[] memory) {
         return pricingData.getAllCurrencyPrices();
     }
 
     function getAdjustmentFactor() external view returns (uint256, uint256) {
-        return (
-            pricingData.adjustmentNumerator,
-            pricingData.adjustmentDenominator
-        );
+        return (pricingData.adjustmentNumerator, pricingData.adjustmentDenominator);
     }
 
     /// @notice Get the anchor currency
@@ -103,16 +79,12 @@ contract DevPCPricing {
     }
 
     /// @notice Get the index of a specific currency
-    function getCurrencyIndex(
-        bytes memory currency
-    ) external view returns (uint256) {
+    function getCurrencyIndex(bytes memory currency) external view returns (uint256) {
         return pricingData.currencyIndex[currency];
     }
 
     /// @notice Check if a currency exists in the system
-    function currencyExists(
-        bytes memory currency
-    ) external view returns (bool) {
+    function currencyExists(bytes memory currency) external view returns (bool) {
         return pricingData.currencyExists(currency);
     }
 

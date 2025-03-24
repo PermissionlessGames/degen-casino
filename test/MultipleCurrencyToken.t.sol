@@ -46,8 +46,7 @@ contract MultipleCurrencyTokenTest is Test {
         vm.deal(user2, 100 ether);
 
         // Create initial currencies array for constructor
-        CreatePricingDataParams[]
-            memory initialCurrencies = new CreatePricingDataParams[](4);
+        CreatePricingDataParams[] memory initialCurrencies = new CreatePricingDataParams[](4);
 
         // ETH as anchor currency
         initialCurrencies[0] = CreatePricingDataParams({
@@ -111,15 +110,9 @@ contract MultipleCurrencyTokenTest is Test {
     }
 
     function testConstructorEvents() public {
-        CreatePricingDataParams[]
-            memory initialCurrencies = new CreatePricingDataParams[](2);
-        initialCurrencies[0] = CreatePricingDataParams({
-            currency: INATIVE,
-            price: 1e18,
-            decimalCount: 18,
-            is1155: false,
-            tokenId: 0
-        });
+        CreatePricingDataParams[] memory initialCurrencies = new CreatePricingDataParams[](2);
+        initialCurrencies[0] =
+            CreatePricingDataParams({currency: INATIVE, price: 1e18, decimalCount: 18, is1155: false, tokenId: 0});
         initialCurrencies[1] = CreatePricingDataParams({
             currency: address(mockUsdt),
             price: 1e6,
@@ -131,51 +124,23 @@ contract MultipleCurrencyTokenTest is Test {
         vm.expectEmit(true, true, true, true);
         emit NewPricingDataAdded(initialCurrencies[1]);
 
-        new MultipleCurrencyToken(
-            "Test Token",
-            "TEST",
-            INATIVE,
-            5,
-            100,
-            initialCurrencies
-        );
+        new MultipleCurrencyToken("Test Token", "TEST", INATIVE, 5, 100, initialCurrencies);
     }
 
     // Additional Constructor Tests
     function testRevertConstructorWithEmptyCurrencies() public {
-        CreatePricingDataParams[]
-            memory emptyCurrencies = new CreatePricingDataParams[](0);
+        CreatePricingDataParams[] memory emptyCurrencies = new CreatePricingDataParams[](0);
         vm.expectRevert("Must provide at least one currency");
-        new MultipleCurrencyToken(
-            "Test Token",
-            "TEST",
-            INATIVE,
-            5,
-            100,
-            emptyCurrencies
-        );
+        new MultipleCurrencyToken("Test Token", "TEST", INATIVE, 5, 100, emptyCurrencies);
     }
 
     function testRevertConstructorWithZeroPrice() public {
-        CreatePricingDataParams[]
-            memory currencies = new CreatePricingDataParams[](1);
-        currencies[0] = CreatePricingDataParams({
-            currency: INATIVE,
-            price: 0,
-            decimalCount: 18,
-            is1155: false,
-            tokenId: 0
-        });
+        CreatePricingDataParams[] memory currencies = new CreatePricingDataParams[](1);
+        currencies[0] =
+            CreatePricingDataParams({currency: INATIVE, price: 0, decimalCount: 18, is1155: false, tokenId: 0});
 
         vm.expectRevert("Anchor price must be greater than 0");
-        new MultipleCurrencyToken(
-            "Test Token",
-            "TEST",
-            INATIVE,
-            5,
-            100,
-            currencies
-        );
+        new MultipleCurrencyToken("Test Token", "TEST", INATIVE, 5, 100, currencies);
     }
 
     // Deposit Tests
@@ -189,15 +154,8 @@ contract MultipleCurrencyTokenTest is Test {
 
         uint256 amount = 1e18;
 
-        uint256 expectedMintAmount = mct.estimateDepositAmount(
-            currency,
-            amount
-        );
-        assertGt(
-            expectedMintAmount,
-            0,
-            "Expected mint amount should be greater than 0"
-        );
+        uint256 expectedMintAmount = mct.estimateDepositAmount(currency, amount);
+        assertGt(expectedMintAmount, 0, "Expected mint amount should be greater than 0");
 
         vm.expectEmit(true, true, true, true);
         emit Transfer(address(0), user1, expectedMintAmount);
@@ -222,10 +180,7 @@ contract MultipleCurrencyTokenTest is Test {
 
         uint256 amount = 100e18;
 
-        uint256 expectedMintAmount = mct.estimateDepositAmount(
-            currency,
-            amount
-        );
+        uint256 expectedMintAmount = mct.estimateDepositAmount(currency, amount);
 
         uint256 mintAmount = mct.deposit(currency, amount);
 
@@ -248,10 +203,7 @@ contract MultipleCurrencyTokenTest is Test {
 
         uint256 amount = 1;
 
-        uint256 expectedMintAmount = mct.estimateDepositAmount(
-            currency,
-            amount
-        );
+        uint256 expectedMintAmount = mct.estimateDepositAmount(currency, amount);
 
         uint256 mintAmount = mct.deposit(currency, amount);
 
