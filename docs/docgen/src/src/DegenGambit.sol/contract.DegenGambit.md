@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/ef8d538c1a23b79c05b6f27a0482ce3f603e86ec/src/DegenGambit.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/aee9a7474b4ddc72ec31b9d93b5170663c8c0fd0/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -61,6 +61,15 @@ The Gambit Prize for having at least 1 major symbol and nothing else
 
 ```solidity
 uint256 public constant MajorGambitPrize = 1e18;
+```
+
+
+### BoostedSpinCost
+The cost of a boosted spin.
+
+
+```solidity
+uint256 public constant BoostedSpinCost = 1e18;
 ```
 
 
@@ -481,7 +490,7 @@ tokens represent bonus spins. The symbol for this contract is GAMBIT.
 
 
 ```solidity
-constructor(uint256 blocksToAct, uint256 costToSpin, uint256 costToRespin) ERC20("Degen's Gambit", "GAMBIT");
+constructor(uint256 blocksToAct, uint256 costToSpin, uint256 costToRespin) ERC20("Degen Gambit", "GAMBIT");
 ```
 
 ### receive
