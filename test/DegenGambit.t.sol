@@ -7,7 +7,7 @@ import {ArbSys} from "../src/ArbSys.sol";
 import {DevDegenGambit} from "../src/dev/DevDegenGambit.sol";
 
 contract ArbSysMock is ArbSys {
-    function arbBlockNumber() external view returns (uint) {
+    function arbBlockNumber() external view returns (uint256) {
         return block.number;
     }
 
@@ -46,9 +46,7 @@ contract DegenGambitTest is Test {
         vm.etch(address(100), address(arbSys).code);
     }
 
-    function test_spinCost_discount_in_and_only_in_first_blocksToAct_blocks_on_chain()
-        public
-    {
+    function test_spinCost_discount_in_and_only_in_first_blocksToAct_blocks_on_chain() public {
         uint256 i;
         for (i = 1; i <= blocksToAct; i++) {
             assertEq(block.number, i);
@@ -120,14 +118,8 @@ contract DegenGambitTest is Test {
         uint256 gameBalanceFinal = address(degenGambit).balance;
         uint256 playerBalanceFinal = player1.balance;
 
-        assertEq(
-            gameBalanceFinal,
-            gameBalanceInitial + costToSpin + costToRespin
-        );
-        assertEq(
-            playerBalanceFinal,
-            playerBalanceInitial - costToSpin - costToRespin
-        );
+        assertEq(gameBalanceFinal, gameBalanceInitial + costToSpin + costToRespin);
+        assertEq(playerBalanceFinal, playerBalanceInitial - costToSpin - costToRespin);
     }
 
     function test_respin_succeeds_at_deadline() public {
@@ -152,14 +144,8 @@ contract DegenGambitTest is Test {
         uint256 gameBalanceFinal = address(degenGambit).balance;
         uint256 playerBalanceFinal = player1.balance;
 
-        assertEq(
-            gameBalanceFinal,
-            gameBalanceInitial + costToSpin + costToRespin
-        );
-        assertEq(
-            playerBalanceFinal,
-            playerBalanceInitial - costToSpin - costToRespin
-        );
+        assertEq(gameBalanceFinal, gameBalanceInitial + costToSpin + costToRespin);
+        assertEq(playerBalanceFinal, playerBalanceInitial - costToSpin - costToRespin);
     }
 
     function test_respin_fails_after_deadline() public {
@@ -210,11 +196,7 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        (
-            uint256 expectedPayout,
-            uint256 typeOfPrize,
-            uint256 prizeIndex
-        ) = degenGambit.payout(2, 2, 2);
+        (uint256 expectedPayout, uint256 typeOfPrize, uint256 prizeIndex) = degenGambit.payout(2, 2, 2);
         assertEq(expectedPayout, 50 * costToSpin);
         assertEq(typeOfPrize, 1);
         assertEq(prizeIndex, 2);
@@ -223,13 +205,7 @@ contract DegenGambitTest is Test {
 
         vm.expectEmit();
         emit Award(player1, expectedPayout);
-        (
-            uint256 left,
-            uint256 center,
-            uint256 right,
-            uint256 remainingEntropy,
-            uint256 prize
-        ) = degenGambit.accept();
+        (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize) = degenGambit.accept();
 
         vm.stopPrank();
 
@@ -242,10 +218,7 @@ contract DegenGambitTest is Test {
         assertEq(remainingEntropy, 0);
         assertEq(prize, expectedPayout);
         assertEq(gameBalanceFinal, gameBalanceIntermediate - expectedPayout);
-        assertEq(
-            playerBalanceFinal,
-            playerBalanceIntermediate + expectedPayout
-        );
+        assertEq(playerBalanceFinal, playerBalanceIntermediate + expectedPayout);
     }
 
     // Entropy was constructed using the generate_outcome_tests() method in the Degen Gambit game design notebook.
@@ -271,11 +244,7 @@ contract DegenGambitTest is Test {
         assertEq(gameBalanceIntermediate, gameBalanceInitial + costToSpin);
         assertEq(playerBalanceIntermediate, playerBalanceInitial - costToSpin);
 
-        (
-            uint256 expectedPayout,
-            uint256 typeOfPrize,
-            uint256 prizeIndex
-        ) = degenGambit.payout(2, 2, 2);
+        (uint256 expectedPayout, uint256 typeOfPrize, uint256 prizeIndex) = degenGambit.payout(2, 2, 2);
         assertEq(expectedPayout, address(degenGambit).balance >> 6);
         assertEq(typeOfPrize, 1);
         assertEq(prizeIndex, 2);
@@ -284,13 +253,7 @@ contract DegenGambitTest is Test {
 
         vm.expectEmit();
         emit Award(player1, expectedPayout);
-        (
-            uint256 left,
-            uint256 center,
-            uint256 right,
-            uint256 remainingEntropy,
-            uint256 prize
-        ) = degenGambit.accept();
+        (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize) = degenGambit.accept();
 
         vm.stopPrank();
 
@@ -303,10 +266,7 @@ contract DegenGambitTest is Test {
         assertEq(remainingEntropy, 0);
         assertEq(prize, expectedPayout);
         assertEq(gameBalanceFinal, gameBalanceIntermediate - expectedPayout);
-        assertEq(
-            playerBalanceFinal,
-            playerBalanceIntermediate + expectedPayout
-        );
+        assertEq(playerBalanceFinal, playerBalanceIntermediate + expectedPayout);
     }
 
     function test_spin_2_3_2_0_false_gambit_mint() public {
@@ -317,11 +277,7 @@ contract DegenGambitTest is Test {
         uint256 prize;
         vm.roll(block.number + blocksToAct + 1);
 
-        uint256 entropy = degenGambit.generateEntropyForUnmodifiedReelOutcome(
-            2,
-            3,
-            2
-        );
+        uint256 entropy = degenGambit.generateEntropyForUnmodifiedReelOutcome(2, 3, 2);
 
         uint256 gameBalanceBefore = address(degenGambit).balance;
         uint256 playerBalanceBefore = player1.balance;
@@ -342,11 +298,7 @@ contract DegenGambitTest is Test {
         {
             uint256 typeOfPrize;
             uint256 prizeIndex;
-            (expectedPayout, typeOfPrize, prizeIndex) = degenGambit.payout(
-                2,
-                3,
-                2
-            );
+            (expectedPayout, typeOfPrize, prizeIndex) = degenGambit.payout(2, 3, 2);
             assertEq(expectedPayout, degenGambit.MinorGambitPrize());
             assertEq(typeOfPrize, 20);
             assertEq(prizeIndex, 1);
@@ -370,14 +322,8 @@ contract DegenGambitTest is Test {
         assertEq(remainingEntropy, 0);
         assertEq(prize, expectedPayout);
         assertEq(address(degenGambit).balance, gameBalanceBefore + costToSpin);
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyBefore + degenGambit.MinorGambitPrize()
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceBefore + degenGambit.MinorGambitPrize()
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyBefore + degenGambit.MinorGambitPrize());
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceBefore + degenGambit.MinorGambitPrize());
 
         assertEq(degenGambit.LastSpinBoosted(player1), false);
     }
@@ -390,11 +336,7 @@ contract DegenGambitTest is Test {
         uint256 prize;
         vm.roll(block.number + blocksToAct + 1);
 
-        uint256 entropy = degenGambit.generateEntropyForUnmodifiedReelOutcome(
-            2,
-            3,
-            16
-        );
+        uint256 entropy = degenGambit.generateEntropyForUnmodifiedReelOutcome(2, 3, 16);
 
         uint256 gameBalanceBefore = address(degenGambit).balance;
         uint256 playerBalanceBefore = player1.balance;
@@ -415,11 +357,7 @@ contract DegenGambitTest is Test {
         {
             uint256 typeOfPrize;
             uint256 prizeIndex;
-            (expectedPayout, typeOfPrize, prizeIndex) = degenGambit.payout(
-                2,
-                3,
-                16
-            );
+            (expectedPayout, typeOfPrize, prizeIndex) = degenGambit.payout(2, 3, 16);
             assertEq(expectedPayout, degenGambit.MajorGambitPrize());
             assertEq(typeOfPrize, 20);
             assertEq(prizeIndex, 0);
@@ -443,14 +381,8 @@ contract DegenGambitTest is Test {
         assertEq(remainingEntropy, 0);
         assertEq(prize, expectedPayout);
         assertEq(address(degenGambit).balance, gameBalanceBefore + costToSpin);
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyBefore + degenGambit.MajorGambitPrize()
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceBefore + degenGambit.MajorGambitPrize()
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyBefore + degenGambit.MajorGambitPrize());
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceBefore + degenGambit.MajorGambitPrize());
 
         assertEq(degenGambit.LastSpinBoosted(player1), false);
     }
@@ -471,11 +403,7 @@ contract DegenGambitTest is Test {
 
         degenGambit.mintGambit(player1, 2 * (10 ** degenGambit.decimals()));
 
-        uint256 entropy = degenGambit.generateEntropyForImprovedReelOutcome(
-            17,
-            17,
-            17
-        );
+        uint256 entropy = degenGambit.generateEntropyForImprovedReelOutcome(17, 17, 17);
 
         uint256 gameBalanceBefore = address(degenGambit).balance;
         uint256 playerBalanceBefore = player1.balance;
@@ -500,11 +428,7 @@ contract DegenGambitTest is Test {
         {
             uint256 typeOfPrize;
             uint256 prizeIndex;
-            (expectedPayout, typeOfPrize, prizeIndex) = degenGambit.payout(
-                17,
-                17,
-                17
-            );
+            (expectedPayout, typeOfPrize, prizeIndex) = degenGambit.payout(17, 17, 17);
             assertEq(expectedPayout, gameBalanceBefore >> 1);
             assertEq(typeOfPrize, 1);
         }
@@ -513,7 +437,7 @@ contract DegenGambitTest is Test {
         vm.roll(block.number + 1);
 
         // This guarantees that the outcome isn't coming from the regular distributions but the boosted ones.
-        (left, center, right, ) = degenGambit.outcome(entropy, false);
+        (left, center, right,) = degenGambit.outcome(entropy, false);
 
         assertNotEq(left, 17);
         assertNotEq(center, 17);
@@ -533,19 +457,10 @@ contract DegenGambitTest is Test {
         assertEq(right, 17);
         assertEq(remainingEntropy, 0);
         assertEq(prize, expectedPayout);
-        assertEq(
-            address(degenGambit).balance,
-            gameBalanceBefore - expectedPayout
-        );
+        assertEq(address(degenGambit).balance, gameBalanceBefore - expectedPayout);
         assertEq(player1.balance, playerBalanceBefore + expectedPayout);
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyBefore - (10 ** degenGambit.decimals())
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceBefore - (10 ** degenGambit.decimals())
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyBefore - (10 ** degenGambit.decimals()));
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceBefore - (10 ** degenGambit.decimals()));
 
         assertEq(degenGambit.LastSpinBoosted(player1), false);
     }
@@ -563,9 +478,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
         assertEq(intermediateStreakDay, block.timestamp / SECONDS_PER_DAY);
@@ -575,11 +488,7 @@ contract DegenGambitTest is Test {
 
         vm.roll(block.number + 1);
         // Tests the left end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_DAY) *
-                SECONDS_PER_DAY +
-                SECONDS_PER_DAY
-        );
+        vm.warp((block.timestamp / SECONDS_PER_DAY) * SECONDS_PER_DAY + SECONDS_PER_DAY);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, dailyStreakReward);
@@ -595,14 +504,8 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyIntermediate + dailyStreakReward
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceIntermediate + dailyStreakReward
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + dailyStreakReward);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate + dailyStreakReward);
     }
 
     function test_gambit_minted_on_streak_regular_two_days_in_a_row() public {
@@ -619,11 +522,7 @@ contract DegenGambitTest is Test {
 
         vm.roll(block.number + 1);
         // Tests the left end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_DAY) *
-                SECONDS_PER_DAY +
-                SECONDS_PER_DAY
-        );
+        vm.warp((block.timestamp / SECONDS_PER_DAY) * SECONDS_PER_DAY + SECONDS_PER_DAY);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, dailyStreakReward);
@@ -635,11 +534,7 @@ contract DegenGambitTest is Test {
 
         vm.roll(block.number + 1);
         // Tests the left end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_DAY) *
-                SECONDS_PER_DAY +
-                SECONDS_PER_DAY
-        );
+        vm.warp((block.timestamp / SECONDS_PER_DAY) * SECONDS_PER_DAY + SECONDS_PER_DAY);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, dailyStreakReward);
@@ -655,14 +550,8 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyInitial + 2 * dailyStreakReward
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceInitial + 2 * dailyStreakReward
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyInitial + 2 * dailyStreakReward);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceInitial + 2 * dailyStreakReward);
     }
 
     function test_gambit_minted_on_streak_boosted() public {
@@ -683,31 +572,17 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(true);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
         assertEq(intermediateStreakDay, block.timestamp / SECONDS_PER_DAY);
 
-        assertEq(
-            gambitSupplyIntermediate,
-            gambitSupplyInitial - singleDegenGambitToken
-        );
-        assertEq(
-            playerGambitBalanceIntermediate,
-            playerGambitBalanceInitial - singleDegenGambitToken
-        );
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial - singleDegenGambitToken);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial - singleDegenGambitToken);
 
         vm.roll(block.number + 1);
         // Tests the right end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_DAY) *
-                SECONDS_PER_DAY +
-                2 *
-                SECONDS_PER_DAY -
-                1
-        );
+        vm.warp((block.timestamp / SECONDS_PER_DAY) * SECONDS_PER_DAY + 2 * SECONDS_PER_DAY - 1);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, dailyStreakReward);
@@ -723,18 +598,8 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyIntermediate +
-                dailyStreakReward -
-                singleDegenGambitToken
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceIntermediate +
-                dailyStreakReward -
-                singleDegenGambitToken
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + dailyStreakReward - singleDegenGambitToken);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate + dailyStreakReward - singleDegenGambitToken);
     }
 
     function test_gambit_not_minted_before_streak_day_ticks() public {
@@ -748,9 +613,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
         assertEq(intermediateStreakDay, block.timestamp / SECONDS_PER_DAY);
@@ -759,12 +622,7 @@ contract DegenGambitTest is Test {
         assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
 
         vm.roll(block.number + 1);
-        vm.warp(
-            (block.timestamp / SECONDS_PER_DAY) *
-                SECONDS_PER_DAY +
-                SECONDS_PER_DAY -
-                1
-        );
+        vm.warp((block.timestamp / SECONDS_PER_DAY) * SECONDS_PER_DAY + SECONDS_PER_DAY - 1);
 
         vm.expectEmit();
         emit Spin(player1, false);
@@ -791,9 +649,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakDay = degenGambit.LastStreakDay(player1);
         assertEq(intermediateStreakDay, block.timestamp / SECONDS_PER_DAY);
@@ -802,12 +658,7 @@ contract DegenGambitTest is Test {
         assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
 
         vm.roll(block.number + 1);
-        vm.warp(
-            (block.timestamp / SECONDS_PER_DAY) *
-                SECONDS_PER_DAY +
-                2 *
-                SECONDS_PER_DAY
-        );
+        vm.warp((block.timestamp / SECONDS_PER_DAY) * SECONDS_PER_DAY + 2 * SECONDS_PER_DAY);
 
         vm.expectEmit();
         emit Spin(player1, false);
@@ -836,9 +687,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakweek = degenGambit.LastStreakWeek(player1);
         assertEq(intermediateStreakweek, block.timestamp / SECONDS_PER_WEEK);
@@ -848,11 +697,7 @@ contract DegenGambitTest is Test {
 
         vm.roll(block.number + 1);
         // Tests the left end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_WEEK) *
-                SECONDS_PER_WEEK +
-                SECONDS_PER_WEEK
-        );
+        vm.warp((block.timestamp / SECONDS_PER_WEEK) * SECONDS_PER_WEEK + SECONDS_PER_WEEK);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, weeklyStreakReward);
@@ -868,19 +713,11 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyIntermediate + weeklyStreakReward
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceIntermediate + weeklyStreakReward
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + weeklyStreakReward);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceIntermediate + weeklyStreakReward);
     }
 
-    function test_gambit_minted_on_weekly_streak_regular_two_weeks_in_a_row()
-        public
-    {
+    function test_gambit_minted_on_weekly_streak_regular_two_weeks_in_a_row() public {
         uint256 gambitSupplyInitial = degenGambit.totalSupply();
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
 
@@ -894,11 +731,7 @@ contract DegenGambitTest is Test {
 
         vm.roll(block.number + 1);
         // Tests the left end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_WEEK) *
-                SECONDS_PER_WEEK +
-                SECONDS_PER_WEEK
-        );
+        vm.warp((block.timestamp / SECONDS_PER_WEEK) * SECONDS_PER_WEEK + SECONDS_PER_WEEK);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, weeklyStreakReward);
@@ -910,11 +743,7 @@ contract DegenGambitTest is Test {
 
         vm.roll(block.number + 1);
         // Tests the left end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_WEEK) *
-                SECONDS_PER_WEEK +
-                SECONDS_PER_WEEK
-        );
+        vm.warp((block.timestamp / SECONDS_PER_WEEK) * SECONDS_PER_WEEK + SECONDS_PER_WEEK);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, weeklyStreakReward);
@@ -930,14 +759,8 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
-        assertEq(
-            gambitSupplyFinal,
-            gambitSupplyInitial + 2 * weeklyStreakReward
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceInitial + 2 * weeklyStreakReward
-        );
+        assertEq(gambitSupplyFinal, gambitSupplyInitial + 2 * weeklyStreakReward);
+        assertEq(playerGambitBalanceFinal, playerGambitBalanceInitial + 2 * weeklyStreakReward);
     }
 
     function test_gambit_minted_on_weekly_streak_boosted() public {
@@ -957,31 +780,17 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(true);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakweek = degenGambit.LastStreakWeek(player1);
         assertEq(intermediateStreakweek, block.timestamp / SECONDS_PER_WEEK);
 
-        assertEq(
-            gambitSupplyIntermediate,
-            gambitSupplyInitial - singleDegenGambitToken
-        );
-        assertEq(
-            playerGambitBalanceIntermediate,
-            playerGambitBalanceInitial - singleDegenGambitToken
-        );
+        assertEq(gambitSupplyIntermediate, gambitSupplyInitial - singleDegenGambitToken);
+        assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial - singleDegenGambitToken);
 
         vm.roll(block.number + 1);
         // Tests the right end of the window for which the streak is active.
-        vm.warp(
-            (block.timestamp / SECONDS_PER_WEEK) *
-                SECONDS_PER_WEEK +
-                2 *
-                SECONDS_PER_WEEK -
-                1
-        );
+        vm.warp((block.timestamp / SECONDS_PER_WEEK) * SECONDS_PER_WEEK + 2 * SECONDS_PER_WEEK - 1);
 
         vm.expectEmit();
         emit Transfer(address(0), player1, weeklyStreakReward);
@@ -997,17 +806,9 @@ contract DegenGambitTest is Test {
         uint256 gambitSupplyFinal = degenGambit.totalSupply();
         uint256 playerGambitBalanceFinal = degenGambit.balanceOf(player1);
 
+        assertEq(gambitSupplyFinal, gambitSupplyIntermediate + weeklyStreakReward - singleDegenGambitToken);
         assertEq(
-            gambitSupplyFinal,
-            gambitSupplyIntermediate +
-                weeklyStreakReward -
-                singleDegenGambitToken
-        );
-        assertEq(
-            playerGambitBalanceFinal,
-            playerGambitBalanceIntermediate +
-                weeklyStreakReward -
-                singleDegenGambitToken
+            playerGambitBalanceFinal, playerGambitBalanceIntermediate + weeklyStreakReward - singleDegenGambitToken
         );
     }
 
@@ -1022,9 +823,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakweek = degenGambit.LastStreakWeek(player1);
         assertEq(intermediateStreakweek, block.timestamp / SECONDS_PER_WEEK);
@@ -1033,12 +832,7 @@ contract DegenGambitTest is Test {
         assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
 
         vm.roll(block.number + 1);
-        vm.warp(
-            (block.timestamp / SECONDS_PER_WEEK) *
-                SECONDS_PER_WEEK +
-                SECONDS_PER_WEEK -
-                1
-        );
+        vm.warp((block.timestamp / SECONDS_PER_WEEK) * SECONDS_PER_WEEK + SECONDS_PER_WEEK - 1);
 
         vm.expectEmit();
         emit Spin(player1, false);
@@ -1065,9 +859,7 @@ contract DegenGambitTest is Test {
         degenGambit.spin{value: costToSpin}(false);
 
         uint256 gambitSupplyIntermediate = degenGambit.totalSupply();
-        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(
-            player1
-        );
+        uint256 playerGambitBalanceIntermediate = degenGambit.balanceOf(player1);
 
         uint256 intermediateStreakweek = degenGambit.LastStreakWeek(player1);
         assertEq(intermediateStreakweek, block.timestamp / SECONDS_PER_WEEK);
@@ -1076,12 +868,7 @@ contract DegenGambitTest is Test {
         assertEq(playerGambitBalanceIntermediate, playerGambitBalanceInitial);
 
         vm.roll(block.number + 1);
-        vm.warp(
-            (block.timestamp / SECONDS_PER_WEEK) *
-                SECONDS_PER_WEEK +
-                2 *
-                SECONDS_PER_WEEK
-        );
+        vm.warp((block.timestamp / SECONDS_PER_WEEK) * SECONDS_PER_WEEK + 2 * SECONDS_PER_WEEK);
 
         vm.expectEmit();
         emit Spin(player1, false);
@@ -1100,11 +887,9 @@ contract DegenGambitTest is Test {
     function test_prizes_and_payout_match() public {
         vm.expectRevert(DegenGambit.OutcomeOutOfBounds.selector);
         degenGambit.payout(19, 19, 19);
-        (uint256[] memory prizes, uint256[] memory typeOfPrize) = degenGambit
-            .prizes();
+        (uint256[] memory prizes, uint256[] memory typeOfPrize) = degenGambit.prizes();
         //No Payout
-        (uint256 payout, uint256 prizeType, uint256 prizeIndex) = degenGambit
-            .payout(0, 0, 0);
+        (uint256 payout, uint256 prizeType, uint256 prizeIndex) = degenGambit.payout(0, 0, 0);
         assertEq(0, payout);
         assertEq(0, prizeType);
         assertEq(0, prizeIndex);
@@ -1198,7 +983,7 @@ contract DegenGambitTest is Test {
 
         vm.startPrank(player1);
         uint256 cost = degenGambit.spinCost(player1);
-        for (uint i = 0; i < 7; i++) {
+        for (uint256 i = 0; i < 7; i++) {
             cost = degenGambit.spinCost(player1);
             vm.expectRevert();
             degenGambit.spin{value: cost}(false);
@@ -1213,12 +998,12 @@ contract DegenGambitTest is Test {
         assertEq(playerBalanceFinal, playerBalanceInitial);
     }
 
-    function internal_streak_length(uint _days) internal {
+    function internal_streak_length(uint256 _days) internal {
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
 
-        uint cost;
-        for (uint i = 0; i < _days; i++) {
+        uint256 cost;
+        for (uint256 i = 0; i < _days; i++) {
             cost = degenGambit.spinCost(player1);
             degenGambit.spin{value: cost}(false);
             vm.warp(block.timestamp + 1 days);
@@ -1255,14 +1040,8 @@ contract DegenGambitTest is Test {
         degenGambit.setDailyStreakLength(10, player1);
         degenGambit.setWeeklyStreakLength(10, player1);
 
-        assertEq(
-            degenGambit.CurrentDailyStreakLength(player1),
-            initialDaily + 10
-        );
-        assertEq(
-            degenGambit.CurrentWeeklyStreakLength(player1),
-            initialWeekly + 10
-        );
+        assertEq(degenGambit.CurrentDailyStreakLength(player1), initialDaily + 10);
+        assertEq(degenGambit.CurrentWeeklyStreakLength(player1), initialWeekly + 10);
 
         degenGambit.spin{value: costToSpin}(false);
 
@@ -1313,134 +1092,50 @@ contract DegenGambitTest is Test {
         // Segment 4: Accept outcomes for all players
         vm.startPrank(player1);
         {
-            (, , , , uint256 nullPrize) = degenGambit.acceptFor(player0);
+            (,,,, uint256 nullPrize) = degenGambit.acceptFor(player0);
             assertEq(nullPrize, 0, "Player0 should not win");
         }
         {
-            (, , , , uint256 prize1) = degenGambit.acceptFor(player1);
-            assertEq(
-                degenGambit.Prize0Winner(),
-                player1,
-                "Player1 should be first winner"
-            );
-            assertEq(
-                degenGambit.Prize0WonAmount(),
-                prize1,
-                "Player1 should win 0.1 ETH"
-            );
-            assertEq(
-                degenGambit.Prize0LastWonTimestamp(),
-                block.timestamp,
-                "Player1 timestamp should be set"
-            );
+            (,,,, uint256 prize1) = degenGambit.acceptFor(player1);
+            assertEq(degenGambit.Prize0Winner(), player1, "Player1 should be first winner");
+            assertEq(degenGambit.Prize0WonAmount(), prize1, "Player1 should win 0.1 ETH");
+            assertEq(degenGambit.Prize0LastWonTimestamp(), block.timestamp, "Player1 timestamp should be set");
         }
         {
-            (, , , , uint256 prize2) = degenGambit.acceptFor(player2);
-            assertEq(
-                degenGambit.Prize1Winner(),
-                player2,
-                "Player2 should be second winner"
-            );
-            assertEq(
-                degenGambit.Prize1WonAmount(),
-                prize2,
-                "Player2 should win 0.2 ETH"
-            );
-            assertEq(
-                degenGambit.Prize1LastWonTimestamp(),
-                block.timestamp,
-                "Player2 timestamp should be set"
-            );
+            (,,,, uint256 prize2) = degenGambit.acceptFor(player2);
+            assertEq(degenGambit.Prize1Winner(), player2, "Player2 should be second winner");
+            assertEq(degenGambit.Prize1WonAmount(), prize2, "Player2 should win 0.2 ETH");
+            assertEq(degenGambit.Prize1LastWonTimestamp(), block.timestamp, "Player2 timestamp should be set");
         }
         {
-            (, , , , uint256 prize3) = degenGambit.acceptFor(player3);
-            assertEq(
-                degenGambit.Prize2Winner(),
-                player3,
-                "Player3 should be third winner"
-            );
-            assertEq(
-                degenGambit.Prize2WonAmount(),
-                prize3,
-                "Player3 should win 0.3 ETH"
-            );
-            assertEq(
-                degenGambit.Prize2LastWonTimestamp(),
-                block.timestamp,
-                "Player3 timestamp should be set"
-            );
+            (,,,, uint256 prize3) = degenGambit.acceptFor(player3);
+            assertEq(degenGambit.Prize2Winner(), player3, "Player3 should be third winner");
+            assertEq(degenGambit.Prize2WonAmount(), prize3, "Player3 should win 0.3 ETH");
+            assertEq(degenGambit.Prize2LastWonTimestamp(), block.timestamp, "Player3 timestamp should be set");
         }
         {
-            (, , , , uint256 prize4) = degenGambit.acceptFor(player4);
-            assertEq(
-                degenGambit.Prize3Winner(),
-                player4,
-                "Player4 should be fourth winner"
-            );
-            assertEq(
-                degenGambit.Prize3WonAmount(),
-                prize4,
-                "Player4 should win 0.4 ETH"
-            );
-            assertEq(
-                degenGambit.Prize3LastWonTimestamp(),
-                block.timestamp,
-                "Player4 timestamp should be set"
-            );
+            (,,,, uint256 prize4) = degenGambit.acceptFor(player4);
+            assertEq(degenGambit.Prize3Winner(), player4, "Player4 should be fourth winner");
+            assertEq(degenGambit.Prize3WonAmount(), prize4, "Player4 should win 0.4 ETH");
+            assertEq(degenGambit.Prize3LastWonTimestamp(), block.timestamp, "Player4 timestamp should be set");
         }
         {
-            (, , , , uint256 prize5) = degenGambit.acceptFor(player5);
-            assertEq(
-                degenGambit.Prize4Winner(),
-                player5,
-                "Player5 should be fifth winner"
-            );
-            assertEq(
-                degenGambit.Prize4WonAmount(),
-                prize5,
-                "Player5 should win 0.5 ETH"
-            );
-            assertEq(
-                degenGambit.Prize4LastWonTimestamp(),
-                block.timestamp,
-                "Player5 timestamp should be set"
-            );
+            (,,,, uint256 prize5) = degenGambit.acceptFor(player5);
+            assertEq(degenGambit.Prize4Winner(), player5, "Player5 should be fifth winner");
+            assertEq(degenGambit.Prize4WonAmount(), prize5, "Player5 should win 0.5 ETH");
+            assertEq(degenGambit.Prize4LastWonTimestamp(), block.timestamp, "Player5 timestamp should be set");
         }
         {
-            (, , , , uint256 prize6) = degenGambit.acceptFor(player6);
-            assertEq(
-                degenGambit.Prize5Winner(),
-                player6,
-                "Player6 should be sixth winner"
-            );
-            assertEq(
-                degenGambit.Prize5WonAmount(),
-                prize6,
-                "Player6 should win 0.6 ETH"
-            );
-            assertEq(
-                degenGambit.Prize5LastWonTimestamp(),
-                block.timestamp,
-                "Player6 timestamp should be set"
-            );
+            (,,,, uint256 prize6) = degenGambit.acceptFor(player6);
+            assertEq(degenGambit.Prize5Winner(), player6, "Player6 should be sixth winner");
+            assertEq(degenGambit.Prize5WonAmount(), prize6, "Player6 should win 0.6 ETH");
+            assertEq(degenGambit.Prize5LastWonTimestamp(), block.timestamp, "Player6 timestamp should be set");
         }
         {
-            (, , , , uint256 prize7) = degenGambit.acceptFor(player7);
-            assertEq(
-                degenGambit.Prize6Winner(),
-                player7,
-                "Player7 should be seventh winner"
-            );
-            assertEq(
-                degenGambit.Prize6WonAmount(),
-                prize7,
-                "Player7 should win 0.7 ETH"
-            );
-            assertEq(
-                degenGambit.Prize6LastWonTimestamp(),
-                block.timestamp,
-                "Player7 timestamp should be set"
-            );
+            (,,,, uint256 prize7) = degenGambit.acceptFor(player7);
+            assertEq(degenGambit.Prize6Winner(), player7, "Player7 should be seventh winner");
+            assertEq(degenGambit.Prize6WonAmount(), prize7, "Player7 should win 0.7 ETH");
+            assertEq(degenGambit.Prize6LastWonTimestamp(), block.timestamp, "Player7 timestamp should be set");
         }
         vm.stopPrank();
     }
@@ -1455,7 +1150,7 @@ contract DegenGambitTest is Test {
         emit Spin(player1, false);
         degenGambit.spin{value: costToSpin}(false);
         degenGambit.setEntropyFromOutcomes(2, 2, 2, player1, false);
-        (uint256 payout1, , uint256 index1) = degenGambit.payout(2, 2, 2);
+        (uint256 payout1,, uint256 index1) = degenGambit.payout(2, 2, 2);
         vm.roll(block.number + 1);
         degenGambit.accept();
         vm.stopPrank();
@@ -1473,7 +1168,7 @@ contract DegenGambitTest is Test {
         emit Spin(player2, false);
         degenGambit.spin{value: costToSpin}(false);
         degenGambit.setEntropyFromOutcomes(2, 2, 2, player2, false);
-        (uint256 payout2, , uint256 index2) = degenGambit.payout(2, 2, 2);
+        (uint256 payout2,, uint256 index2) = degenGambit.payout(2, 2, 2);
         vm.roll(block.number + 1);
         degenGambit.accept();
         vm.stopPrank();

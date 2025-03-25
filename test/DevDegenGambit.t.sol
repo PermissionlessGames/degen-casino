@@ -7,7 +7,7 @@ import {DevDegenGambit} from "../src/dev/DevDegenGambit.sol";
 import {DegenGambit} from "../src/DegenGambit.sol";
 
 contract ArbSysMock is ArbSys {
-    function arbBlockNumber() external view returns (uint) {
+    function arbBlockNumber() external view returns (uint256) {
         return block.number;
     }
 
@@ -33,11 +33,7 @@ contract DevDegenGambitTest is Test {
     address player2 = vm.addr(player2PrivateKey);
 
     function setUp() public {
-        devDegenGambit = new DevDegenGambit(
-            blocksToAct,
-            costToSpin,
-            costToRespin
-        );
+        devDegenGambit = new DevDegenGambit(blocksToAct, costToSpin, costToRespin);
 
         vm.deal(address(devDegenGambit), costToSpin << 30);
         vm.deal(player1, 10 * costToSpin);
@@ -56,33 +52,15 @@ contract DevDegenGambitTest is Test {
         vm.startPrank(player1);
 
         uint256 initialEntropy = devDegenGambit.EntropyForPlayer(player1);
-        uint256 setEntropy = devDegenGambit.setEntropyFromOutcomes(
-            12,
-            12,
-            12,
-            player1,
-            false
-        );
+        uint256 setEntropy = devDegenGambit.setEntropyFromOutcomes(12, 12, 12, player1, false);
 
         vm.stopPrank();
         assertNotEq(initialEntropy, setEntropy);
     }
 
-    function test_set_outcome_from_entropy(
-        uint256 left,
-        uint256 center,
-        uint256 right,
-        bool boosted
-    ) internal {
-        uint256 entropy = devDegenGambit.setEntropyFromOutcomes(
-            left,
-            center,
-            right,
-            player1,
-            boosted
-        );
-        (uint256 oLeft, uint256 oCenter, uint256 oRight, ) = devDegenGambit
-            .outcome(entropy, boosted);
+    function test_set_outcome_from_entropy(uint256 left, uint256 center, uint256 right, bool boosted) internal {
+        uint256 entropy = devDegenGambit.setEntropyFromOutcomes(left, center, right, player1, boosted);
+        (uint256 oLeft, uint256 oCenter, uint256 oRight,) = devDegenGambit.outcome(entropy, boosted);
         assertEq(left, oLeft);
         assertEq(center, oCenter);
         assertEq(right, oRight);
@@ -91,7 +69,7 @@ contract DevDegenGambitTest is Test {
     function test_entropy_generation_outcomes_false() public {
         vm.startPrank(player1);
 
-        for (uint i = 0; i < 19; i++) {
+        for (uint256 i = 0; i < 19; i++) {
             test_set_outcome_from_entropy(i, i, i, false);
         }
     }
@@ -99,7 +77,7 @@ contract DevDegenGambitTest is Test {
     function test_entropy_generation_outcomes_true() public {
         vm.startPrank(player1);
 
-        for (uint i = 0; i < 19; i++) {
+        for (uint256 i = 0; i < 19; i++) {
             test_set_outcome_from_entropy(i, i, i, true);
         }
     }
