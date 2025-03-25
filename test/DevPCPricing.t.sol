@@ -192,7 +192,7 @@ contract DevPCPricingTest is Test {
 
     function testCannotSetInvalidAdjustmentFactor() public {
         DevPCPricing newDevPCPricing;
-        vm.expectRevert("Denominator must be greater than 0");
+        vm.expectRevert("Denominator must be greater than 1");
         newDevPCPricing = new DevPCPricing(ETH, 1000, 100, 0);
 
         vm.expectRevert("Numerator must be greater than 0");
@@ -275,7 +275,7 @@ contract DevPCPricingTest is Test {
 
     function testBatchProcessingWithSmallBatches() public {
         // Add more currencies
-        for (uint i = 0; i < 10; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );
@@ -307,7 +307,7 @@ contract DevPCPricingTest is Test {
         assertEq(lastIndex, 0, "Last index should wrap around to 0");
 
         // Verify all prices were adjusted (95 = 100 - 5%)
-        for (uint i = 0; i < 10; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );
@@ -345,7 +345,7 @@ contract DevPCPricingTest is Test {
 
     function testAutomaticBatchProcessing() public {
         // Add more currencies to exceed batch size
-        for (uint i = 0; i < 10; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );
@@ -426,7 +426,7 @@ contract DevPCPricingTest is Test {
         assertEq(lastIndex, 3, "Index should wrap around to 3");
 
         // Verify all remaining prices were adjusted
-        for (uint i = 7; i < 10; i++) {
+        for (uint256 i = 7; i < 10; i++) {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );

@@ -12,6 +12,7 @@ library PCPricing {
     /// @notice Emitted when a new anchor currency is set
     /// @param currency The currency that was set as the anchor
     /// @param price The price of the anchor currency
+
     event AnchorCurrencySet(bytes indexed currency, uint256 price);
 
     /// @notice Emitted when the adjustment factor is updated
@@ -83,7 +84,7 @@ library PCPricing {
         uint256 numerator,
         uint256 denominator
     ) internal {
-        require(denominator > 1, "Denominator must be greater than 0");
+        require(denominator > 1, "Denominator must be greater than 1");
         require(numerator > 0, "Numerator must be greater than 0");
         self.adjustmentNumerator = numerator;
         self.adjustmentDenominator = denominator;

@@ -7,11 +7,9 @@ contract DevDegenGambit is DegenGambit {
     mapping(address => uint256) public EntropyForPlayer;
     bool public EntropyIsHash;
 
-    constructor(
-        uint256 blocksToAct,
-        uint256 costToSpin,
-        uint256 costToRespin
-    ) DegenGambit(blocksToAct, costToSpin, costToRespin) {}
+    constructor(uint256 blocksToAct, uint256 costToSpin, uint256 costToRespin)
+        DegenGambit(blocksToAct, costToSpin, costToRespin)
+    {}
 
     function setEntropySource(bool isFromHash) external {
         EntropyIsHash = isFromHash;
@@ -37,10 +35,7 @@ contract DevDegenGambit is DegenGambit {
         LastStreakDay[player] = dailyStreak;
     }
 
-    function setDailyStreakLength(
-        uint256 dailyStreakLength,
-        address player
-    ) public {
+    function setDailyStreakLength(uint256 dailyStreakLength, address player) public {
         CurrentDailyStreakLength[player] = dailyStreakLength;
     }
 
@@ -48,10 +43,7 @@ contract DevDegenGambit is DegenGambit {
         LastStreakWeek[player] = weeklyStreak;
     }
 
-    function setWeeklyStreakLength(
-        uint256 weeklyStreakLength,
-        address player
-    ) public {
+    function setWeeklyStreakLength(uint256 weeklyStreakLength, address player) public {
         CurrentWeeklyStreakLength[player] = weeklyStreakLength;
     }
 
@@ -59,60 +51,46 @@ contract DevDegenGambit is DegenGambit {
         return "1 - dev";
     }
 
-    function generateEntropyForUnmodifiedReelOutcome(
-        uint256 leftOutcome,
-        uint256 centerOutcome,
-        uint256 rightOutcome
-    ) public view returns (uint256) {
+    function generateEntropyForUnmodifiedReelOutcome(uint256 leftOutcome, uint256 centerOutcome, uint256 rightOutcome)
+        public
+        view
+        returns (uint256)
+    {
         // Ensure the outcome indices are within the valid range (0-18)
         if (leftOutcome >= 19 || centerOutcome >= 19 || rightOutcome >= 19) {
             revert OutcomeOutOfBounds();
         }
 
         // Get the valid range for the left outcome
-        uint256 leftSample = getSampleForOutcome(
-            leftOutcome,
-            UnmodifiedLeftReel
-        );
+        uint256 leftSample = getSampleForOutcome(leftOutcome, UnmodifiedLeftReel);
 
         // Get the valid range for the center outcome
-        uint256 centerSample = getSampleForOutcome(
-            centerOutcome,
-            UnmodifiedCenterReel
-        );
+        uint256 centerSample = getSampleForOutcome(centerOutcome, UnmodifiedCenterReel);
 
         // Get the valid range for the right outcome
-        uint256 rightSample = getSampleForOutcome(
-            rightOutcome,
-            UnmodifiedRightReel
-        );
+        uint256 rightSample = getSampleForOutcome(rightOutcome, UnmodifiedRightReel);
 
         // Combine the samples into an entropy value
-        uint256 entropy = (leftSample << 60) |
-            (centerSample << 30) |
-            rightSample;
+        uint256 entropy = (leftSample << 60) | (centerSample << 30) | rightSample;
 
         return entropy;
     }
 
-    function setEntropyFromOutcomes(
-        uint256 left,
-        uint256 center,
-        uint256 right,
-        address player,
-        bool boost
-    ) public returns (uint256 entropy) {
+    function setEntropyFromOutcomes(uint256 left, uint256 center, uint256 right, address player, bool boost)
+        public
+        returns (uint256 entropy)
+    {
         entropy = boost
             ? generateEntropyForImprovedReelOutcome(left, center, right)
             : generateEntropyForUnmodifiedReelOutcome(left, center, right);
         EntropyForPlayer[player] = entropy;
     }
 
-    function generateEntropyForImprovedReelOutcome(
-        uint256 leftOutcome,
-        uint256 centerOutcome,
-        uint256 rightOutcome
-    ) public view returns (uint256) {
+    function generateEntropyForImprovedReelOutcome(uint256 leftOutcome, uint256 centerOutcome, uint256 rightOutcome)
+        public
+        view
+        returns (uint256)
+    {
         // Ensure the outcome indices are within the valid range (0-18)
         require(leftOutcome < 19, "Invalid left outcome");
         require(centerOutcome < 19, "Invalid center outcome");
@@ -122,29 +100,18 @@ contract DevDegenGambit is DegenGambit {
         uint256 leftSample = getSampleForOutcome(leftOutcome, ImprovedLeftReel);
 
         // Get the valid range for the center outcome
-        uint256 centerSample = getSampleForOutcome(
-            centerOutcome,
-            ImprovedCenterReel
-        );
+        uint256 centerSample = getSampleForOutcome(centerOutcome, ImprovedCenterReel);
 
         // Get the valid range for the right outcome
-        uint256 rightSample = getSampleForOutcome(
-            rightOutcome,
-            ImprovedRightReel
-        );
+        uint256 rightSample = getSampleForOutcome(rightOutcome, ImprovedRightReel);
 
         // Combine the samples into an entropy value
-        uint256 entropy = (leftSample << 60) |
-            (centerSample << 30) |
-            rightSample;
+        uint256 entropy = (leftSample << 60) | (centerSample << 30) | rightSample;
 
         return entropy;
     }
 
-    function getSampleForOutcome(
-        uint256 outcome,
-        uint256[19] storage reel
-    ) internal view returns (uint256) {
+    function getSampleForOutcome(uint256 outcome, uint256[19] storage reel) internal view returns (uint256) {
         uint256 sample = outcome == 0 ? 0 : reel[outcome - 1]; // The minimum sample value for this outcome
 
         return sample;
