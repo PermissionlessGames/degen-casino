@@ -9,6 +9,10 @@ interface IMultipleCurrencyToken {
     /// @return token The token configuration
     function tokens(uint256 index) external view returns (CreatePricingDataParams memory);
 
+    /// @notice Get the address of the native token
+    /// @return address The address of the native token
+    function INATIVE() external view returns (address);
+
     /// @notice Encode a currency into a bytes array
     /// @param currency The address of the currency
     /// @return currencyBytes The encoded currency

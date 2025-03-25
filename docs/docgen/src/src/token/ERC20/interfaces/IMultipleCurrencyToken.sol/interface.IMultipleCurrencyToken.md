@@ -1,5 +1,5 @@
 # IMultipleCurrencyToken
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/1d26702b1af6f5c680ab67f00b93e3c8f9072ac9/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/9c34e699d207213995d107c8fd4b5f0accbbff0b/src/token/ERC20/interfaces/IMultipleCurrencyToken.sol)
 
 
 ## Functions
@@ -22,6 +22,21 @@ function tokens(uint256 index) external view returns (CreatePricingDataParams me
 |Name|Type|Description|
 |----|----|-----------|
 |`<none>`|`CreatePricingDataParams`|token The token configuration|
+
+
+### INATIVE
+
+Get the address of the native token
+
+
+```solidity
+function INATIVE() external view returns (address);
+```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`address`|address The address of the native token|
 
 
 ### encodeCurrency
