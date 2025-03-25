@@ -24,7 +24,7 @@ The pot for a *Degen's Gambit* smart contract is denominated in the native token
 read the balance of the *Degen's Gambit* smart contract.
 
 For example, if you are interested in the size of the pot for the *Degen's Gambit* contract deployed at
-[`0xf3BE777A6096E0ff568296aD3BA76811b5b1Fc40`](https://testnet.game7.io/address/0xf3BE777A6096E0ff568296aD3BA76811b5b1Fc40?tab=contract)
+[`0xe2B629be92086D9231f008018AA87E5047A453C5`](https://testnet.game7.io/address/0xe2B629be92086D9231f008018AA87E5047A453C5?tab=contract)
 on the Game7 testnet, you could make an RPC call as follows:
 
 ```solidity
