@@ -242,18 +242,13 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     error FailedPrizeTransfer();
 
     function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
-        return
-            interfaceID == 0x01ffc9a7 || // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
-            interfaceID == 0x36372b07; // ERC20 support -- all methods on OpenZeppelin IERC20 excluding "name", "symbol", and "decimals".
+        return interfaceID == 0x01ffc9a7 // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
+            || interfaceID == 0x36372b07; // ERC20 support -- all methods on OpenZeppelin IERC20 excluding "name", "symbol", and "decimals".
     }
 
     /// In addition to the game mechanics, DegensGambit is also an ERC20 contract in which the ERC20
     /// tokens represent bonus spins. The symbol for this contract is GAMBIT.
-    constructor(
-        uint256 blocksToAct,
-        uint256 costToSpin,
-        uint256 costToRespin
-    ) ERC20("Degen's Gambit", "GAMBIT") {
+    constructor(uint256 blocksToAct, uint256 costToSpin, uint256 costToRespin) ERC20("Degen's Gambit", "GAMBIT") {
         BlocksToAct = blocksToAct;
         CostToSpin = costToSpin;
         CostToRespin = costToRespin;
@@ -263,11 +258,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     receive() external payable {}
 
     /// Updates the winners array with the latest winner
-    function _updateWinners(
-        address player,
-        uint256 amount,
-        uint256 prizeIndex
-    ) internal virtual {
+    function _updateWinners(address player, uint256 amount, uint256 prizeIndex) internal virtual {
         require(prizeIndex < 7, "Invalid prize index");
         if (prizeIndex == 0) {
             Prize0Winner = player;
@@ -325,24 +316,12 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         }
     }
 
-    function _entropy(
-        address degenerate
-    ) internal view virtual returns (uint256) {
-        return
-            uint256(
-                keccak256(
-                    abi.encode(
-                        _blockhash(LastSpinBlock[degenerate]),
-                        degenerate
-                    )
-                )
-            );
+    function _entropy(address degenerate) internal view virtual returns (uint256) {
+        return uint256(keccak256(abi.encode(_blockhash(LastSpinBlock[degenerate]), degenerate)));
     }
 
     /// sampleUnmodifiedLeftReel samples the outcome from UnmodifiedLeftReel specified by the given entropy
-    function sampleUnmodifiedLeftReel(
-        uint256 entropy
-    ) public view returns (uint256) {
+    function sampleUnmodifiedLeftReel(uint256 entropy) public view returns (uint256) {
         uint256 sample = (entropy >> 60) & BITS_30;
         if (sample < UnmodifiedLeftReel[0]) {
             return 0;
@@ -385,9 +364,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// sampleUnmodifiedCenterReel samples the outcome from UnmodifiedCenterReel specified by the given entropy
-    function sampleUnmodifiedCenterReel(
-        uint256 entropy
-    ) public view returns (uint256) {
+    function sampleUnmodifiedCenterReel(uint256 entropy) public view returns (uint256) {
         uint256 sample = (entropy >> 30) & BITS_30;
         if (sample < UnmodifiedCenterReel[0]) {
             return 0;
@@ -430,9 +407,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// sampleUnmodifiedRightReel samples the outcome from UnmodifiedRightReel specified by the given entropy
-    function sampleUnmodifiedRightReel(
-        uint256 entropy
-    ) public view returns (uint256) {
+    function sampleUnmodifiedRightReel(uint256 entropy) public view returns (uint256) {
         uint256 sample = entropy & BITS_30;
         if (sample < UnmodifiedRightReel[0]) {
             return 0;
@@ -475,9 +450,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// sampleImprovedLeftReel samples the outcome from ImprovedLeftReel specified by the given entropy
-    function sampleImprovedLeftReel(
-        uint256 entropy
-    ) public view returns (uint256) {
+    function sampleImprovedLeftReel(uint256 entropy) public view returns (uint256) {
         uint256 sample = (entropy >> 60) & BITS_30;
         if (sample < ImprovedLeftReel[0]) {
             return 0;
@@ -520,9 +493,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// sampleImprovedCenterReel samples the outcome from ImprovedCenterReel specified by the given entropy
-    function sampleImprovedCenterReel(
-        uint256 entropy
-    ) public view returns (uint256) {
+    function sampleImprovedCenterReel(uint256 entropy) public view returns (uint256) {
         uint256 sample = (entropy >> 30) & BITS_30;
         if (sample < ImprovedCenterReel[0]) {
             return 0;
@@ -565,9 +536,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// sampleImprovedRightReel samples the outcome from ImprovedRightReel specified by the given entropy
-    function sampleImprovedRightReel(
-        uint256 entropy
-    ) public view returns (uint256) {
+    function sampleImprovedRightReel(uint256 entropy) public view returns (uint256) {
         uint256 sample = entropy & BITS_30;
         if (sample < ImprovedRightReel[0]) {
             return 0;
@@ -613,18 +582,10 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// the given entropy. The unused entropy is also returned for use by game clients.
     /// @param entropy The entropy created by the spin.
     /// @param boosted Whether or not the spin was boosted.
-    function outcome(
-        uint256 entropy,
-        bool boosted
-    )
+    function outcome(uint256 entropy, bool boosted)
         public
         view
-        returns (
-            uint256 left,
-            uint256 center,
-            uint256 right,
-            uint256 remainingEntropy
-        )
+        returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy)
     {
         if (boosted) {
             left = sampleImprovedLeftReel(entropy);
@@ -640,11 +601,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     /// Payout function for symbol combinations.
-    function payout(
-        uint256 left,
-        uint256 center,
-        uint256 right
-    )
+    function payout(uint256 left, uint256 center, uint256 right)
         public
         view
         virtual
@@ -677,21 +634,13 @@ contract DegenGambit is ERC20, ReentrancyGuard {
                 }
                 typeOfPrize = 1;
                 prizeIndex = 3;
-            } else if (
-                left != right &&
-                center != left &&
-                center != right &&
-                left >= 16 &&
-                center >= 16 &&
-                right >= 16
-            ) {
+            } else if (left != right && center != left && center != right && left >= 16 && center >= 16 && right >= 16)
+            {
                 // Three distinct major symbols. Case 5
                 result = address(this).balance >> 3;
                 typeOfPrize = 1;
                 prizeIndex = 5;
-            } else if (
-                left == right && left != center && left >= 16 && center >= 16
-            ) {
+            } else if (left == right && left != center && left >= 16 && center >= 16) {
                 // Major symbol pair on the outside with a different major symbol in the center. Case 4
                 result = address(this).balance >> 3;
                 typeOfPrize = 1;
@@ -711,25 +660,16 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     // Payout Estimate function to easily display current payouts estimate at time of function call
-    function prizes()
-        external
-        view
-        virtual
-        returns (uint256[] memory prizesAmount, uint256[] memory typeOfPrize)
-    {
+    function prizes() external view virtual returns (uint256[] memory prizesAmount, uint256[] memory typeOfPrize) {
         prizesAmount = new uint256[](7);
         typeOfPrize = new uint256[](7);
         prizesAmount[0] = MajorGambitPrize;
         typeOfPrize[0] = 20;
         prizesAmount[1] = MinorGambitPrize;
         typeOfPrize[1] = 20;
-        prizesAmount[2] = 50 * CostToSpin < address(this).balance >> 6
-            ? 50 * CostToSpin
-            : address(this).balance >> 6;
+        prizesAmount[2] = 50 * CostToSpin < address(this).balance >> 6 ? 50 * CostToSpin : address(this).balance >> 6;
         typeOfPrize[2] = 1;
-        prizesAmount[3] = 100 * CostToSpin < address(this).balance >> 4
-            ? 100 * CostToSpin
-            : address(this).balance >> 4;
+        prizesAmount[3] = 100 * CostToSpin < address(this).balance >> 4 ? 100 * CostToSpin : address(this).balance >> 4;
         typeOfPrize[3] = 1;
         prizesAmount[4] = address(this).balance >> 3;
         typeOfPrize[4] = 1;
@@ -740,13 +680,9 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     }
 
     //This is the function that handles the payout for the prizes
-    function _transferPrize(
-        uint256 prize,
-        address player,
-        uint256 typeOfPrize
-    ) internal virtual {
+    function _transferPrize(uint256 prize, address player, uint256 typeOfPrize) internal virtual {
         if (typeOfPrize == 1) {
-            (bool success, ) = payable(player).call{value: prize}("");
+            (bool success,) = payable(player).call{value: prize}("");
             if (!success) {
                 revert FailedPrizeTransfer();
             }
@@ -757,15 +693,10 @@ contract DegenGambit is ERC20, ReentrancyGuard {
 
     //This is a simple function for middleware contracts or UI to determine if there is a prize to accept for player
     function hasPrize(address player) external view returns (bool toReceive) {
-        toReceive =
-            _blockNumber() > LastSpinBlock[player] &&
-            _blockNumber() <= LastSpinBlock[player] + BlocksToAct;
+        toReceive = _blockNumber() > LastSpinBlock[player] && _blockNumber() <= LastSpinBlock[player] + BlocksToAct;
         if (toReceive) {
-            (uint256 left, uint256 center, uint256 right, ) = outcome(
-                _entropy(player),
-                LastSpinBoosted[player]
-            );
-            (uint256 prize, , ) = payout(left, center, right);
+            (uint256 left, uint256 center, uint256 right,) = outcome(_entropy(player), LastSpinBoosted[player]);
+            (uint256 prize,,) = payout(left, center, right);
             toReceive = prize > 0;
         }
         return toReceive;
@@ -774,26 +705,15 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// This is the internal function called to accept the outcome of a spin.
     /// @dev This call can be delegated to a different account.
     /// @param player account claiming a prize.
-    function _accept(
-        address player
-    )
+    function _accept(address player)
         internal
-        returns (
-            uint256 left,
-            uint256 center,
-            uint256 right,
-            uint256 remainingEntropy,
-            uint256 prize
-        )
+        returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize)
     {
         uint256 typeOfPrize;
         _enforceTick(player);
         _enforceDeadline(player);
 
-        (left, center, right, remainingEntropy) = outcome(
-            _entropy(player),
-            LastSpinBoosted[player]
-        );
+        (left, center, right, remainingEntropy) = outcome(_entropy(player), LastSpinBoosted[player]);
         {
             uint256 prizeIndex;
             (prize, typeOfPrize, prizeIndex) = payout(left, center, right);
@@ -814,13 +734,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         external
         virtual
         nonReentrant
-        returns (
-            uint256 left,
-            uint256 center,
-            uint256 right,
-            uint256 remainingEntropy,
-            uint256 prize
-        )
+        returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize)
     {
         (left, center, right, remainingEntropy, prize) = _accept(msg.sender);
     }
@@ -828,19 +742,11 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// This is the function a player calls to accept the outcome of a spin.
     /// @dev This call can be delegated to a different account.
     /// @param player account claiming a prize.
-    function acceptFor(
-        address player
-    )
+    function acceptFor(address player)
         external
         virtual
         nonReentrant
-        returns (
-            uint256 left,
-            uint256 center,
-            uint256 right,
-            uint256 remainingEntropy,
-            uint256 prize
-        )
+        returns (uint256 left, uint256 center, uint256 right, uint256 remainingEntropy, uint256 prize)
     {
         (left, center, right, remainingEntropy, prize) = _accept(player);
     }
@@ -888,12 +794,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// @param spinPlayer account spin is for
     /// @param streakPlayer account streak reward is for
     /// @param value value being sent to contract
-    function _spin(
-        address spinPlayer,
-        address streakPlayer,
-        bool boost,
-        uint256 value
-    ) internal virtual {
+    function _spin(address spinPlayer, address streakPlayer, bool boost, uint256 value) internal virtual {
         uint256 requiredFee = spinCost(spinPlayer);
         if (value < requiredFee) {
             revert InsufficientValue();
@@ -926,20 +827,14 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// @param boost Whether or not the player is using a boost, msg.sender is paying the boost
     /// @param spinPlayer account spin is for
     /// @param streakPlayer account streak reward is for
-    function spinFor(
-        address spinPlayer,
-        address streakPlayer,
-        bool boost
-    ) external payable {
+    function spinFor(address spinPlayer, address streakPlayer, bool boost) external payable {
         _spin(spinPlayer, streakPlayer, boost, msg.value);
     }
 
     /// inspectEntropy is a view method which allows clients to check the current entropy for a player given only their address.
     /// @dev This is a convenience method so that clients don't have to calculate the entropy given the spin blockhash themselves. It
     /// also enforces that blocks have ticked since the spin as well as the `BlocksToAct` deadline.
-    function inspectEntropy(
-        address degenerate
-    ) external view returns (uint256) {
+    function inspectEntropy(address degenerate) external view returns (uint256) {
         _enforceDeadline(degenerate);
         return _entropy(degenerate);
     }
@@ -948,9 +843,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// @notice This method allows clients to simulate the outcome of a spin in a single RPC call.
     /// @dev The alternative to using this method would be to call `accept` (rather than submitting it as a transaction). This is simply a more
     /// convenient and natural way to simulate the outcome of a spin, which also works on-chain.
-    function inspectOutcome(
-        address degenerate
-    )
+    function inspectOutcome(address degenerate)
         external
         view
         returns (
@@ -963,21 +856,15 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         )
     {
         _enforceDeadline(degenerate);
-        (left, center, right, remainingEntropy) = outcome(
-            _entropy(degenerate),
-            LastSpinBoosted[degenerate]
-        );
+        (left, center, right, remainingEntropy) = outcome(_entropy(degenerate), LastSpinBoosted[degenerate]);
 
-        (prize, typeOfPrize, ) = payout(left, center, right);
+        (prize, typeOfPrize,) = payout(left, center, right);
     }
 
     function symbol() public view override returns (string memory) {
         bytes32 hash = keccak256(abi.encodePacked(address(this)));
         // Convert to uint256 and take modulus 10^4
-        return
-            string(
-                abi.encodePacked("DG-", Strings.toString(uint256(hash) % 10000))
-            );
+        return string(abi.encodePacked("DG-", Strings.toString(uint256(hash) % 10000)));
     }
 
     /// version pure function that returns a string with version

@@ -11,7 +11,6 @@
  *
  * To make it easier to mock, we have only retained the `arbBlockNumber` method. This is the only method we currently use in our games.
  */
-
 pragma solidity >=0.4.21 <0.9.0;
 
 /**
@@ -22,7 +21,7 @@ interface ArbSys {
      * @notice Get Arbitrum block number (distinct from L1 block number; Arbitrum genesis block has block number 0)
      * @return block number as int
      */
-    function arbBlockNumber() external view returns (uint);
+    function arbBlockNumber() external view returns (uint256);
 
     /**
      * @notice Get Arbitrum block hash (reverts unless currentBlockNum-256 <= arbBlockNum < currentBlockNum)
