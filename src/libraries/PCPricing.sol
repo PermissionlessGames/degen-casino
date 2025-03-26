@@ -51,18 +51,20 @@ library PCPricing {
     /// @notice Struct for pricing data
     struct PricingData {
         bytes anchorCurrency; // The anchor (base) currency
-        uint256 adjustmentNumerator; // The numerator of the universal adjustment percentage
-        uint256 adjustmentDenominator; // The denominator of the universal adjustment percentage
+        mapping(bytes => uint256) adjustmentNumerator; // The numerator of the universal adjustment percentage
+        mapping(bytes => uint256) adjustmentDenominator; // The denominator of the universal adjustment percentage
         mapping(bytes => uint256) currencyPrice; // Mapping of currency prices
         mapping(bytes => uint256) currencyIndex; // Mapping of currency index
-        bytes[] trackedCurrencies; // List of tracked non-anchor currencies
-        uint256 lastProcessedIndex; // Index tracking for batch processing
+        uint256 numberOfCurrencies; // Number of currencies
+        mapping(uint256 => bytes) currencyIndexToCurrency; // Mapping of currency index to currency
+        uint256 nextIndexToProcss; // Index tracking for batch processing
         uint256 batchSize; // Maximum number of currencies to process in a single batch
     }
 
     /// @notice Set the anchor currency and its initial price
     /// @param currency The currency to set as the anchor
     /// @param price The initial price of the anchor currency
+    /// @dev This function is used to set the anchor currency and its initial price can only be called once
     function setAnchorCurrency(
         PricingData storage self,
         bytes memory currency,
@@ -72,24 +74,69 @@ library PCPricing {
 
         self.anchorCurrency = currency;
         self.currencyPrice[currency] = price;
+        //set the index of the anchor currency is 0
+        self.numberOfCurrencies++;
+        self.currencyIndexToCurrency[0] = currency;
+        self.currencyIndex[currency] = 0;
 
         emit AnchorCurrencySet(currency, price);
     }
 
-    /// @notice Set the universal adjustment percentage for all non-anchor currencies
+    /// @notice Update the universal adjustment percentage for a specific currency
     /// @param numerator The numerator of the adjustment factor
     /// @param denominator The denominator of the adjustment factor
     function setAdjustmentFactor(
         PricingData storage self,
+        bytes memory currency,
         uint256 numerator,
         uint256 denominator
     ) internal {
         require(denominator > 1, "Denominator must be greater than 1");
         require(numerator > 0, "Numerator must be greater than 0");
-        self.adjustmentNumerator = numerator;
-        self.adjustmentDenominator = denominator;
+        require(
+            keccak256(currency) != keccak256(bytes("")),
+            "Currency cannot be empty"
+        );
+        require(
+            keccak256(self.anchorCurrency) != keccak256(currency),
+            "Cannot set adjustment factor for anchor currency"
+        );
+        require(
+            self.currencyIndex[currency] != 0,
+            "Cannot set adjustment factor for anchor currency"
+        );
+        self.adjustmentNumerator[currency] = numerator;
+        self.adjustmentDenominator[currency] = denominator;
 
         emit AdjustmentFactorSet(numerator, denominator);
+    }
+
+    function addCurrency(
+        PricingData storage self,
+        bytes memory currency,
+        uint256 price,
+        uint256 numerator,
+        uint256 denominator
+    ) internal {
+        require(
+            keccak256(currency) != keccak256(bytes("")),
+            "Currency cannot be empty"
+        );
+        require(
+            keccak256(self.anchorCurrency) != keccak256(currency),
+            "Cannot add anchor currency"
+        );
+        require(self.currencyIndex[currency] == 0, "Currency already exists");
+
+        if (self.currencyPrice[currency] == 0) {
+            //set the index of the new currency
+            self.currencyIndexToCurrency[self.numberOfCurrencies] = currency;
+            self.currencyIndex[currency] = self.numberOfCurrencies;
+            self.numberOfCurrencies++;
+        }
+
+        setCurrencyPrice(self, currency, price);
+        setAdjustmentFactor(self, currency, numerator, denominator);
     }
 
     /// @notice Set the initial price for a specific currency
@@ -109,12 +156,7 @@ library PCPricing {
             keccak256(self.anchorCurrency) != keccak256(currency),
             "Cannot set price for anchor currency"
         );
-
-        if (self.currencyPrice[currency] == 0) {
-            self.trackedCurrencies.push(currency);
-            self.currencyIndex[currency] = self.trackedCurrencies.length - 1;
-        }
-
+        require(self.currencyIndex[currency] != 0, "Currency not found");
         self.currencyPrice[currency] = price;
 
         emit CurrencyPriceSet(currency, price);
@@ -122,6 +164,7 @@ library PCPricing {
 
     /// @notice Adjust the price dynamically based on usage (same adjustment for all non-anchor currencies)
     /// @param increase Whether to increase or decrease the price
+    /// @dev This function will not adjust the price of the anchor currency
     function adjustCurrencyPrice(
         PricingData storage self,
         bytes memory currency,
@@ -134,14 +177,15 @@ library PCPricing {
         require(self.currencyPrice[currency] > 0, "Currency price not set");
 
         uint256 adjustmentAmount = (self.currencyPrice[currency] *
-            self.adjustmentNumerator) / self.adjustmentDenominator;
+            self.adjustmentNumerator[currency]) /
+            self.adjustmentDenominator[currency];
         //set adjustmentAmount to a min of 1
         adjustmentAmount = adjustmentAmount > 0 ? adjustmentAmount : 1;
 
         if (increase) {
             self.currencyPrice[currency] += adjustmentAmount; // Increase price
         } else {
-            // Ensure price can decrease, if price can't decrease do to underflow set value to 1
+            // Ensure price can decrease, if price can't decrease do to underflow set value to min 1
             self.currencyPrice[currency] = self.currencyPrice[currency] >
                 adjustmentAmount
                 ? self.currencyPrice[currency] - adjustmentAmount
@@ -155,23 +199,24 @@ library PCPricing {
         );
     }
 
-    /// @notice adjust the price of a batch of non-anchor currencies
+    /// @notice adjust the price of non-anchor currencies based on batch size
     /// @param increase Whether to increase or decrease the price
     /// @param batchSize Maximum number of currencies to process in this transaction
-    /// @return (processedCount, hasMore) Number of currencies processed and whether there are more to process
+    /// @return uint256 Number of currencies processed in this update
+    /// @dev This function will not adjust the price of the anchor currency
     function adjustNonAnchorPricesBatch(
         PricingData storage self,
         bool increase,
         uint256 batchSize
     ) internal returns (uint256) {
-        uint256 length = self.trackedCurrencies.length;
-        if (length == 0) return (0);
+        if (self.numberOfCurrencies == 0) return (0);
 
-        uint256 startIndex = self.lastProcessedIndex % length;
+        // Get the start index for the batch processing ensuring it wraps around
+        uint256 startIndex = self.nextIndexToProcss % self.numberOfCurrencies;
 
         for (uint256 i = 0; i < batchSize; i++) {
-            uint256 currentIndex = (startIndex + i) % length;
-            bytes memory currency = self.trackedCurrencies[currentIndex];
+            uint256 currentIndex = (startIndex + i) % self.numberOfCurrencies;
+            bytes memory currency = self.currencyIndexToCurrency[currentIndex];
 
             if (keccak256(currency) != keccak256(self.anchorCurrency)) {
                 adjustCurrencyPrice(self, currency, increase);
@@ -179,9 +224,11 @@ library PCPricing {
         }
 
         // Update the last processed index, ensuring it wraps around
-        self.lastProcessedIndex = (startIndex + batchSize) % length;
+        self.nextIndexToProcss =
+            (startIndex + batchSize) %
+            self.numberOfCurrencies;
 
-        emit NonAnchorPricesAdjustedBatch(batchSize, self.lastProcessedIndex);
+        emit NonAnchorPricesAdjustedBatch(batchSize, self.nextIndexToProcss);
 
         return batchSize;
     }
@@ -193,22 +240,22 @@ library PCPricing {
         uint256 newBatchSize
     ) internal {
         require(newBatchSize > 0, "Batch size must be greater than 0");
+
         self.batchSize = newBatchSize;
     }
 
     /// @notice Legacy function that adjusts all prices in one transaction
     /// @param increase Whether to increase or decrease the price
-    /// @dev If trackedCurrencies length exceeds batchSize, it will use batch processing
+    /// @dev If the number of currencies exceed the batchsize, it will instead only process the batchsize
+    /// @dev This function will not adjust the price of the anchor currency
     function adjustAllNonAnchorPrices(
         PricingData storage self,
         bool increase
     ) internal {
-        uint256 length = self.trackedCurrencies.length;
-
         // If batchSize is not set or array is smaller than batch size, process all at once
-        if (self.batchSize == 0 || length <= self.batchSize) {
-            for (uint256 i = 0; i < length; i++) {
-                bytes memory currency = self.trackedCurrencies[i];
+        if (self.batchSize == 0 || self.numberOfCurrencies <= self.batchSize) {
+            for (uint256 i = 0; i < self.numberOfCurrencies; i++) {
+                bytes memory currency = self.currencyIndexToCurrency[i];
                 if (keccak256(currency) != keccak256(self.anchorCurrency)) {
                     adjustCurrencyPrice(self, currency, increase);
                 }
@@ -220,16 +267,19 @@ library PCPricing {
     }
 
     /// @notice Get the current batch processing state
-    /// @return lastProcessedIndex The last processed index
+    /// @return nextIndexToProcss The last processed index
     /// @return totalCurrencies The total number of currencies
     function getBatchProcessingState(
         PricingData storage self
     )
         internal
         view
-        returns (uint256 lastProcessedIndex, uint256 totalCurrencies)
+        returns (uint256 nextIndexToProcss, uint256 totalCurrencies)
     {
-        return (self.lastProcessedIndex, self.trackedCurrencies.length);
+        return (
+            self.nextIndexToProcss % self.numberOfCurrencies,
+            self.numberOfCurrencies
+        );
     }
 
     /// @notice Get the current price of a currency
@@ -243,23 +293,21 @@ library PCPricing {
         return self.currencyPrice[currency];
     }
 
-    /// @notice Get all tracked currency prices
-    /// @return currencies The list of tracked currencies
-    /// @return prices The list of prices for the tracked currencies
-    function getAllCurrencyPrices(
-        PricingData storage self
-    ) internal view returns (bytes[] memory, uint256[] memory) {
-        uint256 length = self.trackedCurrencies.length;
-        bytes[] memory currencies = new bytes[](length);
-        uint256[] memory prices = new uint256[](length);
+    /// @notice Get the prices of a list of currencies
+    /// @param currencies The list of currencies to get the prices of
+    /// @return prices The list of prices for the currencies requested
+    function getCurrencyPrices(
+        PricingData storage self,
+        bytes[] memory currencies
+    ) internal view returns (uint256[] memory prices) {
+        uint256 length = currencies.length;
+        prices = new uint256[](length);
 
         for (uint256 i = 0; i < length; i++) {
-            bytes memory currency = self.trackedCurrencies[i];
-            currencies[i] = currency;
-            prices[i] = self.currencyPrice[currency];
+            prices[i] = self.currencyPrice[currencies[i]];
         }
 
-        return (currencies, prices);
+        return prices;
     }
 
     /// @notice Check if a currency exists
@@ -274,6 +322,8 @@ library PCPricing {
 
     /// @notice Remove a currency from the pricing data
     /// @param currency The currency to remove
+    /// @dev This function will not remove the anchor currency and will revert if the currency is the anchor
+    /// @dev This function will also revert if the currency is not found, if price is not set or if the currency is empty
     function removeCurrency(
         PricingData storage self,
         bytes memory currency
@@ -288,13 +338,13 @@ library PCPricing {
             "Cannot remove anchor currency"
         );
         uint256 index = self.currencyIndex[currency];
-        if (index < self.trackedCurrencies.length - 1) {
-            self.trackedCurrencies[index] = self.trackedCurrencies[
-                self.trackedCurrencies.length - 1
+        if (index < self.numberOfCurrencies - 1) {
+            self.currencyIndexToCurrency[index] = self.currencyIndexToCurrency[
+                self.numberOfCurrencies - 1
             ];
-            self.currencyIndex[self.trackedCurrencies[index]] = index;
+            self.currencyIndex[self.currencyIndexToCurrency[index]] = index;
         }
-        self.trackedCurrencies.pop();
+        self.numberOfCurrencies--;
         delete self.currencyIndex[currency];
         delete self.currencyPrice[currency];
 

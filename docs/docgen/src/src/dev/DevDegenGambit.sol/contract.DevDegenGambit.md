@@ -1,5 +1,5 @@
 # DevDegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/80d1707c97242f48af64862299d2ff1db5164562/src/dev/DevDegenGambit.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/c6910cb2f39a70e501a7e10629806c01450b8f08/src/dev/DevDegenGambit.sol)
 
 **Inherits:**
 [DegenGambit](/src/DegenGambit.sol/contract.DegenGambit.md)

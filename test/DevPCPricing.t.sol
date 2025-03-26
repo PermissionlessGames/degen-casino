@@ -18,11 +18,11 @@ contract DevPCPricingTest is Test {
     address player1 = vm.addr(player1PrivateKey);
 
     function setUp() public {
-        devPCPricing = new DevPCPricing(ETH, 1000, 5, 100);
+        devPCPricing = new DevPCPricing(ETH, 1000, 5);
 
         // Set initial prices for other currencies
-        devPCPricing.setCurrencyPrice(USDT, 100);
-        devPCPricing.setCurrencyPrice(GOLD, 500);
+        devPCPricing.addCurrency(USDT, 100, 5, 100);
+        devPCPricing.addCurrency(GOLD, 500, 5, 100);
     }
 
     function testInitialPrices() public view {
@@ -66,21 +66,19 @@ contract DevPCPricingTest is Test {
     }
 
     function testGetAllCurrencyPrices() public view {
-        (bytes[] memory currencies, uint256[] memory prices) = devPCPricing
-            .getAllCurrencyPrices();
+        bytes[] memory currencies = new bytes[](2);
+        currencies[0] = USDT;
+        currencies[1] = GOLD;
+        uint256[] memory prices = devPCPricing.getCurrencyPrices(currencies);
 
-        assertEq(currencies.length, 2, "Should return two tracked currencies");
         assertEq(prices.length, 2, "Should return prices for two currencies");
-
-        assertEq(currencies[0], USDT, "First currency should be USDT");
-        assertEq(currencies[1], GOLD, "Second currency should be GOLD");
         assertEq(prices[0], 100, "First price should be 100");
         assertEq(prices[1], 500, "Second price should be 500");
     }
 
     function testGetAdjustmentFactors() public view {
         (uint256 numerator, uint256 denominator) = devPCPricing
-            .getAdjustmentFactor();
+            .getAdjustmentFactor(USDT);
         assertEq(numerator, 5, "Adjustment numerator should be 5");
         assertEq(denominator, 100, "Adjustment denominator should be 100");
     }
@@ -91,17 +89,25 @@ contract DevPCPricingTest is Test {
     }
 
     function testGetTrackedCurrencies() public view {
-        bytes[] memory currencies = devPCPricing.getTrackedCurrencies();
-        assertEq(currencies.length, 2, "Should have 2 tracked currencies");
-        assertEq(currencies[0], USDT, "First tracked currency should be USDT");
-        assertEq(currencies[1], GOLD, "Second tracked currency should be GOLD");
+        uint256 numberOfCurrencies = devPCPricing.getNumberOfCurrencies();
+        assertEq(numberOfCurrencies, 3, "Should have 3 tracked currencies");
+        bytes[] memory currencies = new bytes[](numberOfCurrencies);
+        for (uint256 i = 0; i < numberOfCurrencies; i++) {
+            currencies[i] = devPCPricing.getIndexToCurrency(i);
+        }
+        assertEq(currencies.length, 3, "Should have 3 tracked currencies");
+        assertEq(currencies[0], ETH, "First tracked currency should be ETH");
+        assertEq(currencies[1], USDT, "Second tracked currency should be USDT");
+        assertEq(currencies[2], GOLD, "Third tracked currency should be GOLD");
     }
 
     function testGetCurrencyIndex() public view {
+        uint256 ethIndex = devPCPricing.getCurrencyIndex(ETH);
         uint256 usdtIndex = devPCPricing.getCurrencyIndex(USDT);
         uint256 goldIndex = devPCPricing.getCurrencyIndex(GOLD);
-        assertEq(usdtIndex, 0, "USDT should be at index 0");
-        assertEq(goldIndex, 1, "GOLD should be at index 1");
+        assertEq(ethIndex, 0, "ETH should be at index 0");
+        assertEq(usdtIndex, 1, "USDT should be at index 1");
+        assertEq(goldIndex, 2, "GOLD should be at index 2");
     }
 
     function testCurrencyExists() public view {
@@ -191,12 +197,11 @@ contract DevPCPricingTest is Test {
     }
 
     function testCannotSetInvalidAdjustmentFactor() public {
-        DevPCPricing newDevPCPricing;
         vm.expectRevert("Denominator must be greater than 1");
-        newDevPCPricing = new DevPCPricing(ETH, 1000, 100, 0);
+        devPCPricing.setAdjustmentFactor(USDT, 0, 0);
 
         vm.expectRevert("Numerator must be greater than 0");
-        newDevPCPricing = new DevPCPricing(ETH, 1000, 0, 100);
+        devPCPricing.setAdjustmentFactor(USDT, 0, 100);
     }
 
     function testGetIndexOfNonExistentCurrencyShouldBe0() public view {
@@ -219,30 +224,35 @@ contract DevPCPricingTest is Test {
         bytes memory DAI = "DAI";
         bytes memory BTC = "BTC";
 
-        devPCPricing.setCurrencyPrice(USDC, 100);
-        devPCPricing.setCurrencyPrice(DAI, 100);
-        devPCPricing.setCurrencyPrice(BTC, 30000);
+        devPCPricing.addCurrency(USDC, 100, 5, 100);
+        devPCPricing.addCurrency(DAI, 100, 5, 100);
+        devPCPricing.addCurrency(BTC, 30000, 5, 100);
 
-        // Test processing with batch size of 2
-        uint256 processed1 = devPCPricing.adjustNonAnchorPricesBatch(false, 2);
-        assertEq(processed1, 2, "Should process 2 currencies in first batch");
+        // Test processing with batch size of 3
+        uint256 processed1 = devPCPricing.adjustNonAnchorPricesBatch(false, 3);
+        assertEq(processed1, 3, "Should process 3 currencies in first batch");
 
         // Get state after first batch
-        (uint256 lastIndex, uint256 total) = devPCPricing
+        (uint256 nextIndexToProcess, uint256 totalCurrencies) = devPCPricing
             .getBatchProcessingState();
-        assertEq(total, 5, "Should have 5 total currencies");
-        assertEq(lastIndex, 2, "Last processed index should be 2");
+        assertEq(totalCurrencies, 6, "Should have 6 total currencies");
+        assertEq(
+            nextIndexToProcess,
+            3,
+            "The next index to process should be 3"
+        );
 
         // Process remaining currencies
         uint256 processed2 = devPCPricing.adjustNonAnchorPricesBatch(false, 3);
         assertEq(processed2, 3, "Should process 3 currencies in second batch");
 
         // Verify the index was reset
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
+        (nextIndexToProcess, totalCurrencies) = devPCPricing
+            .getBatchProcessingState();
         assertEq(
-            lastIndex,
+            nextIndexToProcess,
             0,
-            "Index should reset after processing all currencies"
+            "The next index to process should be 0"
         );
 
         // Verify all prices were adjusted
@@ -279,7 +289,7 @@ contract DevPCPricingTest is Test {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );
-            devPCPricing.setCurrencyPrice(currency, 100);
+            devPCPricing.addCurrency(currency, 100, 5, 100);
         }
 
         // Set batch size to 3
@@ -287,27 +297,56 @@ contract DevPCPricingTest is Test {
 
         // Process currencies in multiple calls
         // First batch (processes indices 0-2)
+        // This should process USDT, GOLD and ignore anchor currency ETH
         devPCPricing.useAnchorCurrency(false);
-        (uint256 lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 3, "Last index should be 3 after first batch");
+        (uint256 nextIndexToProcess, ) = devPCPricing.getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            3,
+            "The next index to process should be 3 after first batch"
+        );
+
+        // Verify prices were adjusted
+        assertEq(
+            devPCPricing.getCurrencyPrice(USDT),
+            95,
+            "USDT price should be adjusted"
+        );
+        assertEq(
+            devPCPricing.getCurrencyPrice(GOLD),
+            475,
+            "GOLD price should be adjusted"
+        );
 
         // Second batch (processes indices 3-5)
         devPCPricing.useAnchorCurrency(false);
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 6, "Last index should be 6 after second batch");
+        (nextIndexToProcess, ) = devPCPricing.getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            6,
+            "The next index to process should be 6 after second batch"
+        );
 
         // Third batch (processes indices 6-8)
         devPCPricing.useAnchorCurrency(false);
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 9, "Last index should be 9 after third batch");
+        (nextIndexToProcess, ) = devPCPricing.getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            9,
+            "The next index to process should be 9 after third batch"
+        );
 
         // Fourth batch (processes indices 9-11)
         devPCPricing.useAnchorCurrency(false);
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 0, "Last index should wrap around to 0");
+        (nextIndexToProcess, ) = devPCPricing.getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            12,
+            "The next index to process should be 12 after fourth batch"
+        );
 
         // Verify all prices were adjusted (95 = 100 - 5%)
-        for (uint256 i = 0; i < 10; i++) {
+        for (uint256 i = 0; i < 9; i++) {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );
@@ -317,6 +356,20 @@ contract DevPCPricingTest is Test {
                 "Price should be adjusted"
             );
         }
+
+        {
+            uint256 i = 9;
+            bytes memory currency = bytes(
+                string.concat("TOKEN", vm.toString(i))
+            );
+            assertEq(
+                devPCPricing.getCurrencyPrice(currency),
+                100,
+                "Price should not be adjusted"
+            );
+        }
+
+        // Verify prices were adjusted
         assertEq(
             devPCPricing.getCurrencyPrice(USDT),
             95,
@@ -349,7 +402,7 @@ contract DevPCPricingTest is Test {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );
-            devPCPricing.setCurrencyPrice(currency, 100);
+            devPCPricing.addCurrency(currency, 100, 5, 100);
         }
 
         // Set batch size to 3
@@ -357,25 +410,37 @@ contract DevPCPricingTest is Test {
 
         // First batch should process first 3 tokens
         devPCPricing.useAnchorCurrency(false);
-        (uint256 lastIndex, uint256 total) = devPCPricing
+        (uint256 nextIndexToProcess, uint256 totalCurrencies) = devPCPricing
             .getBatchProcessingState();
-        assertEq(lastIndex, 3, "Should process first 3 tokens");
         assertEq(
-            total,
-            12,
-            "Should have 12 total currencies (10 + USDT + GOLD)"
+            nextIndexToProcess,
+            3,
+            "The next index to process should be 3 after first batch"
+        );
+        assertEq(
+            totalCurrencies,
+            13,
+            "Should have 13 total currencies (10 + USDT + GOLD + ETH)"
         );
 
         // Verify first batch prices were adjusted
+
+        // Second batch should process next 3 tokens
+        devPCPricing.useAnchorCurrency(false);
+
+        (nextIndexToProcess, totalCurrencies) = devPCPricing
+            .getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            6,
+            "The next index to process should be 6 after second batch"
+        );
+
         assertEq(
             devPCPricing.getCurrencyPrice(bytes("TOKEN0")),
             95,
             "TOKEN0 should be adjusted"
         );
-        // Second batch should process next 3 tokens
-        devPCPricing.useAnchorCurrency(false);
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 6, "Should process next 3 tokens");
 
         assertEq(
             devPCPricing.getCurrencyPrice(bytes("TOKEN1")),
@@ -389,15 +454,21 @@ contract DevPCPricingTest is Test {
         );
 
         // Verify second batch prices were adjusted
+
+        devPCPricing.useAnchorCurrency(false);
+        (nextIndexToProcess, totalCurrencies) = devPCPricing
+            .getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            9,
+            "The next index to process should be 9 after third batch"
+        );
+
         assertEq(
             devPCPricing.getCurrencyPrice(bytes("TOKEN3")),
             95,
             "TOKEN3 should be adjusted"
         );
-
-        devPCPricing.useAnchorCurrency(false);
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 9, "Should process next 3 tokens");
 
         assertEq(
             devPCPricing.getCurrencyPrice(bytes("TOKEN4")),
@@ -409,24 +480,29 @@ contract DevPCPricingTest is Test {
             95,
             "TOKEN5 should be adjusted"
         );
-        assertEq(
-            devPCPricing.getCurrencyPrice(bytes("TOKEN6")),
-            95,
-            "TOKEN6 should be adjusted"
-        );
 
         // Process remaining batches
         devPCPricing.useAnchorCurrency(false); // Third batch (9-11)
         // Verify final state
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 0, "Index should wrap around to 0");
+        (nextIndexToProcess, totalCurrencies) = devPCPricing
+            .getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            12,
+            "The next index to process should be 12 after fourth batch"
+        );
         devPCPricing.useAnchorCurrency(false); // Fourth batch (0-3)
         // Verify final state
-        (lastIndex, ) = devPCPricing.getBatchProcessingState();
-        assertEq(lastIndex, 3, "Index should wrap around to 3");
+        (nextIndexToProcess, totalCurrencies) = devPCPricing
+            .getBatchProcessingState();
+        assertEq(
+            nextIndexToProcess,
+            2,
+            "The next index to process should be 2 after fifth batch"
+        );
 
         // Verify all remaining prices were adjusted
-        for (uint256 i = 7; i < 10; i++) {
+        for (uint256 i = 6; i < 10; i++) {
             bytes memory currency = bytes(
                 string.concat("TOKEN", vm.toString(i))
             );
@@ -445,7 +521,7 @@ contract DevPCPricingTest is Test {
         );
         assertEq(
             devPCPricing.getCurrencyPrice(GOLD),
-            452,
+            475,
             "GOLD should be adjusted"
         );
     }

@@ -16,11 +16,27 @@ contract DevPCPricing {
     /// @notice Constructor initializes the anchor currency and default adjustment factor
     /// @param anchorCurrency The anchor currency (e.g., ETH)
     /// @param anchorPrice The starting price of the anchor currency
-    /// @param adjNumerator The numerator of the adjustment percentage
-    /// @param adjDenominator The denominator of the adjustment percentage
-    constructor(bytes memory anchorCurrency, uint256 anchorPrice, uint256 adjNumerator, uint256 adjDenominator) {
+    constructor(
+        bytes memory anchorCurrency,
+        uint256 anchorPrice,
+        uint256 batchSize
+    ) {
         pricingData.setAnchorCurrency(anchorCurrency, anchorPrice);
-        pricingData.setAdjustmentFactor(adjNumerator, adjDenominator);
+        pricingData.setBatchSize(batchSize);
+    }
+
+    /// @notice Add a new currency to the system
+    /// @param currency The currency to add
+    /// @param price The price of the currency
+    /// @param numerator The numerator of the adjustment percentage
+    /// @param denominator The denominator of the adjustment percentage
+    function addCurrency(
+        bytes memory currency,
+        uint256 price,
+        uint256 numerator,
+        uint256 denominator
+    ) external {
+        pricingData.addCurrency(currency, price, numerator, denominator);
     }
 
     /// @notice Set a new currency price
@@ -29,7 +45,10 @@ contract DevPCPricing {
     }
 
     /// @notice Manually adjust a currency price
-    function adjustCurrencyPrice(bytes memory currency, bool increase) external {
+    function adjustCurrencyPrice(
+        bytes memory currency,
+        bool increase
+    ) external {
         pricingData.adjustCurrencyPrice(currency, increase);
     }
 
@@ -43,29 +62,57 @@ contract DevPCPricing {
     /// @param increase Whether to increase or decrease prices
     /// @param batchSize Maximum number of currencies to process
     /// @return processedCount Number of currencies processed
-    function adjustNonAnchorPricesBatch(bool increase, uint256 batchSize) external returns (uint256) {
+    function adjustNonAnchorPricesBatch(
+        bool increase,
+        uint256 batchSize
+    ) external returns (uint256) {
         return pricingData.adjustNonAnchorPricesBatch(increase, batchSize);
     }
 
     /// @notice Get the current state of batch processing
-    /// @return lastProcessedIndex The index where processing will resume
+    /// @return nextIndexToProcss The index where processing will resume
     /// @return totalCurrencies Total number of tracked currencies
-    function getBatchProcessingState() external view returns (uint256 lastProcessedIndex, uint256 totalCurrencies) {
+    function getBatchProcessingState()
+        external
+        view
+        returns (uint256 nextIndexToProcss, uint256 totalCurrencies)
+    {
         return pricingData.getBatchProcessingState();
     }
 
     /// @notice Get a specific currency price
-    function getCurrencyPrice(bytes memory currency) external view returns (uint256) {
+    function getCurrencyPrice(
+        bytes memory currency
+    ) external view returns (uint256) {
         return pricingData.getCurrencyPrice(currency);
     }
 
     /// @notice Retrieve all stored currency prices
-    function getAllCurrencyPrices() external view returns (bytes[] memory, uint256[] memory) {
-        return pricingData.getAllCurrencyPrices();
+    function getCurrencyPrices(
+        bytes[] memory currencies
+    ) external view returns (uint256[] memory) {
+        return pricingData.getCurrencyPrices(currencies);
     }
 
-    function getAdjustmentFactor() external view returns (uint256, uint256) {
-        return (pricingData.adjustmentNumerator, pricingData.adjustmentDenominator);
+    function setAdjustmentFactor(
+        bytes memory currency,
+        uint256 numerator,
+        uint256 denominator
+    ) external {
+        pricingData.setAdjustmentFactor(currency, numerator, denominator);
+    }
+
+    /// @notice Get the adjustment factor for a specific currency
+    /// @param currency The currency to get the adjustment factor for
+    /// @return numerator The numerator of the adjustment factor
+    /// @return denominator The denominator of the adjustment factor
+    function getAdjustmentFactor(
+        bytes memory currency
+    ) external view returns (uint256, uint256) {
+        return (
+            pricingData.adjustmentNumerator[currency],
+            pricingData.adjustmentDenominator[currency]
+        );
     }
 
     /// @notice Get the anchor currency
@@ -73,18 +120,17 @@ contract DevPCPricing {
         return pricingData.anchorCurrency;
     }
 
-    /// @notice Get all tracked non-anchor currencies
-    function getTrackedCurrencies() external view returns (bytes[] memory) {
-        return pricingData.trackedCurrencies;
-    }
-
     /// @notice Get the index of a specific currency
-    function getCurrencyIndex(bytes memory currency) external view returns (uint256) {
+    function getCurrencyIndex(
+        bytes memory currency
+    ) external view returns (uint256) {
         return pricingData.currencyIndex[currency];
     }
 
     /// @notice Check if a currency exists in the system
-    function currencyExists(bytes memory currency) external view returns (bool) {
+    function currencyExists(
+        bytes memory currency
+    ) external view returns (bool) {
         return pricingData.currencyExists(currency);
     }
 
@@ -102,5 +148,29 @@ contract DevPCPricing {
     /// @notice Get the current batch size setting
     function getBatchSize() external view returns (uint256) {
         return pricingData.batchSize;
+    }
+
+    /// @notice Get the currency at a specific index
+    /// @param index The index of the currency
+    /// @return currency The currency at the index
+    function getIndexToCurrency(
+        uint256 index
+    ) external view returns (bytes memory) {
+        return pricingData.currencyIndexToCurrency[index];
+    }
+
+    /// @notice Get the index of a specific currency
+    /// @param currency The currency to get the index of
+    /// @return index The index of the currency
+    function getCurrencyIndexToCurrency(
+        bytes memory currency
+    ) external view returns (uint256) {
+        return pricingData.currencyIndex[currency];
+    }
+
+    /// @notice Get the number of currencies in the system
+    /// @return numberOfCurrencies The number of currencies in the system
+    function getNumberOfCurrencies() external view returns (uint256) {
+        return pricingData.numberOfCurrencies;
     }
 }

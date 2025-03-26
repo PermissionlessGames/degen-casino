@@ -1,5 +1,5 @@
 # DevPCPricing
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/80d1707c97242f48af64862299d2ff1db5164562/src/dev/DevPCPricing.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/c6910cb2f39a70e501a7e10629806c01450b8f08/src/dev/DevPCPricing.sol)
 
 **Author:**
 Permissionless Games & ChatGPT
@@ -24,7 +24,7 @@ Constructor initializes the anchor currency and default adjustment factor
 
 
 ```solidity
-constructor(bytes memory anchorCurrency, uint256 anchorPrice, uint256 adjNumerator, uint256 adjDenominator);
+constructor(bytes memory anchorCurrency, uint256 anchorPrice, uint256 batchSize);
 ```
 **Parameters**
 
@@ -32,8 +32,25 @@ constructor(bytes memory anchorCurrency, uint256 anchorPrice, uint256 adjNumerat
 |----|----|-----------|
 |`anchorCurrency`|`bytes`|The anchor currency (e.g., ETH)|
 |`anchorPrice`|`uint256`|The starting price of the anchor currency|
-|`adjNumerator`|`uint256`|The numerator of the adjustment percentage|
-|`adjDenominator`|`uint256`|The denominator of the adjustment percentage|
+|`batchSize`|`uint256`||
+
+
+### addCurrency
+
+Add a new currency to the system
+
+
+```solidity
+function addCurrency(bytes memory currency, uint256 price, uint256 numerator, uint256 denominator) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`currency`|`bytes`|The currency to add|
+|`price`|`uint256`|The price of the currency|
+|`numerator`|`uint256`|The numerator of the adjustment percentage|
+|`denominator`|`uint256`|The denominator of the adjustment percentage|
 
 
 ### setCurrencyPrice
@@ -112,21 +129,43 @@ Get a specific currency price
 function getCurrencyPrice(bytes memory currency) external view returns (uint256);
 ```
 
-### getAllCurrencyPrices
+### getCurrencyPrices
 
 Retrieve all stored currency prices
 
 
 ```solidity
-function getAllCurrencyPrices() external view returns (bytes[] memory, uint256[] memory);
+function getCurrencyPrices(bytes[] memory currencies) external view returns (uint256[] memory);
+```
+
+### setAdjustmentFactor
+
+
+```solidity
+function setAdjustmentFactor(bytes memory currency, uint256 numerator, uint256 denominator) external;
 ```
 
 ### getAdjustmentFactor
 
+Get the adjustment factor for a specific currency
+
 
 ```solidity
-function getAdjustmentFactor() external view returns (uint256, uint256);
+function getAdjustmentFactor(bytes memory currency) external view returns (uint256, uint256);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`currency`|`bytes`|The currency to get the adjustment factor for|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|numerator The numerator of the adjustment factor|
+|`<none>`|`uint256`|denominator The denominator of the adjustment factor|
+
 
 ### getAnchorCurrency
 
@@ -135,15 +174,6 @@ Get the anchor currency
 
 ```solidity
 function getAnchorCurrency() external view returns (bytes memory);
-```
-
-### getTrackedCurrencies
-
-Get all tracked non-anchor currencies
-
-
-```solidity
-function getTrackedCurrencies() external view returns (bytes[] memory);
 ```
 
 ### getCurrencyIndex
@@ -196,4 +226,61 @@ Get the current batch size setting
 ```solidity
 function getBatchSize() external view returns (uint256);
 ```
+
+### getIndexToCurrency
+
+Get the currency at a specific index
+
+
+```solidity
+function getIndexToCurrency(uint256 index) external view returns (bytes memory);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`index`|`uint256`|The index of the currency|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bytes`|currency The currency at the index|
+
+
+### getCurrencyIndexToCurrency
+
+Get the index of a specific currency
+
+
+```solidity
+function getCurrencyIndexToCurrency(bytes memory currency) external view returns (uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`currency`|`bytes`|The currency to get the index of|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|index The index of the currency|
+
+
+### getNumberOfCurrencies
+
+Get the number of currencies in the system
+
+
+```solidity
+function getNumberOfCurrencies() external view returns (uint256);
+```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|numberOfCurrencies The number of currencies in the system|
+
 

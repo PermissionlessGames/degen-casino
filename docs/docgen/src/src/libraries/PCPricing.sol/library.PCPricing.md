@@ -1,5 +1,5 @@
 # PCPricing
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/80d1707c97242f48af64862299d2ff1db5164562/src/libraries/PCPricing.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/c6910cb2f39a70e501a7e10629806c01450b8f08/src/libraries/PCPricing.sol)
 
 **Author:**
 Permissionless Games & ChatGpt
@@ -14,6 +14,8 @@ A universal adjustment factor applies to all non-anchor currencies, promoting dy
 ### setAnchorCurrency
 
 Set the anchor currency and its initial price
+
+*This function is used to set the anchor currency and its initial price can only be called once*
 
 
 ```solidity
@@ -30,20 +32,35 @@ function setAnchorCurrency(PricingData storage self, bytes memory currency, uint
 
 ### setAdjustmentFactor
 
-Set the universal adjustment percentage for all non-anchor currencies
+Update the universal adjustment percentage for a specific currency
 
 
 ```solidity
-function setAdjustmentFactor(PricingData storage self, uint256 numerator, uint256 denominator) internal;
+function setAdjustmentFactor(PricingData storage self, bytes memory currency, uint256 numerator, uint256 denominator)
+    internal;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`self`|`PricingData`||
+|`currency`|`bytes`||
 |`numerator`|`uint256`|The numerator of the adjustment factor|
 |`denominator`|`uint256`|The denominator of the adjustment factor|
 
+
+### addCurrency
+
+
+```solidity
+function addCurrency(
+    PricingData storage self,
+    bytes memory currency,
+    uint256 price,
+    uint256 numerator,
+    uint256 denominator
+) internal;
+```
 
 ### setCurrencyPrice
 
@@ -81,7 +98,7 @@ function adjustCurrencyPrice(PricingData storage self, bytes memory currency, bo
 
 ### adjustNonAnchorPricesBatch
 
-adjust the price of a batch of non-anchor currencies
+adjust the price of non-anchor currencies based on batch size
 
 
 ```solidity
@@ -101,7 +118,7 @@ function adjustNonAnchorPricesBatch(PricingData storage self, bool increase, uin
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`uint256`|(processedCount, hasMore) Number of currencies processed and whether there are more to process|
+|`<none>`|`uint256`|uint256 Number of currencies processed in this update|
 
 
 ### setBatchSize
@@ -124,7 +141,7 @@ function setBatchSize(PricingData storage self, uint256 newBatchSize) internal;
 
 Legacy function that adjusts all prices in one transaction
 
-*If trackedCurrencies length exceeds batchSize, it will use batch processing*
+*If the number of currencies exceed the batchsize, it will instead only process the batchsize*
 
 
 ```solidity
@@ -179,20 +196,29 @@ function getCurrencyPrice(PricingData storage self, bytes memory currency) inter
 |`price`|`uint256`|The price of the currency|
 
 
-### getAllCurrencyPrices
+### getCurrencyPrices
 
-Get all tracked currency prices
+Get the prices of a list of currencies
 
 
 ```solidity
-function getAllCurrencyPrices(PricingData storage self) internal view returns (bytes[] memory, uint256[] memory);
+function getCurrencyPrices(PricingData storage self, bytes[] memory currencies)
+    internal
+    view
+    returns (uint256[] memory prices);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`self`|`PricingData`||
+|`currencies`|`bytes[]`|The list of currencies to get the prices of|
+
 **Returns**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`bytes[]`|currencies The list of tracked currencies|
-|`<none>`|`uint256[]`|prices The list of prices for the tracked currencies|
+|`prices`|`uint256[]`|The list of prices for the currencies requested|
 
 
 ### currencyExists
@@ -220,6 +246,10 @@ function currencyExists(PricingData storage self, bytes memory currency) interna
 ### removeCurrency
 
 Remove a currency from the pricing data
+
+*This function will not remove the anchor currency and will revert if the currency is the anchor*
+
+*This function will also revert if the currency is not found, if price is not set or if the currency is empty*
 
 
 ```solidity
@@ -333,11 +363,12 @@ Struct for pricing data
 ```solidity
 struct PricingData {
     bytes anchorCurrency;
-    uint256 adjustmentNumerator;
-    uint256 adjustmentDenominator;
+    mapping(bytes => uint256) adjustmentNumerator;
+    mapping(bytes => uint256) adjustmentDenominator;
     mapping(bytes => uint256) currencyPrice;
     mapping(bytes => uint256) currencyIndex;
-    bytes[] trackedCurrencies;
+    uint256 numberOfCurrencies;
+    mapping(uint256 => bytes) currencyIndexToCurrency;
     uint256 lastProcessedIndex;
     uint256 batchSize;
 }
