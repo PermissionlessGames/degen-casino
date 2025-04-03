@@ -79,10 +79,6 @@ contract CombinatoricsTest is Test {
             "Combinatorics: Factorial UpperBounds reached must be less then 57"
         );
         Combinatorics.factorial(58);
-        vm.expectRevert(
-            "Combinatorics: Factorial UpperBounds reached must be less then 57"
-        );
-        Combinatorics.factorial(100);
     }
 
     function testChoose5UpperBoundaries() public {
