@@ -41,9 +41,12 @@ contract CombinatoricsTest is Test {
         assertEq(Combinatorics.permutation(6, 2), 30, "P(6,2) should be 30");
     }
 
-    function testInvalidCombination() public {
+    function testInvalidCombinationNLessThanR() public {
         vm.expectRevert("COMBINATORICS: n must be greater than r");
         Combinatorics.combination(3, 5);
+    }
+
+    function testInvalidCombinationRIsZero() public {
         vm.expectRevert("COMBINATORICS: r must be greater than 0");
         Combinatorics.combination(3, 0);
     }
