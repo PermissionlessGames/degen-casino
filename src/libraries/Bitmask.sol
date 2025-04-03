@@ -148,7 +148,8 @@ library Bitmask {
         }
         uint256 count = 0;
         uint256 diff = bitmask1 & bitmask2; // Identify matching bits, is a bitmask with only the matching bits
-        for (uint8 i = lowerBit; i <= upperBit && diff > 0; i++) {
+        diff >>= lowerBit; // Shift the diff to the lower bit
+        for (uint256 i = lowerBit; i <= upperBit && diff > 0; i++) {
             count += diff & 1; // Count the bit if it's set
             diff >>= 1; // Shift right to check the next bit
         }
