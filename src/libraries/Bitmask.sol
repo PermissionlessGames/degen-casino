@@ -13,6 +13,7 @@ library Bitmask {
     error NumberOutOfRange(uint256 number);
     error MaxNumberExceedsLimit(uint256 maxNumber);
     error RangeExceedsLimit(uint256 range);
+    error LowerBitGreaterThanUpperBit(uint256 lowerBit, uint256 upperBit);
 
     /**
      * @notice Encodes an array of numbers into a single bitmask.
@@ -59,6 +60,41 @@ library Bitmask {
                 numbers[index++] = i;
             }
         }
+    }
+
+    /**
+     * @notice Decodes a bitmask into an array of numbers within a specific range.
+     * @dev The max range must be between 0 and 255. Should be the largest number in the array.
+     * @param bitmask The bitmask to decode.
+     * @param lowerBit The lower bit.
+     * @param upperBit The upper bit.
+     * @return numbers The decoded array of numbers.
+     */
+    function decodeBitmaskInRange(
+        uint256 bitmask,
+        uint256 lowerBit,
+        uint256 upperBit
+    ) internal pure returns (uint256[] memory numbers) {
+        if (upperBit > 255) {
+            revert RangeExceedsLimit(upperBit);
+        }
+        if (lowerBit > upperBit) {
+            revert LowerBitGreaterThanUpperBit(lowerBit, upperBit);
+        }
+        uint256 count;
+        for (uint256 i = lowerBit; i <= upperBit; i++) {
+            if ((bitmask & (1 << i)) != 0) {
+                count++;
+            }
+        }
+        numbers = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = lowerBit; i <= upperBit; i++) {
+            if ((bitmask & (1 << i)) != 0) {
+                numbers[index++] = i;
+            }
+        }
+        return numbers;
     }
 
     /**
