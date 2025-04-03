@@ -88,8 +88,6 @@ contract CombinatoricsTest is Test {
             964934076977634413059720290138078624491229918748974612800501656983313064200,
             "Combintation of (2586638741762876, 5) should be 964,934,076,977,634,413,059,720,290,138,078,624,491,229,918,748,974,612,800,501,656,983,313,064,200"
         );
-        vm.expectRevert();
-        Combinatorics.combination(2586638741762877, 5);
 
         results = Combinatorics.permutation(2586638741762876, 5);
         assertEq(
@@ -97,6 +95,16 @@ contract CombinatoricsTest is Test {
             115792089237316129567166434816569434938947590249876953536060198837997567704000,
             "Permutation of (2586638741762876, 5) should be 115,792,089,237,316,129,567,166,434,816,569,434,938,947,590,249,876,953,536,060,198,837,997,567,704,000"
         );
+        vm.expectRevert();
+        Combinatorics.permutation(2586638741762877, 5);
+    }
+
+    function testChoose5CombinationUpperBoundariesShouldRevert() public {
+        vm.expectRevert();
+        Combinatorics.combination(2586638741762877, 5);
+    }
+
+    function testChoose5PermutationUpperBoundariesShouldRevert() public {
         vm.expectRevert();
         Combinatorics.permutation(2586638741762877, 5);
     }
