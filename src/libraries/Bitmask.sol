@@ -124,4 +124,34 @@ library Bitmask {
 
         return count;
     }
+
+    /**
+     * @notice Counts the number of matching bits between two bitmasks within a specific range.
+     * @dev The max range must be between 0 and 255.
+     * @param bitmask1 The first bitmask.
+     * @param bitmask2 The second bitmask.
+     * @param lowerBit The lower bit.
+     * @param upperBit The upper bit.
+     * @return count The number of matching bits.
+     */
+    function countMatchingBitsInRange(
+        uint256 bitmask1,
+        uint256 bitmask2,
+        uint256 lowerBit,
+        uint256 upperBit
+    ) internal pure returns (uint256) {
+        if (upperBit > 255) {
+            revert RangeExceedsLimit(upperBit);
+        }
+        if (lowerBit > upperBit) {
+            revert LowerBitGreaterThanUpperBit(lowerBit, upperBit);
+        }
+        uint256 count = 0;
+        uint256 diff = bitmask1 & bitmask2; // Identify matching bits, is a bitmask with only the matching bits
+        for (uint8 i = lowerBit; i <= upperBit && diff > 0; i++) {
+            count += diff & 1; // Count the bit if it's set
+            diff >>= 1; // Shift right to check the next bit
+        }
+        return count;
+    }
 }
