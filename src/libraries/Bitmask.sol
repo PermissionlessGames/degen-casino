@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+/**
+ * @title Bitmask Library
+ * @author Permissionless Games
+ * @notice This library provides efficient implementations of bitmask functions for use in smart contracts.
+ * @dev Encodes and decodes arrays of numbers into and from bitmasks. Also counts the number of matching bits between two bitmasks.
+ * @dev MAX RANGE IS 255, since uint256 acts as a bitmask for 256 bit array
+ */
+
 library Bitmask {
     /**
      * @notice Encodes an array of numbers into a single bitmask.
@@ -14,7 +22,7 @@ library Bitmask {
         for (uint256 i = 0; i < numbers.length; i++) {
             require(
                 numbers[i] >= 0 && numbers[i] <= 255,
-                "Number out of range"
+                "Bitmask: Number out of range"
             );
             bitmask |= (1 << (numbers[i]));
         }
@@ -31,7 +39,7 @@ library Bitmask {
         uint256 bitmask,
         uint256 maxNumber
     ) internal pure returns (uint256[] memory numbers) {
-        require(maxNumber <= 255, "Max number exceeds limit");
+        require(maxNumber <= 255, "Bitmask: Max number exceeds limit");
         uint256 count;
         for (uint256 i = 0; i <= maxNumber; i++) {
             if ((bitmask & (1 << i)) != 0) {
@@ -61,7 +69,7 @@ library Bitmask {
         uint256 bitmask2,
         uint256 maxRange
     ) internal pure returns (uint256) {
-        require(maxRange <= 255, "Range exceeds limit"); // Ensure max range is within 255
+        require(maxRange <= 255, "Bitmask: Range exceeds limit"); // Ensure max range is within 255
 
         uint256 count = 0;
         uint256 diff = bitmask1 & bitmask2; // Identify matching bits, is a bitmask with only the matching bits

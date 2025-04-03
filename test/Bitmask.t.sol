@@ -28,11 +28,19 @@ contract BitmaskTest is Test {
         uint256 bitmask = Bitmask.encodeBitmask(numbers);
         assertEq(bitmask, (1 << numbers[0]));
         uint256[] memory decodedNumbers = Bitmask.decodeBitmask(bitmask, 255);
-        assertEq(decodedNumbers.length, 1, "Decoded array length is incorrect");
-        assertEq(decodedNumbers[0], 255, "Decoded number is incorrect");
+        assertEq(
+            decodedNumbers.length,
+            1,
+            "Bitmask: Decoded array length is incorrect"
+        );
+        assertEq(
+            decodedNumbers[0],
+            255,
+            "Bitmask: Decoded number is incorrect"
+        );
         //test 256 should revert
         numbers[0] = 256;
-        vm.expectRevert("Number out of range");
+        vm.expectRevert("Bitmask: Number out of range");
         bitmask = Bitmask.encodeBitmask(numbers);
     }
 
@@ -57,11 +65,11 @@ contract BitmaskTest is Test {
 
     function testShouldRevertWhenMaxNumberIsLargerThan255() public {
         uint256 bitmask1 = (1 << 25);
-        vm.expectRevert("Max number exceeds limit");
+        vm.expectRevert("Bitmask: Max number exceeds limit");
         Bitmask.decodeBitmask(bitmask1, 256);
 
         uint256 bitmask2 = (1 << 24);
-        vm.expectRevert("Range exceeds limit");
+        vm.expectRevert("Bitmask: Range exceeds limit");
         Bitmask.countMatchingBits(bitmask1, bitmask2, 256);
     }
 
