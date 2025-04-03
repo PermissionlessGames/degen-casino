@@ -2,17 +2,48 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import "../src/libraries/Bitmask.sol"; // Adjust the path if necessary
+import "../src/libraries/Bitmask.sol";
+
+contract BitmaskWrapper {
+    using Bitmask for uint256;
+
+    function encodeBitmask(
+        uint256[] memory numbers
+    ) external pure returns (uint256) {
+        return Bitmask.encodeBitmask(numbers);
+    }
+
+    function decodeBitmask(
+        uint256 bitmask,
+        uint256 maxNumber
+    ) external pure returns (uint256[] memory) {
+        return Bitmask.decodeBitmask(bitmask, maxNumber);
+    }
+
+    function countMatchingBits(
+        uint256 bitmask1,
+        uint256 bitmask2,
+        uint256 maxRange
+    ) external pure returns (uint256) {
+        return Bitmask.countMatchingBits(bitmask1, bitmask2, maxRange);
+    }
+}
 
 contract BitmaskTest is Test {
-    function testEncode() public pure {
+    BitmaskWrapper public wrapper;
+
+    function setUp() public {
+        wrapper = new BitmaskWrapper();
+    }
+
+    function testEncode() public {
         uint256[] memory numbers = new uint256[](3);
         numbers[0] = 0;
         numbers[1] = 3;
         numbers[2] = 5;
 
         uint256 expectedBitmask = (1 << 0) | (1 << 3) | (1 << 5);
-        uint256 actualBitmask = Bitmask.encodeBitmask(numbers);
+        uint256 actualBitmask = wrapper.encodeBitmask(numbers);
 
         assertEq(
             actualBitmask,
@@ -23,20 +54,21 @@ contract BitmaskTest is Test {
 
     function testEncodeShouldRevertWhenBitsAreLargerThen255() public {
         uint256[] memory numbers = new uint256[](1);
-        //test 256 should revert
         numbers[0] = 256;
-        vm.expectRevert("Bitmask: Number out of range");
-        Bitmask.encodeBitmask(numbers);
+        vm.expectRevert(
+            abi.encodeWithSelector(Bitmask.NumberOutOfRange.selector, 256)
+        );
+        wrapper.encodeBitmask(numbers);
     }
 
-    function testEncode256BitsAndDecode() public pure {
+    function testEncode256BitsAndDecode() public {
         uint256[] memory numbers = new uint256[](256);
         for (uint256 i = 0; i < 256; i++) {
             numbers[i] = i;
             assertEq(numbers[i], i, "Number is incorrect");
         }
-        uint256 bitmask = Bitmask.encodeBitmask(numbers);
-        uint256[] memory decodedNumbers = Bitmask.decodeBitmask(bitmask, 255);
+        uint256 bitmask = wrapper.encodeBitmask(numbers);
+        uint256[] memory decodedNumbers = wrapper.decodeBitmask(bitmask, 255);
         assertEq(
             decodedNumbers.length,
             numbers.length,
@@ -50,23 +82,27 @@ contract BitmaskTest is Test {
 
     function testShouldRevertWhenMaxNumberIsLargerThan255() public {
         uint256 bitmask1 = (1 << 25);
-        vm.expectRevert("Bitmask: Max number exceeds limit");
-        Bitmask.decodeBitmask(bitmask1, 256);
+        vm.expectRevert(
+            abi.encodeWithSelector(Bitmask.MaxNumberExceedsLimit.selector, 256)
+        );
+        wrapper.decodeBitmask(bitmask1, 256);
     }
 
     function testShouldRevertWhenMaxNumberIsLargerThan255CountMatchingBits()
         public
     {
         uint256 bitmask1 = (1 << 25);
-        vm.expectRevert("Bitmask: Max number exceeds limit");
-        Bitmask.countMatchingBits(bitmask1, bitmask1, 256);
+        vm.expectRevert(
+            abi.encodeWithSelector(Bitmask.RangeExceedsLimit.selector, 256)
+        );
+        wrapper.countMatchingBits(bitmask1, bitmask1, 256);
     }
 
-    function testDecode() public pure {
+    function testDecode() public {
         uint256 bitmask = (1 << 1) | (1 << 3) | (1 << 4); // Expect [1, 3, 4]
         uint256 maxNumber = 5;
 
-        uint256[] memory decodedNumbers = Bitmask.decodeBitmask(
+        uint256[] memory decodedNumbers = wrapper.decodeBitmask(
             bitmask,
             maxNumber
         );
@@ -77,12 +113,12 @@ contract BitmaskTest is Test {
         assertEq(decodedNumbers[2], 4, "Third decoded number is incorrect");
     }
 
-    function testCountMatchingBits() public pure {
+    function testCountMatchingBits() public {
         uint256 bitmask1 = (1 << 1) | (1 << 3) | (1 << 5); // [1, 3, 5]
         uint256 bitmask2 = (1 << 1) | (1 << 5) | (1 << 7); // [1, 5, 7]
 
         uint256 expectedMatches = 2; // Matches at positions 1 and 5
-        uint256 actualMatches = Bitmask.countMatchingBits(
+        uint256 actualMatches = wrapper.countMatchingBits(
             bitmask1,
             bitmask2,
             8
@@ -95,12 +131,12 @@ contract BitmaskTest is Test {
         );
     }
 
-    function testCountMatchingBitsWithZero() public pure {
+    function testCountMatchingBitsWithZero() public {
         uint256 bitmask1 = 0; // Empty bitmask
         uint256 bitmask2 = (1 << 1) | (1 << 3) | (1 << 5); // [1, 3, 5]
 
         uint256 expectedMatches = 0; // No matches since bitmask1 is empty
-        uint256 actualMatches = Bitmask.countMatchingBits(
+        uint256 actualMatches = wrapper.countMatchingBits(
             bitmask1,
             bitmask2,
             8

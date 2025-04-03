@@ -10,6 +10,11 @@ pragma solidity ^0.8.19;
  */
 
 library Combinatorics {
+    error FactorialUpperBoundsReached(uint256 n);
+    error ProductOverflow(uint256 from, uint256 to, uint256 i);
+    error NLessThanR(uint256 n, uint256 r);
+    error ImproperArgumentsForMatching(uint256 n, uint256 r, uint256 k);
+
     /**
      * @notice Calculates the factorial of a number.
      * @dev The largest factorial that can be calculated with uint256 is 57, anything larger will revert.
@@ -17,10 +22,9 @@ library Combinatorics {
      * @return nFactorial The factorial of the number.
      */
     function factorial(uint256 n) internal pure returns (uint256 nFactorial) {
-        require(
-            n < 58,
-            "Combinatorics: Factorial UpperBounds reached must be less then 57"
-        );
+        if (n >= 58) {
+            revert FactorialUpperBoundsReached(n);
+        }
 
         nFactorial = sequentialProduct(1, n);
     }
@@ -41,7 +45,7 @@ library Combinatorics {
         from = from == 0 ? 1 : from;
         for (uint256 i = from; i <= to; i++) {
             if (type(uint256).max / product < i) {
-                revert("Combinatorics: Product overflow");
+                revert ProductOverflow(from, to, i);
             }
             product = product * i;
         }
@@ -58,14 +62,11 @@ library Combinatorics {
         uint256 n,
         uint256 r
     ) internal pure returns (uint256 odds) {
-        //n!/(r!(n-r)!)
-        require(n > r, "COMBINATORICS: n must be greater than r");
-        require(r > 0, "COMBINATORICS: r must be greater than 0");
+        if (n <= r) {
+            revert NLessThanR(n, r);
+        }
         uint256 p = (n - r) + 1;
-        //n!/(n-r)! saves minor gas through algebra it'll calculate from (n-r+1) -> n
-        //C(10,5) = 10!/5!5! = (6*7*8*9*10)/5! = 30240/120 = 252
         odds = sequentialProduct(p, n);
-        //if r is 1 then it'll still return 1!
         odds = odds / sequentialProduct(2, r);
     }
 
@@ -80,9 +81,10 @@ library Combinatorics {
         uint256 n,
         uint256 r
     ) internal pure returns (uint256 odds) {
-        require(n > r, "COMBINATORICS: n must be greater than r");
-        require(r > 0, "COMBINATORICS: r must be greater than 0");
-        //P(n,r) = n!/(n-r)!
+        if (n <= r) {
+            revert NLessThanR(n, r);
+        }
+
         odds = sequentialProduct(n - r + 1, n);
     }
 
@@ -99,14 +101,9 @@ library Combinatorics {
         uint256 r,
         uint256 k
     ) internal pure returns (uint256 odds) {
-        require(
-            k <= r && n > r,
-            "COMBINATORICS: Improper arguments for matching"
-        );
-        require(
-            n - r >= r - k,
-            "COMBINATORICS: Improper arguments for matching"
-        );
+        if (k > r || n <= r || n - r < r - k) {
+            revert ImproperArgumentsForMatching(n, r, k);
+        }
 
         uint256 crk = combination(r, k);
         uint256 cn_rr_k = combination(n - r, r - k);

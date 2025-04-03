@@ -10,6 +10,10 @@ pragma solidity ^0.8.19;
  */
 
 library Bitmask {
+    error NumberOutOfRange(uint256 number);
+    error MaxNumberExceedsLimit(uint256 maxNumber);
+    error RangeExceedsLimit(uint256 range);
+
     /**
      * @notice Encodes an array of numbers into a single bitmask.
      * @dev The numbers must be between 0 and 255.
@@ -20,10 +24,9 @@ library Bitmask {
         uint256[] memory numbers
     ) internal pure returns (uint256 bitmask) {
         for (uint256 i = 0; i < numbers.length; i++) {
-            require(
-                numbers[i] >= 0 && numbers[i] <= 255,
-                "Bitmask: Number out of range"
-            );
+            if (numbers[i] > 255) {
+                revert NumberOutOfRange(numbers[i]);
+            }
             bitmask |= (1 << (numbers[i]));
         }
     }
@@ -39,7 +42,9 @@ library Bitmask {
         uint256 bitmask,
         uint256 maxNumber
     ) internal pure returns (uint256[] memory numbers) {
-        require(maxNumber <= 255, "Bitmask: Max number exceeds limit");
+        if (maxNumber > 255) {
+            revert MaxNumberExceedsLimit(maxNumber);
+        }
         uint256 count;
         for (uint256 i = 0; i <= maxNumber; i++) {
             if ((bitmask & (1 << i)) != 0) {
@@ -69,7 +74,9 @@ library Bitmask {
         uint256 bitmask2,
         uint256 maxRange
     ) internal pure returns (uint256) {
-        require(maxRange <= 255, "Bitmask: Range exceeds limit"); // Ensure max range is within 255
+        if (maxRange > 255) {
+            revert RangeExceedsLimit(maxRange);
+        }
 
         uint256 count = 0;
         uint256 diff = bitmask1 & bitmask2; // Identify matching bits, is a bitmask with only the matching bits
