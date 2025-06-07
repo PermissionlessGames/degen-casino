@@ -801,11 +801,11 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             if (prize > 0) {
                 _transferPrize(prize, player, typeOfPrize);
                 _updateWinners(player, prize, prizeIndex);
+                emit Award(player, prize);
+                delete LastSpinBoosted[player];
+                delete LastSpinBlock[player];
             }
         }
-        emit Award(player, prize);
-        delete LastSpinBoosted[player];
-        delete LastSpinBlock[player];
     }
 
     /// This is the function a player calls to accept the outcome of a spin.
