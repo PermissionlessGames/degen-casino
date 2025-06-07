@@ -231,6 +231,14 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     event DailyStreak(address indexed player, uint256 day);
     /// Fired when a player continues a weekly streak.
     event WeeklyStreak(address indexed player, uint256 week);
+    /// Fired when a player approves a delegate to act on their behalf.
+    event DelegationApproved(
+        address indexed player,
+        address indexed delegate,
+        uint256 timeApprovedFor
+    );
+    /// Fired when a player revokes a delegate to act on their behalf.
+    event DelegationRevoked(address indexed player, address indexed delegate);
 
     /// Signifies that the player is no longer able to act because too many blocks elapsed since their
     /// last action.
@@ -244,7 +252,11 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     // Signifies that Prize transfer has failed
     error FailedPrizeTransfer();
     /// Signifies that the player's delegation has expired.
-    error TimeApprovedForExpired(address indexed player, address indexed delegate, uint256 timeApprovedTill);
+    error TimeApprovedForExpired(
+        address degenerate,
+        address delegate,
+        uint256 timeApprovedTill
+    );
 
     function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
         return
@@ -330,9 +342,16 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         }
     }
 
-    function _enforceDelegation(address degenerate, address delegate) internal view {
-        if (TimeApprovedFor[degenerate, delegate] < block.timestamp) {
-            revert TimeApprovedForExpired(degenerate, delegate, TimeApprovedFor[degenerate, delegate]);
+    function _enforceDelegation(
+        address degenerate,
+        address delegate
+    ) internal view {
+        if (TimeApprovedFor[degenerate][delegate] < block.timestamp) {
+            revert TimeApprovedForExpired(
+                degenerate,
+                delegate,
+                TimeApprovedFor[degenerate][delegate]
+            );
         }
     }
 
@@ -999,18 +1018,24 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         return "1";
     }
 
-    function approveDelegation(address delegate, uint256 timeApprovedFor) external {
-        if (timeApprovedFor < block.timestamp) {
-            revert TimeApprovedForInThePast();
-        }
+    function approveDelegation(
+        address delegate,
+        uint256 timeApprovedFor
+    ) external {
         _approveDelegation(msg.sender, delegate, timeApprovedFor);
     }
 
-    function _approveDelegation(address caller, address delegate, uint256 timeApprovedFor) internal {
-        TimeApprovedFor[caller, delegate] = timeApprovedFor;
+    function _approveDelegation(
+        address caller,
+        address delegate,
+        uint256 timeApprovedFor
+    ) internal {
+        TimeApprovedFor[caller][delegate] = timeApprovedFor;
+        emit DelegationApproved(caller, delegate, timeApprovedFor);
     }
 
     function revokeDelegation(address delegate) external {
-        delete TimeApprovedFor[msg.sender, delegate];
+        delete TimeApprovedFor[msg.sender][delegate];
+        emit DelegationRevoked(msg.sender, delegate);
     }
 }
