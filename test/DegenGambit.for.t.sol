@@ -177,6 +177,39 @@ contract DegenGambitTest is Test {
         assertEq(playerBalanceFinal, playerBalanceInitial - costToSpin);
     }
 
+    function test_spincost_returns_respin_after_non_winning_accept() public {
+        vm.roll(block.number + blocksToAct + 1);
+
+        uint256 gameBalanceInitial = address(degenGambit).balance;
+        uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player1);
+
+        // First spin
+        vm.expectEmit();
+        emit Spin(player2, false);
+        degenGambit.spinFor{value: costToSpin}(player2, player2, false);
+
+        // Set entropy to ensure no win (all zeros)
+        degenGambit.setEntropyFromOutcomes(0, 0, 0, player2, false);
+
+        vm.roll(block.number + 1);
+
+        // Accept the outcome
+        degenGambit.acceptFor(player2);
+
+        // Check spinCost returns respin value
+        assertEq(degenGambit.spinCost(player2), costToRespin);
+
+        vm.stopPrank();
+
+        uint256 gameBalanceFinal = address(degenGambit).balance;
+        uint256 playerBalanceFinal = player1.balance;
+
+        assertEq(gameBalanceFinal, gameBalanceInitial + costToSpin);
+        assertEq(playerBalanceFinal, playerBalanceInitial - costToSpin);
+    }
+
     // Entropy was constructed using the generate_outcome_tests() method in the Degen Gambit game design notebook.
     function test_spinfor_2_2_2_0_false_large_pot_acceptfor() public {
         vm.roll(block.number + blocksToAct + 1);
