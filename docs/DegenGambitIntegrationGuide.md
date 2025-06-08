@@ -323,6 +323,74 @@ For weekly streaks:
 2. If `LastStreakWeek` increased by 1, the player has extended a streak and received `WeeklyStreakReward()` `GAMBIT` tokens.
 3. If `LastStreakWeek` increased by more than 1, the player has started a new streak and has not received any `GAMBIT` reward. They will receive `WeeklyStreakReward()` `GAMBIT` tokens if they `spin` again next weekand their `CurrentWeeklyStreakLength` will increase by 1.
 
+## Delegation Functionality
+
+The `DegenGambit` contract includes a delegation system that allows players to authorize other addresses to act on their behalf. This is particularly useful for:
+- Allowing trusted third parties to manage a player's spins
+- Enabling automated systems to handle spins and accepts
+- Supporting social features where friends can play for each other
+
+### Approving Delegation
+
+To authorize another address to act on your behalf, use the `approveDelegation` function:
+
+```solidity
+    // Selector: 8f283970
+    function approveDelegation(address delegate, uint256 approvedTime) external;
+```
+
+Parameters:
+- `delegate`: The address that will be authorized to act on your behalf
+- `approvedTime`: The timestamp until which the delegation is valid (must be greater than the current block timestamp)
+
+Example usage:
+```solidity
+// Approve delegation for 1 hour
+uint256 oneHourFromNow = block.timestamp + 3600;
+degenGambit.approveDelegation(delegateAddress, oneHourFromNow);
+```
+
+### Revoking Delegation
+
+To revoke a delegation before it expires, use the `revokeDelegation` function:
+
+```solidity
+    // Selector: 0f7e5977
+    function revokeDelegation(address delegate) external;
+```
+
+### Checking Delegation Status
+
+To check if a delegation is valid, use the `TimeApprovedFor` mapping:
+
+```solidity
+    // Selector: 0f7e5977
+    function TimeApprovedFor(address delegator, address delegate) external view returns (uint256);
+```
+
+This returns:
+- `0` if no delegation exists
+- The timestamp until which the delegation is valid if it exists
+
+### Delegated Actions
+
+Once a delegation is approved, the delegate can perform the following actions on behalf of the delegator:
+- `spinFor`: Spin the slot machine
+- `acceptFor`: Accept the outcome of a spin
+
+Note that all delegated actions will fail if:
+1. The delegation has expired (current timestamp > approvedTime)
+2. The delegation has been revoked
+3. The delegator has not approved the delegate
+
+### Best Practices for Delegation
+
+1. Always set a reasonable expiration time for delegations
+2. Regularly check and revoke unused delegations
+3. Use the minimum necessary delegation time for your use case
+4. Consider implementing a system to automatically revoke delegations after use
+5. Monitor for any unexpected delegation approvals
+
 ## Debugging with DevDegenGambit
 
 Interacting with a `DevDegenGambit` smart contract:
