@@ -1,5 +1,5 @@
 # DegenGambit
-[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/b808123f0397994524175902914cdc9e3317ef49/src/DegenGambit.sol)
+[Git Source](https://github.com/PermissionlessGames/degen-casino/blob/ecbb26f92ab23f67d85c0608a948f904425e52d8/src/DegenGambit.sol)
 
 **Inherits:**
 ERC20, ReentrancyGuard
@@ -319,6 +319,15 @@ mapping(address => uint256) public CurrentWeeklyStreakLength;
 ```
 
 
+### TimeApprovedFor
+The time at which a given player approved a given delegate to act on their behalf.
+
+
+```solidity
+mapping(address => mapping(address => uint256)) public TimeApprovedFor;
+```
+
+
 ### Prize0Winner
 
 ```solidity
@@ -537,6 +546,13 @@ function _enforceTick(address degenerate) internal view;
 
 ```solidity
 function _enforceDeadline(address degenerate) internal view;
+```
+
+### _enforceDelegation
+
+
+```solidity
+function _enforceDelegation(address degenerate, address delegate) internal view;
 ```
 
 ### _entropy
@@ -816,6 +832,8 @@ function inspectOutcome(address degenerate)
 
 ### symbol
 
+symbol pure function that returns a string with the symbol of the contract
+
 
 ```solidity
 function symbol() public view override returns (string memory);
@@ -828,6 +846,27 @@ version pure function that returns a string with version
 
 ```solidity
 function version() external pure virtual returns (string memory);
+```
+
+### approveDelegation
+
+
+```solidity
+function approveDelegation(address delegate, uint256 timeApprovedFor) external;
+```
+
+### _approveDelegation
+
+
+```solidity
+function _approveDelegation(address caller, address delegate, uint256 timeApprovedFor) internal;
+```
+
+### revokeDelegation
+
+
+```solidity
+function revokeDelegation(address delegate) external;
 ```
 
 ## Events
@@ -861,6 +900,22 @@ Fired when a player continues a weekly streak.
 
 ```solidity
 event WeeklyStreak(address indexed player, uint256 week);
+```
+
+### DelegationApproved
+Fired when a player approves a delegate to act on their behalf.
+
+
+```solidity
+event DelegationApproved(address indexed player, address indexed delegate, uint256 timeApprovedFor);
+```
+
+### DelegationRevoked
+Fired when a player revokes a delegate to act on their behalf.
+
+
+```solidity
+event DelegationRevoked(address indexed player, address indexed delegate);
 ```
 
 ## Errors
@@ -901,5 +956,13 @@ error OutcomeOutOfBounds();
 
 ```solidity
 error FailedPrizeTransfer();
+```
+
+### TimeApprovedForExpired
+Signifies that the player's delegation has expired.
+
+
+```solidity
+error TimeApprovedForExpired(address degenerate, address delegate, uint256 timeApprovedTill);
 ```
 

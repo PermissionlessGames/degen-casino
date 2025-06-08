@@ -28,6 +28,7 @@ contract DegenGambitTest is Test {
 
     uint256 player1PrivateKey = 0x13371;
     address player1 = vm.addr(player1PrivateKey);
+    address player2 = vm.addr(player1PrivateKey + 1);
 
     // Events for testing
     event Spin(address indexed player, bool indexed bonus);
@@ -35,6 +36,15 @@ contract DegenGambitTest is Test {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event DailyStreak(address indexed player, uint256 day);
     event WeeklyStreak(address indexed player, uint256 week);
+    event DelegationApproved(
+        address indexed delegator,
+        address indexed delegate,
+        uint256 approvedTime
+    );
+    event DelegationRevoked(
+        address indexed delegator,
+        address indexed delegate
+    );
 
     function setUp() public {
         degenGambit = new DevDegenGambit(blocksToAct, costToSpin, costToRespin);
@@ -1277,7 +1287,7 @@ contract DegenGambitTest is Test {
 
         // Create test players
         address player0 = address(0x0101);
-        address player2 = address(0x2);
+
         address player3 = address(0x3);
         address player4 = address(0x4);
         address player5 = address(0x5);
@@ -1286,6 +1296,35 @@ contract DegenGambitTest is Test {
 
         // Fund player1 call for all players
         vm.deal(player1, costToSpin * 10);
+
+        vm.startPrank(player0);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player3);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player4);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player5);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player6);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player7);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
         vm.startPrank(player1);
         // Segment 1: Spin for all players
         degenGambit.spinFor{value: costToSpin}(player0, player0, false);
@@ -1466,7 +1505,7 @@ contract DegenGambitTest is Test {
         assertEq(degenGambit.Prize2LastWonTimestamp(), block.timestamp);
 
         // Second player wins the same prize (three 2s - 50x prize)
-        address player2 = address(0x2);
+
         vm.deal(player2, costToSpin);
         vm.startPrank(player2);
         vm.expectEmit();
@@ -1484,5 +1523,49 @@ contract DegenGambitTest is Test {
         assertEq(degenGambit.Prize2Winner(), player2);
         assertEq(degenGambit.Prize2WonAmount(), payout2);
         assertEq(degenGambit.Prize2LastWonTimestamp(), block.timestamp);
+    }
+
+    function test_approveDelegation_sets_time_approved_for() public {
+        uint256 approvalTime = block.timestamp + 1000;
+
+        vm.startPrank(player1);
+        degenGambit.approveDelegation(player2, approvalTime);
+        vm.stopPrank();
+
+        assertEq(degenGambit.TimeApprovedFor(player1, player2), approvalTime);
+    }
+
+    function test_approveDelegation_emits_event() public {
+        uint256 approvalTime = block.timestamp + 1000;
+
+        vm.startPrank(player1);
+        vm.expectEmit();
+        emit DelegationApproved(player1, player2, approvalTime);
+        degenGambit.approveDelegation(player2, approvalTime);
+        vm.stopPrank();
+    }
+
+    function test_revokeDelegation_removes_approval() public {
+        uint256 approvalTime = block.timestamp + 1000;
+
+        vm.startPrank(player1);
+        degenGambit.approveDelegation(player2, approvalTime);
+        assertEq(degenGambit.TimeApprovedFor(player1, player2), approvalTime);
+
+        degenGambit.revokeDelegation(player2);
+        assertEq(degenGambit.TimeApprovedFor(player1, player2), 0);
+        vm.stopPrank();
+    }
+
+    function test_revokeDelegation_emits_event() public {
+        uint256 approvalTime = block.timestamp + 1000;
+
+        vm.startPrank(player1);
+        degenGambit.approveDelegation(player2, approvalTime);
+
+        vm.expectEmit();
+        emit DelegationRevoked(player1, player2);
+        degenGambit.revokeDelegation(player2);
+        vm.stopPrank();
     }
 }

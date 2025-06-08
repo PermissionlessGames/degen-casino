@@ -196,6 +196,9 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// The length of the current weekly streak the made by a given player. This is for weekly streak length.
     mapping(address => uint256) public CurrentWeeklyStreakLength;
 
+    /// The time at which a given player approved a given delegate to act on their behalf.
+    mapping(address => mapping(address => uint256)) public TimeApprovedFor;
+
     address public Prize0Winner;
     address public Prize1Winner;
     address public Prize2Winner;
@@ -228,6 +231,14 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     event DailyStreak(address indexed player, uint256 day);
     /// Fired when a player continues a weekly streak.
     event WeeklyStreak(address indexed player, uint256 week);
+    /// Fired when a player approves a delegate to act on their behalf.
+    event DelegationApproved(
+        address indexed player,
+        address indexed delegate,
+        uint256 timeApprovedFor
+    );
+    /// Fired when a player revokes a delegate to act on their behalf.
+    event DelegationRevoked(address indexed player, address indexed delegate);
 
     /// Signifies that the player is no longer able to act because too many blocks elapsed since their
     /// last action.
@@ -240,6 +251,12 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     error OutcomeOutOfBounds();
     // Signifies that Prize transfer has failed
     error FailedPrizeTransfer();
+    /// Signifies that the player's delegation has expired.
+    error TimeApprovedForExpired(
+        address degenerate,
+        address delegate,
+        uint256 timeApprovedTill
+    );
 
     function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
         return
@@ -322,6 +339,22 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     function _enforceDeadline(address degenerate) internal view {
         if (_blockNumber() > LastSpinBlock[degenerate] + BlocksToAct) {
             revert DeadlineExceeded();
+        }
+    }
+
+    function _enforceDelegation(
+        address degenerate,
+        address delegate
+    ) internal view {
+        if (
+            TimeApprovedFor[degenerate][delegate] < block.timestamp &&
+            degenerate != delegate
+        ) {
+            revert TimeApprovedForExpired(
+                degenerate,
+                delegate,
+                TimeApprovedFor[degenerate][delegate]
+            );
         }
     }
 
@@ -842,6 +875,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
             uint256 prize
         )
     {
+        _enforceDelegation(player, msg.sender);
         (left, center, right, remainingEntropy, prize) = _accept(player);
     }
 
@@ -931,6 +965,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         address streakPlayer,
         bool boost
     ) external payable {
+        _enforceDelegation(spinPlayer, msg.sender);
         _spin(spinPlayer, streakPlayer, boost, msg.value);
     }
 
@@ -971,6 +1006,7 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         (prize, typeOfPrize, ) = payout(left, center, right);
     }
 
+    /// symbol pure function that returns a string with the symbol of the contract
     function symbol() public view override returns (string memory) {
         bytes32 hash = keccak256(abi.encodePacked(address(this)));
         // Convert to uint256 and take modulus 10^4
@@ -983,5 +1019,26 @@ contract DegenGambit is ERC20, ReentrancyGuard {
     /// version pure function that returns a string with version
     function version() external pure virtual returns (string memory) {
         return "1";
+    }
+
+    function approveDelegation(
+        address delegate,
+        uint256 timeApprovedFor
+    ) external {
+        _approveDelegation(msg.sender, delegate, timeApprovedFor);
+    }
+
+    function _approveDelegation(
+        address caller,
+        address delegate,
+        uint256 timeApprovedFor
+    ) internal {
+        TimeApprovedFor[caller][delegate] = timeApprovedFor;
+        emit DelegationApproved(caller, delegate, timeApprovedFor);
+    }
+
+    function revokeDelegation(address delegate) external {
+        delete TimeApprovedFor[msg.sender][delegate];
+        emit DelegationRevoked(msg.sender, delegate);
     }
 }

@@ -56,6 +56,10 @@ contract DegenGambitTest is Test {
 
         uint256 cost = degenGambit.spinCost(player1);
 
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
         vm.startPrank(player1);
 
         vm.expectRevert(DegenGambit.InsufficientValue.selector);
@@ -76,6 +80,10 @@ contract DegenGambitTest is Test {
 
         uint256 cost = degenGambit.spinCost(player1);
 
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
         vm.startPrank(player1);
 
         degenGambit.spinFor{value: 2 * cost}(player2, player2, false);
@@ -94,6 +102,10 @@ contract DegenGambitTest is Test {
 
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
 
         vm.startPrank(player1);
 
@@ -125,6 +137,10 @@ contract DegenGambitTest is Test {
 
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
 
         vm.startPrank(player1);
 
@@ -158,6 +174,10 @@ contract DegenGambitTest is Test {
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
 
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
         vm.startPrank(player1);
 
         vm.expectEmit();
@@ -182,6 +202,10 @@ contract DegenGambitTest is Test {
 
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
 
         vm.startPrank(player1);
 
@@ -219,6 +243,10 @@ contract DegenGambitTest is Test {
 
         uint256 gameBalanceInitial = address(degenGambit).balance;
         uint256 playerBalanceInitial = player1.balance;
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
 
         vm.startPrank(player1);
 
@@ -273,6 +301,10 @@ contract DegenGambitTest is Test {
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player2);
 
         uint256 dailyStreakReward = degenGambit.DailyStreakReward();
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
 
         vm.startPrank(player1);
 
@@ -330,6 +362,10 @@ contract DegenGambitTest is Test {
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player2);
 
         uint256 dailyStreakReward = degenGambit.DailyStreakReward();
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
 
         vm.startPrank(player1);
 
@@ -394,6 +430,10 @@ contract DegenGambitTest is Test {
         uint256 playerGambitBalanceInitial = degenGambit.balanceOf(player1);
 
         uint256 dailyStreakReward = degenGambit.DailyStreakReward();
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
 
         vm.startPrank(player1);
 
@@ -462,6 +502,10 @@ contract DegenGambitTest is Test {
 
         uint256 weeklyStreakReward = degenGambit.WeeklyStreakReward();
 
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
         vm.startPrank(player1);
 
         vm.expectEmit();
@@ -519,6 +563,10 @@ contract DegenGambitTest is Test {
 
         uint256 weeklyStreakReward = degenGambit.WeeklyStreakReward();
 
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
         vm.startPrank(player1);
 
         vm.expectEmit();
@@ -566,5 +614,78 @@ contract DegenGambitTest is Test {
             playerGambitBalanceFinal,
             playerGambitBalanceIntermediate + weeklyStreakReward
         );
+    }
+
+    function test_spinfor_fails_when_delegation_expired() public {
+        // First approve delegation with a short expiry
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp + 1);
+        vm.stopPrank();
+
+        // Move time forward past expiry
+        vm.warp(block.timestamp + 2);
+
+        // Try to spin for player2 after expiry
+        vm.startPrank(player1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DegenGambit.TimeApprovedForExpired.selector,
+                player2,
+                player1,
+                block.timestamp - 1
+            )
+        );
+        degenGambit.spinFor{value: costToSpin}(player2, player2, false);
+        vm.stopPrank();
+    }
+
+    function test_acceptfor_fails_when_delegation_expired() public {
+        // First spin as player2
+        vm.startPrank(player2);
+        degenGambit.spin{value: costToSpin}(false);
+        vm.stopPrank();
+
+        // Approve delegation with a short expiry
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp + 1);
+        vm.stopPrank();
+
+        // Move time forward past expiry
+        vm.warp(block.timestamp + 2);
+
+        // Try to accept for player2 after expiry
+        vm.startPrank(player1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DegenGambit.TimeApprovedForExpired.selector,
+                player2,
+                player1,
+                block.timestamp - 1
+            )
+        );
+        degenGambit.acceptFor(player2);
+        vm.stopPrank();
+    }
+
+    function test_spinfor_succeeds_with_renewed_delegation() public {
+        // First approve delegation with a short expiry
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp + 1);
+        vm.stopPrank();
+
+        // Move time forward past expiry
+        vm.warp(block.timestamp + 2);
+
+        // Renew delegation
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp + 1000);
+        vm.stopPrank();
+
+        // Try to spin for player2 with renewed delegation
+        vm.startPrank(player1);
+        vm.expectEmit();
+        emit Spin(player2, false);
+        degenGambit.spinFor{value: costToSpin}(player2, player2, false);
+        vm.stopPrank();
     }
 }
