@@ -1286,6 +1286,35 @@ contract DegenGambitTest is Test {
 
         // Fund player1 call for all players
         vm.deal(player1, costToSpin * 10);
+
+        vm.startPrank(player0);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player2);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player3);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player4);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player5);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player6);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
+        vm.startPrank(player7);
+        degenGambit.approveDelegation(player1, block.timestamp * 2);
+        vm.stopPrank();
+
         vm.startPrank(player1);
         // Segment 1: Spin for all players
         degenGambit.spinFor{value: costToSpin}(player0, player0, false);

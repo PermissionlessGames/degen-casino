@@ -346,7 +346,10 @@ contract DegenGambit is ERC20, ReentrancyGuard {
         address degenerate,
         address delegate
     ) internal view {
-        if (TimeApprovedFor[degenerate][delegate] < block.timestamp) {
+        if (
+            TimeApprovedFor[degenerate][delegate] < block.timestamp &&
+            degenerate != delegate
+        ) {
             revert TimeApprovedForExpired(
                 degenerate,
                 delegate,
